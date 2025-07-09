@@ -368,9 +368,9 @@ class Tokenizer {
         }
         if (varName) { this.addVariable(variables, varName, varStart) }
 
-        if (tokenBytes.length < this.maxLineLength) {
-            tokenBytes.splice(2, 0, 32)
-        }
+        // if (tokenBytes.length < this.maxLineLength) {
+        //     tokenBytes.splice(2, 0, 32)
+        // }
 
         const byteArray = new Uint8Array(tokenBytes.length)
         for (let i = 0; i < tokenBytes.length; i++) {

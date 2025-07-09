@@ -90,6 +90,13 @@ class D64 {
     static DOSType = [ 50, 65 ] // "2A"
     static fileTypes = ['DEL', 'SEQ', 'PRG', 'USR', 'REL']
     static maxBlocks = 664 // discSize * 256 - 19 (track 18 sectors)
+    static idCharacters = [
+        // 32, 33, 35, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, // symbols 
+        48, 49, 50, 51, 52, 53, 54, 55, 56, 57, // numbers
+        // 58, 59, 60, 61, 62, 63, 64, // more symbols
+        65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, // letters
+        // 91, 92, 93, // even more symbols
+    ]
 
     constructor(file) {
         this.discImageArray = []
@@ -412,7 +419,9 @@ class D64 {
         discPointer += 16
         this.discImageArray[discPointer++] = 0xA0 // padding
         this.discImageArray[discPointer++] = 0xA0
-        const id = [ Math.floor(Math.random()*256), Math.floor(Math.random()*256) ]  // Disk ID
+        const id1 = D64.idCharacters[Math.floor(Math.random() * D64.idCharacters.length)]
+        const id2 = D64.idCharacters[Math.floor(Math.random() * D64.idCharacters.length)]
+        const id = [ id1, id2 ]  // Disk ID
         this.discImageArray[discPointer] = id[0]
         this.discImageArray[discPointer+1] = id[1]
         this.discId = this.readName(discPointer, 2, false)
