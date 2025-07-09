@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>edcbm</title>
+  <link rel="stylesheet" href="/style.css"/>
+  <!-- Monaco Editor loader from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+</head>
+<body>
+  <div id="menu">
+    <div id="blocker"></div>
+    edcbm: 
+    <input inert id="fname" type="text" readonly maxlength="16" placeholder="PRG NAME"/><span id="fnamedrop" tabindex="0">&#x25BC;</span>
+    <ul id="fnamemenu">
+      <li>NEW</li>
+      <li class="disabled">RENAME</li>
+      <li><label for="loadprg">LOAD PRG</label><input id="loadprg" type="file"/></li>
+      <li>LOAD FROM DISC</li>
+      <li class="disabled">SAVE PRG</li>
+      <li class="disabled">SAVE TO DISC</li>
+    </ul>
+    ON
+    <input inert id="dname" type="text" readonly maxlength="16" placeholder="D64 NAME"/><span id="dnamedrop" tabindex="0">&#x25BC;</span>
+    <ul id="dnamemenu">
+      <li>NEW</li>
+      <li class="disabled">RENAME</li>
+      <li class="disabled">CATALOG</li>
+      <li><label for="loadd64">LOAD D64</label><input id="loadd64" type="file"/></li>
+      <li class="disabled">SAVE D64</li>
+    </ul>
+    <button id="mode-c64">C64</button>
+    <button id="mode-c128">C128</button>
+    <button id="dark-mode">DARK</button>
+    <button id="clean">CLEAN-UP</button>
+  </div>
+  <div id="container"></div>
+  <div id="catalog">
+    <h2>0 <span></span></h2>
+    <ul></ul>
+  </div>
+  <script type="text/javascript" src="/editor.js"></script>
+  <script type="text/javascript" src="/d64.js"></script>
+  <script type="text/javascript" src="/toker.js"></script>
+  <script type="text/javascript" src="/script.js"></script>
+</body>
+</html>
