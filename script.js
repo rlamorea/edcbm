@@ -259,7 +259,7 @@ class Controls {
         let fileName = this.fileOptions.name().trim()
         if (fileName === '') { return }
         fileName += '.EPRG'
-        const content = "`` SA:" + this.startAddr.toString() + '\n' + window.editor.getProgram()
+        const content = "`` SA:" + this.startAddress.toString() + '\n' + window.editor.getProgram()
         const blob = new Blob([content], { type: 'text/plain' })
         const link = document.createElement('a')
         link.href = URL.createObjectURL(blob)
@@ -377,7 +377,8 @@ class Controls {
         this.fileOptions.setName(fileInfo.name)
 
         let fileIdx = 0
-        this.startAddr = this.readWord(fileData, fileIdx)
+        this.startAddress = this.readWord(fileData, fileIdx)
+        if (this.startAddress === 0) { this.startAddress = Controls.programStartAddress[this.mode] }
         fileIdx += 2
         let program = ''
         while (fileIdx < fileData.length) {

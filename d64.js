@@ -223,6 +223,12 @@ class D64 {
         this.setBAM(track, sector)
     }
 
+    updateNextSector(track, sector, nextTrack, nextSector) {
+        let writeAddr = D64.trackOffsets[track] + (sector * 256)
+        this.discImageArray[writeAddr++] = nextTrack
+        this.discImageArray[writeAddr++] = nextSector
+    }
+
     // NOTE: we're doing a hard erase, wiping the sector data as well as BAM
     clearSector(track, sector) {
         this.writeSector(track, sector, new Uint8Array(254))
@@ -231,10 +237,10 @@ class D64 {
 
     getNextOpenSector(currentTrack, currentSector, interleave = D64.fileInterleave, originalTrack = 0) {
         if (originalTrack === 0) { originalTrack = currentTrack }
+        const maxSectors = D64.trackSectors[currentTrack]
         const offset = D64.trackOffsets[18] + 0x04 * currentTrack
         const sectorsTried = {}
         let seeks = 0
-        const maxSectors = D64.trackSectors[currentTrack]
         while (seeks < maxSectors) {
             // offset by one to deal with 18-track case where interleave overlaps
             if (sectorsTried[currentSector]) { currentSector += 1 }
@@ -443,7 +449,9 @@ class D64 {
             throw new Error('Cannot write to unloaded disc')
         }
         // determine if fileName is new or existing
+        this.getCatalog()
         for (let idx = 0; idx < this.catalog.length; idx++) {
+            const file = this.getFileInfo(idx)
             if (file.name === fileName) {
                 return this.overwriteFileData(idx, fileBytes)
             }
@@ -456,12 +464,13 @@ class D64 {
         while (byteIndex < fileBytes.length) {
             const sectorBytes = fileBytes.slice(byteIndex, Math.min(byteIndex + 254, fileBytes.length))
             byteIndex += 254
-            let nextTrack = 0
-            let nextSector = 0
+            this.writeSector(track, sector, sectorBytes)
             if (byteIndex < fileBytes.length) {
-                ;({ nextTrack, nextSector } = this.getNextOpenSector(track, sector))
+                const { track: nextTrack, sector: nextSector } = this.getNextOpenSector(track, sector)
+                this.updateNextSector(track, sector, nextTrack, nextSector)
+                track = nextTrack
+                sector = nextSector
             }
-            this.writeSector(track, sector, sectorBytes, nextTrack, nextSector)
             sectorCount += 1
         }
         this.addCatalogEntry(fileName, sectorCount, firstTrack, firstSector, 'PRG')
@@ -476,22 +485,26 @@ class D64 {
         let track = fileInfo.firstTrackOfFile
         let sector = fileInfo.firstSectorOfFile
         let sectorData = this.getSector(track, sector)
+        let addingSectors = false
         while (byteIndex < fileBytes.length) {
-            let nextTrack = sectorData.nextTrack
-            let nextSector = sectorData.nextSector
             const sectorBytes = fileBytes.slice(byteIndex, Math.min(byteIndex + 254, fileBytes.length))
             byteIndex += 254
-            if (byteIndex >= fileBytes.length) {
-                nextTrack = 0
-                nextSector = 0
-            } else if (nextTrack === 0) {
-                ;({ nextTrack, nextSector } = this.getNextOpenSector(track, sector))
-                addedSectors = true
-                sectorData = { nextTrack, nextSector }
-            } else {
-                sectorData = this.getSector(nextTrack, nextSector)
+            this.writeSector(track, sector, sectorBytes)
+            // determine next track/sector
+            let nextTrack = 0
+            let nextSector = 0
+            if (byteIndex < fileBytes.length) {
+                if (addingSectors || sectorData.nextTrack === 0) {
+                    addingSectors = true
+                    ;({ track: nextTrack, sector: nextSector } = this.getNextOpenSector(track, sector))
+                    this.updateNextSector(track,sector, nextTrack, nextSector)
+                    sectorData = { nextTrack, nextSector }
+                } else {
+                    nextTrack = sectorData.nextTrack
+                    nextSector = sectorData.nextSector
+                    sectorData = this.getSector(nextTrack, nextSector)
+                }
             }
-            this.writeSector(track, sector, sectorBytes, nextTrack, nextSector)
             track = nextTrack
             sector = nextSector
         }
