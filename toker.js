@@ -279,6 +279,7 @@ class Tokenizer {
 
     tokenizeLine(origLine) {
         let inQuote = false
+        let inData = false
         let variables = {}
         let { line, lineIdx } = this.trimLine(origLine)
         const specialCommentIndex = line.indexOf('`')
@@ -312,15 +313,27 @@ class Tokenizer {
         // parse the line by quotes
         let varName = null
         let varStart = 0
-        for (let linesplit of line.split(/(")/)) {
+        for (let linesplit of line.split(/("|:|DATA)/)) {
             if (linesplit === '"') {
 ``               ;({ varName, varStart} = this.addVariable(variables, varName, varStart))
                 inQuote = !inQuote
                 tokenBytes.push(D64.petsciiLookup['"'])
                 lineIdx += 1
                 continue
+            } else if (linesplit === ':') {
+                inData = false
+                ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
+                tokenBytes.push(58) // ':'
+                lineIdx += 1
+                continue
+            } else if (linesplit === 'DATA') {
+                inData = true
+                ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
+                tokenBytes.push(131) // 'DATA'
+                lineIdx += 4
+                continue
             }
-            let lineTokens = inQuote ? [] : linesplit.match(this.tokenRegex)
+            let lineTokens = (inQuote || inData) ? [] : linesplit.match(this.tokenRegex)
             let nextToken = (lineTokens && lineTokens.length > 0) ? lineTokens.shift() : null
             while (linesplit.length > 0) {
                 if (nextToken && linesplit.startsWith(nextToken)) {
