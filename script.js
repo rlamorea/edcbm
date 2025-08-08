@@ -153,10 +153,12 @@ class NameMenu {
 class Controls {
     static programStartAddress = {
         'c128' : 0x1c01,
-        'c64' : 0x0801
+        'c64' : 0x0801,
     }
 
     constructor() {
+        // TODO: machine menu
+        // TODO: palette menu
         this.c64Button = document.getElementById('mode-c64')
         this.c128Button = document.getElementById('mode-c128')
         this.darkMode = false
@@ -304,7 +306,7 @@ class Controls {
         this.catalog.style.display = 'block'
         this.blocker.style.display = 'block'
         this.blockShutdown = () => { this.catalog.style.display = 'none' }
-        if (this.catalogRendered) { return }
+        if (this.catalogRendered && this.currentDisc.catalogLoaded) { return }
 
         const dnameEl = this.catalog.querySelector('h2 span')
         let dname = this.currentDisc.discName.padEnd(16) + ' '

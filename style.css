@@ -44,7 +44,8 @@ html, body {
     font-family: cbm64;
     position: fixed;
     top: 0;
-    height: 20px;
+    height: 25px;
+    vertical-align: middle;
     width: 100%;
     line-height: 19px;
     z-index: 5;
@@ -60,10 +61,12 @@ body.c64 { background: var(--foregnd-c64); }
 }
 body.c128 { background: var(--foregnd-c128); }
 
+#menu svg { vertical-align: middle; }
+
 #menu button {
     font-family: sans-serif;
     font-size: 9pt;
-    margin: 0 5px;
+    margin: 2px 5px;
     padding: 0 5px;
     float: right;
     border-radius: 6px;
@@ -81,6 +84,15 @@ body.c128 { background: var(--foregnd-c128); }
     background: var(--backgnd-dark);
     color: var(--foregnd);
 }
+
+#menu #palette svg { display: none; }
+#menu #palette.custom svg.custom { display: inline; }
+#menu #palette.dark svg.dark { display: inline; }
+#menu #palette.cbm svg.cbm { display: inline; }
+
+#menu #server svg { display: none; }
+#menu #server.connected svg.connected { display: inline; }
+#menu #server.disconnected svg.disconnected { display: inline; }
 
 #menu input[type=text] {
     border: none;
@@ -129,8 +141,9 @@ body.c128 { background: var(--foregnd-c128); }
     color: var(--backgnd);
 }
 #menu ul li input[type=file] { display: none; }
-#menu #fnamemenu { left: 7em; }
-#menu #dnamemenu { left: 28.5em; }
+#menu #machinemenu { left: 5.6em; }
+#menu #fnamemenu { left: 12em; }
+#menu #dnamemenu { left: 38.5em; }
 
 .c128 #menu ul li:hover, .c128 #menu span.active {
     background: var(--backgnd-c128);
@@ -167,7 +180,7 @@ body.c128 { background: var(--foregnd-c128); }
 
 #container {
     width: 98vw;
-    height: calc(99vh - 20px);
+    height: calc(99vh - 25px);
     margin-top: 20px;
     margin-left: 1vw;
 }

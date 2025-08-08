@@ -197,7 +197,6 @@ class Editor {
         [ /(`|rem).*/, 'comment' ],
         [ new RegExp('(\\+|\\-|\\/|\\*|\uE01E|\\<|\\=|\\>|AND|OR|NOT)'), 'operator' ],
         // we will insert keywords here
-        // we will insert special (documented) variables here dynamically
         [ /[a-z][a-z0-9]*[$%]?/, {
             cases: {
                 '@keywords' : 'keyword',
