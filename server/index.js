@@ -13,5 +13,5 @@ app.post('connect-vice', (req, res) => {
 // Start the server
 app.listen(port, () => {
     console.log(`Express app listening at http://localhost:${port}`)
-    vice.launchVice('c128')
+    vice.launchVice('plus4')
 })

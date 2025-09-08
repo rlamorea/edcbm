@@ -51,7 +51,7 @@ class Editor {
             'KeyA': '\uE070',
             'KeyB': '\uE07F',
             'KeyC': '\uE07C',
-            'KeyD': '\uE064',
+            'KeyD': '\uE06C',
             'KeyE': '\uE071',
             'KeyF': '\uE07B',
             'KeyG': '\uE065',
@@ -90,16 +90,20 @@ class Editor {
             'ArrowDown': '\uE091',
             'KeyB': '\uE082',
             'KeyC': '\uE083',
+            'KeyE': '\uE071', // duplicating ALT-E for Mac
+            'KeyF': '\uE072', // duplicating ALT-I for Mac
             'KeyG': '\uE087',
             'KeyH': '\uE088',
             'KeyI': '\uE089',
             'KeyJ': '\uE08A',
             'KeyK': '\uE08B',
             'KeyL': '\uE08C',
+            'KeyM': '\uE06A', // duplicating Alt-N for Mac
             'KeyN': '\uE08E',
             'KeyO': '\uE08F',
             'KeyS': '\uE093',
             'KeyT': '\uE094',
+            'KeyU': '\uE078', // duplicating ALt-U for Mac
             'KeyX': '\uE098',
             'BracketLeft': '\uE09B',
         },
@@ -133,13 +137,23 @@ class Editor {
         }
     }
 
+    static diacriticals = [
+        0xa8,
+        0xb4,
+        0x2c6,
+        0x2d6,
+        0x60,
+    ]
+
     static editorConfig = {
         brackets: [ [ '(', ')' ] ],
-    // colorizedBracketPairs: [ [ '(', ')' ]],
     }
 
     static reserved = {
         'v2': [ 'ST', 'TI', 'TI$' ],
+        'v3.5': [ 'DS', 'DS$', 'EL', 'ER' ],
+        'v4': [ 'DS', 'DS$' ],
+        'v4+': [ 'EL' ],
         'v7': [ 'DS', 'DS$', 'EL', 'ER' ]
     }
 
@@ -154,7 +168,7 @@ class Editor {
             'IF', 'INPUT', 'INPUT#', 'INT', 
             'LEFT$', 'LEN', 'LET', 'LIST', 'LOAD', 'LOG',
             'MID$',
-            'NEW', 'NEXT', 'NOT',
+            'NEW', 'NEXT',
             'ON', 'OPEN',
             'PEEK', 'POKE', 'POS', 'PRINT', 'PRINT#', 
             'READ', 'REM', 'RESTORE', 'RETURN', 'RIGHT$', 'RND', 'RUN', 
@@ -163,6 +177,46 @@ class Editor {
             'USR',
             'VAL', 'VERIFY',
             'WAIT',
+        ],
+        'v3.5': [
+            'AUTO', 
+            'BACKUP', 'BOX',
+            'CHAR', 'CIRCLE', 'COLLECT', 'COLOR', 'COPY', 
+            'DEC', 'DELETE', 'DIRECTORY', 'DLOAD', 'DO', 'DRAW', 'DSAVE', 
+            'ELSE', 'ERR$', 'EXIT', 
+            'GETKEY', 'GRAPHIC', 'GSHAPE', 
+            'HEADER', 'HELP', 'HEX$',
+            'INSTR', 
+            'JOY', 
+            'KEY',
+            'LOCATE', 'LOOP',
+            'MONITOR', 
+            'PAINT', 'PUDEF',
+            'RCLR', 'RDOT', 'RENAME', 'RENUMBER', 'RESUME', 'RGR', 'RLUM', 
+            'SCALE', 'SCNCLR', 'SOUND', 'SSHAPE',
+            'TRAP', 'TROFF', 'TRON',
+            'UNTIL', 'USING',
+            'VOL',
+            'WHILE',
+        ],
+        'v4': [
+            'APPEND', 
+            'BACKUP', 
+            'CATALOG', 'COLLECT', 'CONCAT', 'COPY', 
+            'DCLOSE', 'DIRECTORY', 'DLOAD', 'DOPEN', 'DSAVE', 
+            'RECORD', 'RENAME', 
+            'SCRATCH', 
+        ],
+        'v4+': [
+            'BANK', 'BLOAD', 'BSAVE', 
+            'DCLEAR', 'DELETE', 'DISPOSE', 
+            'ELSE', 'ERR$', 'ESC', 
+            'INSTR', 
+            'KEY', 
+            'PUDEF', 
+            'RESUME', 
+            'TRAP', 
+            'USING', 
         ],
         'v7': [
             'APPEND', 'AUTO', 
@@ -205,125 +259,48 @@ class Editor {
         } ],
         // we will insert reserved variables here
         [ /[+-]?\d*\.?\d+(e?[+-]?\d+)?/, 'number' ],
+        [ /\uE05E/, 'number' ], // pi
         [ /".*?("|$)/, 'string' ],
         [ /[\(\)]/, 'paren' ],
     ]
 
-    static themeColors = {
-        'v2': {
-            'base': 'vs',
-            'background': '#4555D6',
-            'foreground': '#8E9AFF',
-            'linenumber': '#FFFFFF',
-            'operator': '#83BAF1',
-            'reserved': '#FF7070',
-            'special': '#FF7070', // TODO: find another color
-            'keyword': '#E6C300',
-            'variable': '#00ECF0',
-            'string': '#E6C300',
-            'comment': '#A9A9A9',
-            'number': '#B6ECBC',
-            'parens': '#FFFFFF',
-        },
-        'v7': {
-            'base': 'vs',
-            'background': '#777777',
-            'foreground': '#CDFFAC',
-            'linenumber': '#FFFFFF',
-            'operator': '#85FF33',
-            'reserved': '#FF8F8F',
-            'special': '#FF8F8F', // TODO: find another color
-            'keyword': '#CDFFAC',
-            'variable': '#00F080',
-            'string': '#E1FF00',
-            'comment': '#BDBDBD',
-            'number': '#9EE6DA',
-            'parens': '#F5FFF5',
-        },
-        'dark': {
-            'base': 'vs-dark',
-            'background': '#000000',
-            'foreground': '#DDDDDD',
-            'linenumber': '#FFFFFF',
-            'operator': '#C7C7C7',
-            'reserved': '#FF4242',
-            'special': '#FF4242', // TODO: find another color
-            'keyword': '#DDDDDD',
-            'variable': '#00D3D6',
-            'string': '#D6B600',
-            'comment': '#A3A3A3',
-            'number': '#58D5B6',
-            'parens': '#FAEBD7',
-        }
-    }
     static headerStart = '`` EPRG HEADER START'
     static headerEnd = '`` EPRG HEADER END'
+    static themes = {}
 
     static {
-        this.theme = {}
-        // list of color options: https://github.com/microsoft/monaco-editor/issues/1631
-        for (const machine in this.themeColors) {
-            const baseTheme = this.themeColors[machine]
-            this.theme[machine] = {
-                base: baseTheme.base,
-                inherit: true,
-                rules: [
-                    { token: 'linenumber', foreground: baseTheme.linenumber },
-                    { token: 'operator', foreground: baseTheme.operator },
-                    { token: 'reserved', foreground: baseTheme.reserved },
-                    { token: 'special', foreground: baseTheme.special },
-                    { token: 'keyword', foreground: baseTheme.keyword },
-                    { token: 'variable', foreground: baseTheme.variable },
-                    { token: 'string', foreground: baseTheme.string },
-                    { token: 'comment', foreground: baseTheme.comment },
-                    { token: 'number', foreground: baseTheme.number },
-                    { token: 'parens', foreground: baseTheme.parens },
-                ],
-                colors: {
-                    'editor.background': baseTheme.background,
-                    'editor.foreground': baseTheme.foreground,
-                    'editorCursor.foreground': baseTheme.foreground,
-                    'editorBracketHighlight.foreground1': baseTheme.foreground,
-                    'editorBracketHighlight.foreground2': baseTheme.foreground,
-                    'editorBracketHighlight.foreground3': baseTheme.foreground,
-                    'editorBracketHighlight.foreground4': baseTheme.foreground,
-                    'editorBracketHighlight.foreground5': baseTheme.foreground,
-                    'editorBracketHighlight.foreground6': baseTheme.foreground,
-                }
-            }
-        }
-
+        this.reserved['v3.5'] = [ ...this.reserved['v2'], ...this.reserved['v3.5'] ]
         this.reserved['v7'] = [ ...this.reserved['v2'], ...this.reserved['v7'] ]
         this.keywords['v7'] = [ ...this.keywords['v2'], ...this.keywords['v7'] ]
+        this.reserved['v4'] = [ ...this.reserved['v2'], ...this.reserved['v4'] ]
+        this.reserved['v4+'] = [ ...this.reserved['v4'], ...this.reserved['v4+'] ]
 
         this.language = {}
-        for (const machine in this.keywords) {
-            this.language[machine] = {
-                keywords: this.keywords[machine],
+        for (const version in this.keywords) {
+            this.language[version] = {
+                keywords: this.keywords[version],
                 ignoreCase: true,
-                tokenizer: {
-                    root: []
-                }
+                tokenizer: { root: [] }
             }
             for (const def of this.languageRoot) {
-                this.language[machine].tokenizer.root.push(def)
+                this.language[version].tokenizer.root.push(def)
             }
-            const keywords = this.keywords[machine].map((k) => k.replace('$', '\\$'))
-            this.language[machine].tokenizer.root.splice(5, 0, [ new RegExp(`(${keywords.join('|')})`), 'keyword' ])
-            const reserved = this.reserved[machine].map((r) => r.replace('$', '\\$'))
-            this.language[machine].tokenizer.root.splice(6, 0, [ new RegExp(`(${reserved.join('|')})`), 'reserved' ])
+            const keywords = this.keywords[version].map((k) => k.replace('$', '\\$'))
+            this.language[version].tokenizer.root.splice(5, 0, [ new RegExp(`(${keywords.join('|')})`), 'keyword' ])
+            const reserved = this.reserved[version].map((r) => r.replace('$', '\\$'))
+            this.language[version].tokenizer.root.splice(6, 0, [ new RegExp(`(${reserved.join('|')})`), 'reserved' ])
         }
     }
+    static monacoSetUp = false
 
     setUpMonaco() {
-        for (const machine in Editor.keywords) {
-            const id = `${machine}basic`
+        if (Editor.monacoSetUp) { return }
+        Editor.monacoSetUp = true
+        for (const version in Editor.keywords) {
+            const id = `${version}basic`
             monaco.languages.register({ id })
             monaco.languages.setLanguageConfiguration(id, Editor.editorConfig)
-            monaco.languages.setMonarchTokensProvider(id, Editor.language[machine])
-        }
-        for (const theme in Editor.themeColors) {
-            monaco.editor.defineTheme(`${theme}theme`, Editor.theme[theme])
+            monaco.languages.setMonarchTokensProvider(id, Editor.language[version])
         }
     }
 
@@ -331,8 +308,8 @@ class Editor {
         this.setUpMonaco()
         this.editor = monaco.editor.create(document.getElementById('container'), {
             language: 'v7basic',
-            theme: 'v7theme',
-            fontFamily: 'cbm128-80',
+            theme: 'vs-dark',
+            fontFamily: 'cbmthick-40',
             fontSize: 16,
             automaticLayout: true,
             lineNumbers: false,
@@ -344,7 +321,6 @@ class Editor {
             overviewRulerLanes: 0,
             hideCursorInOverviewRuler: true,
             overviewRulerBorder: false,
-            cursorStyle: 'underline',
             renderLineHighlight: 'none',
             letterSpacing: `${this.letterSpacing}px`,
             scrollBeyondLastLine: false,
@@ -355,11 +331,12 @@ class Editor {
             cursorStyle: 'block',
         })
         document.fonts.ready.then(() => {
-            monaco.editor.remeasureFonts();
-        });        
+            monaco.editor.remeasureFonts()
+        })
 
         this.maximumLineLength = 160
         this.editor.onKeyDown((key) => { this.keyDown(key) })
+
         //this.editor.onDidChangeModelContent((e) => { this.modelChanged(e) })
         this.editor.addCommand(monaco.KeyCode.Enter, (accessor) => {
             this.processLine()
@@ -370,21 +347,46 @@ class Editor {
         this.notations = {}
     }
 
-    setMode(mode, darkMode) {
-        let theme = 'v7theme'
-        let font = 'cbm128-80'
-        if (mode === 'c64') {
-            theme = 'v2theme'
-            monaco.editor.setModelLanguage(this.editor.getModel(), 'v2basic')
-            this.maximumLineLength = 80
-            font = 'cbm64'
-        } else if (mode === 'c128') {
-            monaco.editor.setModelLanguage(this.editor.getModel(), 'v7basic')
-            this.maximumLineLength = 160
+    generateEditorTheme(name, colors) {
+        const theme = {
+            base: colors.base,
+            inherit: true,
+            rules: [
+                { token: 'linenumber', foreground: colors.linenumber },
+                { token: 'operator', foreground: colors.operator },
+                { token: 'reserved', foreground: colors.reserved },
+                { token: 'special', foreground: colors.special },
+                { token: 'keyword', foreground: colors.keyword },
+                { token: 'variable', foreground: colors.variable },
+                { token: 'string', foreground: colors.string },
+                { token: 'comment', foreground: colors.comment },
+                { token: 'number', foreground: colors.number },
+                { token: 'parens', foreground: colors.parens },
+            ],
+            colors: {
+                'editor.background': colors.background,
+                'editor.foreground': colors.foreground,
+                'editorCursor.foreground': colors.foreground,
+                'editorBracketHighlight.foreground1': colors.foreground,
+                'editorBracketHighlight.foreground2': colors.foreground,
+                'editorBracketHighlight.foreground3': colors.foreground,
+                'editorBracketHighlight.foreground4': colors.foreground,
+                'editorBracketHighlight.foreground5': colors.foreground,
+                'editorBracketHighlight.foreground6': colors.foreground,
+            }
         }
-        if (darkMode) { theme = 'darktheme' }
-        monaco.editor.setTheme(theme)
-        this.editor.updateOptions({ fontFamily: font })
+        monaco.editor.defineTheme(`${name}theme`, theme)
+    }
+
+    setMachine(machine) {
+        const version = `${machine.language || 'v2'}basic`
+        monaco.editor.setModelLanguage(this.editor.getModel(), version)
+    }
+
+    setTheme(name, font) {
+        monaco.editor.setTheme(`${name}theme`)
+        this.editor.updateOptions({ fontFamily: font || 'cbmthick-40' })
+        setTimeout(() => { monaco.editor.remeasureFonts() }, 25)
     }
 
     setProgram(program) {

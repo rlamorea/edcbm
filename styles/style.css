@@ -1,0 +1,338 @@
+@font-face { font-family: cbmthick-40; src: url(../fonts/PetMe128.ttf); font-variant-ligatures: none; }
+@font-face { font-family: cbmthick-80; src: url(../fonts/PetMe1282Y.ttf); }
+@font-face { font-family: cbmthin-22; src: url(../fonts/PetMe2X.ttf); }
+@font-face { font-family: cbmthin-40; src: url(../fonts/PetMe.ttf); }
+@font-face { font-family: cbmthin-80; src: url(../fonts/PetMe2Y.ttf); }
+@font-face { font-family: mono-code; src: url(../fonts/0xProtoNFM-Regular.ttf); size-adjust: 120%; }
+
+:root {
+    --menu-border: #444444; /* this is background for the main menu */
+    --menu-border-strong: black;
+    --menu-foreground: #dddddd;
+    --menu-foreground-strong: white;
+    --menu-foreground-weak: #aaaaaa;
+
+    --dialog-border: '#444444';
+    --dialog-foreground: '#dddddd';
+    --dialog-background: black;
+
+    --menu-font: 'cbmthick-40', monospace;
+
+    --button-background: #dddddd;
+    --button-background-hover: #e8e8e8;
+
+    --blocker-color: rgba(0,0,0,0.25);
+
+    --special-background: #222222;
+    --special-foreground: darkgoldenrod;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: var(--menu-border);
+    color: var(--menu-foreground);
+}
+
+#blocker {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--blocker-color);
+    display: none;
+    z-index: 10;
+}
+
+#menu {
+    font-family: var(--menu-font);
+    color: var(--menu-foreground);
+    background: var(--menu-border);
+    text-transform: uppercase;
+    font-size: 14px;
+    position: fixed;
+    vertical-align: top;
+    top: 0;
+    height: 25px;
+    line-height: 25px;
+    width: 100%;
+    z-index: 5;
+}
+#menu h1 {
+    margin: 0;
+    padding: 0;
+    font-family: cbmthick-40;
+    font-size: 14px;
+    display: inline-block;
+}
+
+#menu svg { vertical-align: middle; }
+
+#menu button, #paletteeditor button {
+    font-family: sans-serif;
+    font-size: 15px;
+    min-height: 20px;
+    margin: 3px 5px;
+    padding: 0 5px;
+    float: right;
+    border-radius: 6px;
+    border: solid 1px var(--menu-foreground-strong);
+    background: var(--button-background);
+    color: black;
+    cursor: pointer;
+}
+#menu button:disabled, #menu button:disabled:hover,
+#paletteeditor button:disabled, #paletteeditor button:disabled:hover {
+    opacity: 0.5;
+    cursor: default;
+    background: var(--button-background);
+    color: black;
+}
+#menu button:hover, #paletteeditor button:hover {
+    background: var(--button-background-hover);
+    color: var(--menu-foreground-strong);
+}
+
+#menu input[type=text] {
+    border: none;
+    margin: 0;
+    padding: 3px;
+    font-size: 14px;
+    background: var(--menu-border-strong);
+    color: var(--menu-foreground);
+    width: 16em;
+    font-family: var(--menu-font);
+}
+#menu input[readonly] { color: var(--menu-foreground-weak); }
+#menu input::placeholder { font-style: italic; }
+
+#menu .drop {
+    cursor: pointer;
+    opacity: 60%;
+    padding-right: 1px;
+    display: inline-block;
+    z-index: 20;
+}
+#menu .drop svg {
+    fill: var(--menu-foreground);
+}
+#menu .drop.active {
+    background: var(--menu-foreground);
+    color: var(--menu-border);
+}
+#menu .drop.active svg {
+    fill: var(--menu-border)
+}
+#menu .drop:hover {
+    opacity: 1;
+}
+
+#menu ul {
+    position: fixed;
+    z-index: 20;
+    top: 25px;
+    margin: 0;
+    border: solid 1px var(--menu-foreground);
+    padding: 0.25em;
+    width: 17em;
+    background: var(--menu-border);
+    color: var(--menu-foreground);
+}
+#menu ul li {
+    list-style-type: none;
+    cursor: pointer;
+}
+#menu ul li:hover {
+    background: var(--menu-foreground);
+    color: var(--menu-border);
+}
+#menu ul li input[type=file] { display: none; }
+#menu ul li.disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+#menu ul li.disabled:hover {
+    opacity: 0.5;
+    background: inherit !important;
+    color: inherit !important;
+}
+
+#menu #machine {
+    display: inline-block;
+    width: 5em;
+}
+
+#menu #machinemenu { left: 5.6em; }
+#menu #fnamemenu { left: 14.5em; }
+#menu #dnamemenu { left: 41.25em; }
+#menu #palettemenu { left: unset; right: 0; }
+
+#menu #palette svg { display: none; }
+#menu #palette.custom svg.custom { display: inline; }
+#menu #palette.dark svg.dark { display: inline; }
+#menu #palette.lite svg.lite { display: inline; }
+#menu #palette.cbm svg.cbm { display: inline; }
+
+#menu #server svg { display: none; }
+#menu #server.connected svg.connected { display: inline; }
+#menu #server.disconnected svg.disconnected { display: inline; }
+
+#container {
+    width: 98vw;
+    height: calc(99vh - 25px);
+    margin-top: 25px;
+    margin-left: 1vw;
+}
+
+#catalog {
+    z-index: 20;
+    font-family: var(--menu-font);
+    font-size: 16px;
+    position: fixed;
+    width: 28em;
+    padding: 1em;
+    border: solid 1em var(--dialog-border);
+    height: 70vh;
+    overflow-y: auto;
+    top: 15vh;
+    left: calc(50vw - 14em);
+    color: var(--dialog-foreground);
+    background: var(--dialog-background);
+}
+#catalog h2 {
+    padding: 0;
+    margin: 0;
+    font-size: 16px;
+}
+#catalog h2 span { white-space: pre; }
+#catalog ul {
+    padding: 0;
+    margin: 0;
+}
+#catalog ul li { 
+    list-style: none; 
+    white-space: pre;  
+    cursor: pointer;
+}
+#catalog h2 span, #disc ul li:hover {
+    color: var(--dialog-background);
+    background: var(--dialog-foreground);
+}
+
+#paletteeditor {
+    z-index: 20;
+    font-family: var(--menu-font);
+    font-size: 12px;
+    position: fixed;
+    width: 30em;
+    padding: 0;
+    border: solid 0.5em var(--dialog-border);
+    height: auto;
+    top: 10vh;
+    left: calc(50vw - 15em);
+    color: var(--dialog-foreground);
+    background: var(--dialog-background);
+    display: block;
+    text-transform: uppercase;
+    display: none;
+}
+#paletteeditor h2 {
+    margin: 0;
+    padding: 1px 0;
+    font-size: 16px;
+    color: var(--dialog-background);
+    background: var(--dialog-foreground);
+}
+#paletteeditor h3 {
+    margin: 0;
+    padding: 0.25em 0 0 0.5em;
+    font-size: 14px;
+    border-bottom: solid 1px var(--dialog-border);
+    font-family: 'cbmthick-40' !important;
+}
+#paletteeditor .grid .elem {
+    display: block;
+    border: solid 1px transparent;
+    padding: 4px 0;
+    text-align: center;
+    cursor: pointer;
+}
+#paletteeditor .grid .elem select {
+    appearance: base-select;
+    border: none;
+    padding: 0;
+    margin: 0 0 -13px 0;
+    width: calc(100% - 7em);
+    height: 80%;
+    background: none;
+    color: var(--dialog-foreground);
+    font-family: var(--menu-font);
+    font-size: 12px;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+::picker(select) {
+    appearance: base-select;
+    border: solid 1px var(--dialog-border);
+    padding: 3px;
+    background: var(--dialog-background);
+    color: var(--dialog-foreground);
+}
+#paletteeditor .grid .elem select:focus {
+    outline: none;
+    border-radius: 0;
+}
+#paletteeditor .grid .elem option::checkmark { 
+    font-family: cbmthick-40;
+}
+#paletteeditor .grid .elem option[value=cbmthick-40] { font-family: cbmthick-40; }
+#paletteeditor .grid .elem option[value=cbmthick-80] { font-family: cbmthick-80; }
+#paletteeditor .grid .elem option[value=cbmthin-40] { font-family: cbmthin-40; }
+#paletteeditor .grid .elem option[value=cbmthin-80] { font-family: cbmthin-80; }
+#paletteeditor .grid .elem option[value=cbmthin-22] { font-family: cbmthin-22; }
+#paletteeditor .grid .elem option[value=mono-code] { font-family: mono-code; }
+
+#paletteeditor .grid .elem select:has(option[value=cbmthick-40]:checked) { font-family: cbmthick-40; }
+#paletteeditor .grid .elem select:has(option[value=cbmthick-80]:checked) { font-family: cbmthick-80; }
+#paletteeditor .grid .elem select:has(option[value=cbmthin-40]:checked) { font-family: cbmthin-40; }
+#paletteeditor .grid .elem select:has(option[value=cbmthin-80]:checked) { font-family: cbmthin-80; }
+#paletteeditor .grid .elem select:has(option[value=cbmthin-22]:checked) { 
+    font-family: cbmthin-22; 
+    white-space: nowrap;
+    overflow: hidden;   
+    width: calc(100% - 14em);
+}
+#paletteeditor .grid .elem select:has(option[value=mono-code]:checked) { font-family: mono-code; }
+
+#paletteeditor .grid .elem input[type=color]  {
+    margin: 0;
+    border: none;
+    padding: 0;
+    width: 0;
+    height: 0;
+}
+
+#paletteeditor .grid .elem:hover {
+    border-color: var(--dialog-foreground);
+}
+#paletteeditor .actions {
+    border-top: solid 1px var(--dialog-border);
+    padding: 4px 0.5em;
+    text-align: right;
+}
+
+.force-petscii {
+    font-family: cbmthick-80;
+    font-size: 12px;
+}
+
+.special-variable {
+    font-family: monospace;
+    font-size: 10pt;
+    background: var(--special-background);
+    border-radius: 4px;
+    color: var(--special-foreground) !important;
+}

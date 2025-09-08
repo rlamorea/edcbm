@@ -1,5 +1,5 @@
 import net from 'net'
-import { ViceCommand, ViceResponse } from './viceDebugger.js'
+import { ViceCommand, ViceResponse, boolval } from './viceDebugger.js'
 import { spawn } from 'child_process'
 
 // TODO: remove the default here
@@ -8,11 +8,14 @@ const VICE_DEFAULT_PORT = 6502
 const RETRY_DELAY = 2000 // 2 seconds
 const MAX_RETRIES = 5
 const VICE_DEBUG = true
+const DEFAULT_STARTUP_DELAY = 250
+const DEFAULT_COMMAND_DELAY = 100
 
 export class ViceConnection {
     static machines = {
         'c128': { 
             launcher: 'x128', 
+            startupDelay: 500,
             check: { addresses: [ 0x41cf, 0x41d2 ], values: [ 0x56, 0x37, 0x2e, 0x30] },
             exec: { break: 0x4b41, lookup: [ 0x3b, 0x3e] },
             startOfBasic: 0x2d          
@@ -24,14 +27,14 @@ export class ViceConnection {
             startOfBaskc: 0x2b
         },
         'c16': { 
-            launcher: 'xplus4', args: '--model c16',
-            check: { addresses: [ 0x80df, 0x80e4 ], values: [ 0x56, 0x33, 0x2e, 0x35, 0x20, 0x31 ] },
+            launcher: 'xplus4', args: [ '--model', 'c16' ],
+            check: { addresses: [ 0x80df, 0x80e3 ], values: [ 0x56, 0x33, 0x2e, 0x35, 0x20 ] },
             exec: { break: 0x8c27, lookup: [ 0x39, 0x3c ] },
             startOfBasic: 0x2b
          },
         'plus4': { 
-            launcher: 'xplus4', args: '--model plus4',
-            check: { addresses: [ 0x80df, 0x8fe4 ], values: [ 0x56, 0x33, 0x2e, 0x35, 0x20, 0x36 ] },
+            launcher: 'xplus4', args: [ '--model', 'plus4' ],
+            check: { addresses: [ 0x80df, 0x80e3 ], values: [ 0x56, 0x33, 0x2e, 0x35, 0x20 ] },
             exec: { break: 0x8c27, lookup: [ 0x39, 0x3c ] },
             startOfBasic: 0x2b
         },
@@ -42,20 +45,23 @@ export class ViceConnection {
             startOfBasic: 0x2b
         },
         'petgr': { 
-            launcher: 'xpet', args: '--model 3032',
+            launcher: 'xpet', args: [ '--model', '3032' ],
+            startupDelay: 2000,
             check: { addresses: [ 0xe1d2, 0xe1d4 ], values: [ 0x42, 0x41, 0x53 ] },
             exec: { break: 0xc702, lookup: [ 0x36, 0x78 ] },
             startOfBasic: 0x28
          },
         'petb': { 
-            launcher: 'xpet', args: '--model 8032', 
-            check: { addresses: [ 0xdab8, 0xdabb ], values: [ 0x56, 0x34, 0x2e, 0x30 ] },
+            launcher: 'xpet', args: [ '--model', '8032' ], 
+            startupDelay: 2000,
+            check: { addresses: [ 0xdeb8, 0xdeba ], values: [ 0x34, 0x2e, 0x30 ] },
             exec: { break: 0xb787, lookup: [ 0x36, 0x78 ] },
             startOfBasic: 0x28
         },
-        'b128': {
+        'cbm2': {
             launcher: 'xcbm2',
-            check: { addresses: [ 0xbb96, 0xbb98 ], values: [ 0x31, 0x32, 0x38 ] },
+            startupDelay: 1000,
+            check: { addresses: [ 0xbb96, 0xbb98 ], bank: 17, values: [ 0x31, 0x32, 0x38 ] },
             exec: { break: 0x87aa, lookup: [ 0x42, 0x86 ] },
             startOfBasic: 0x2d, // NOTE: always in bank ram01
         }
@@ -102,16 +108,18 @@ export class ViceConnection {
         }
         this.machine = machine
         const launcher = machineData.launcher
-        let args = [ '--binarymonitor' ] // TODO: add port later
+        let args = []
+        if (machineData.args) {
+            args.push(...machineData.args)
+        }
+        args.push('--binarymonitor')
         if (this.port !== VICE_DEFAULT_PORT) {
             args.push('--binarymonitoraddress', `ip4://localhost:${this.port}`)
-        }
-        if (machineData.args) {
-            args.push(machineData.args) // for now a single string because all use cases are that
         }
         if (this.diskPath) {
             args.push('--8', this.diskPath)
         }
+        console.log('Spawning:', `${this.viceRoot}/${launcher} ${args.join(' ')}`)
         this.viceProcess = spawn(`${this.viceRoot}/${launcher}`, args)
         this.viceProcessRunning = false
         this.viceProcess.stdout.on('data', (data) => {
@@ -120,6 +128,8 @@ export class ViceConnection {
                 console.log('vice process stdout:', dstr)
             }
             this.closed = false
+            this.startupDelay = machineData.startupDelay || DEFAULT_STARTUP_DELAY
+            this.commandDelay = machineData.commandDelay || DEFAULT_COMMAND_DELAY
             this.establishConnection()
             resolve(true)
         })
@@ -166,9 +176,9 @@ export class ViceConnection {
 
             this.viceSocket = net.createConnection({ host: 'localhost', port: this.port }, () => {
                 this.retry = 0
-                this.viceSocket.on('data', (data) => { this.processIncomingData(data) })
-                this.checkConnection()
+                setTimeout(() => { this.checkConnection() }, this.startupDelay)
             })
+            this.viceSocket.on('data', (data) => { this.processIncomingData(data) })
             this.viceSocket.on('close', () => {
                 console.log('VICE connection closed')
                 this.connected = false
@@ -193,7 +203,8 @@ export class ViceConnection {
     issueCommand(command, callback = null) {
         this.commands.push({ command, callback })
         if (this.connected && this.expectedResponse === null) {
-            this.executeCommand()
+            this.expectedResponse = command.responseByte()
+            setTimeout(() => this.executeCommand(), this.commandDelay)
         }
     }
 
@@ -201,6 +212,7 @@ export class ViceConnection {
         if (this.commands.length === 0) { return }
         const { command, callback } = this.commands.shift()
         this.expectedResponse = command.responseByte()
+        console.log('executing command:', this.expectedResponse, 'expecting', this.expectedResponse)
         this.currentCallback = callback
         this.viceSocket.write(Buffer.from(command.bytes()))
     }
@@ -210,7 +222,8 @@ export class ViceConnection {
         this.connected = true
         this.issueCommand(new ViceCommand('memget', {
             startAddress: check.addresses[0],
-            endAddress: check.addresses[1]
+            endAddress: check.addresses[1],
+            bankId: check.bank || 0
         }), (response) => {
             const memory = response.response().memory
             if (memory.length !== check.values.length) {
@@ -228,7 +241,20 @@ export class ViceConnection {
             console.log(`VICE machine ${this.machine} confirmed`)
             this.connected = true
             if (this.commands.length > 0) { this.executeCommand() }
-            this.issueCommand(new ViceCommand('execrun'))
+        })
+        this.issueCommand(new ViceCommand('infopalette'), (r) => {
+            const p = r.response().colors
+            console.log('Palette is:')
+            for (let i = 0; i < p.length; i++) {
+                const c = p[i]
+                const cstr = `  ${i.toString().padStart(3)} - - #${c.red.toString(16).padStart(2,'0')}${c.green.toString(16).padStart(2,'0')}${c.blue.toString(16).padStart(2,'0')}`
+                console.log(cstr)
+            }
+        })
+        this.issueCommand(new ViceCommand('execrun'), () => {
+            console.log('================================')
+            console.log('You may now type in the emulator')
+            console.log('================================')
         })
         this.connected = false
     }
@@ -238,17 +264,21 @@ export class ViceConnection {
         try {
             const response = new ViceResponse(data)
             rb = response.responseByte()
-            if (response.type() === 'ping') {
-                console.log('VICE launched and able to be pinged')
-                this.confirmMachine()
-                return
-            }
+            console.log('received response:', rb, 'expecting:', this.expectedResponse)
+            // if (response.type() === 'ping') {
+            //     console.log('VICE launched and able to be pinged')
+            //     return
+            // }
             if (rb === this.expectedResponse) {
+                this.expectedResponse = null
                 if (this.currentCallback) {
                     this.currentCallback(response)
                 }
-                this.expectedResponse = null
-                this.executeCommand()
+                setTimeout(() => { this.executeCommand() }, this.commandDelay)
+            } else if (!this.connected && rb === ViceResponse.responses.registers.responseByte) {
+                console.log('Recieved initial registers from VICE')
+                this.confirmMachine()
+                //this.issueCommand(new ViceCommand('execrun'))
             } else {
                 let responses = this.bufferedResponses[response.type] || []
                 responses.push(response)
