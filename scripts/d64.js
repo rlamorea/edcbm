@@ -200,6 +200,21 @@ class D64 {
         this.discImageArray[offset] = sectorsFree
     }
 
+    dumpBAM() {
+        console.log('BAM Dump:')
+        console.log('                      1    1    2 ')
+        console.log('Track Free   1...5....0....5....0.')
+        for (let track = 1; track <= 35; track++) {
+            const offset = D64.trackOffsets[18] + 0x04 * track
+            const sectorsFree = this.discImageArray[offset]
+            let sectorMap = this.discImageArray[offset + 1]
+            sectorMap += this.discImageArray[offset + 2] * 256
+            sectorMap += this.discImageArray[offset + 3] * 65536
+            console.log(`${track.toString().padEnd(6, ' ')}${sectorsFree.toString().padEnd(7)}${sectorMap.toString(2).padEnd(D64.trackSectors[track], '0')}`);
+        }
+        console.log('(done)')
+    }
+
     getSector(track, sector) {
         const startAddr = D64.trackOffsets[track] + (sector * 256)
         const data = this.discImageArray.slice(startAddr + 2, startAddr + 256)
@@ -217,8 +232,12 @@ class D64 {
             fullData.set(data)
             data = fullData
         }
-        this.discImageArray[writeAddr++] = nextTrack
-        this.discImageArray[writeAddr++] = nextSector
+        if (nextTrack >= 0) {
+            this.discImageArray[writeAddr++] = nextTrack
+            this.discImageArray[writeAddr++] = nextSector
+        } else {
+            writeAddr += 2
+        }
         this.discImageArray.set(data, writeAddr)
         this.setBAM(track, sector)
     }
@@ -286,6 +305,7 @@ class D64 {
                 this.discImageArray[fileOffset++] = fsl
                 this.discImageArray[fileOffset++] = fsh
                 this.catalogLoaded = false
+                this.catalog = []
                 return
             }
             fileOffset += 32
@@ -320,6 +340,8 @@ class D64 {
         this.discId = this.readName(discPointer + 0xA2, 2, false)
         // get DOS
         this.discDOS = this.readName(discPointer + 0xA5, 2, false)
+
+        this.dumpBAM()
     }
 
     nameDisc(name) {
@@ -362,6 +384,9 @@ class D64 {
                 firstTrackOfFile: fft,
                 firstSectorOfFile: ffs,
                 fileSize: fb,
+                catalogTrack: track,
+                catalogSector: sector,
+                catalogIndex: fileIndex
             })
         }
         return this.getCatalog(sector, track, fileIndex + 1, nextSector, nextTrack)
@@ -382,11 +407,13 @@ class D64 {
     getFileData(catalogIndex) {
         if (catalogIndex < 0 || catalogIndex >= this.catalog.length) { return null }
         const entry = this.catalog[catalogIndex]
+        console.log('Reading file data for', entry.name)
 
         let nextTrack = entry.firstTrackOfFile
         let nextSector = entry.firstSectorOfFile
         let data = new Uint8Array()
         while(nextTrack != 0) {
+            console.log(` - Track ${nextTrack.toString().padEnd(4, ' ')} Sector ${nextSector.toString().padEnd(4, ' ')}`)
             const sectorContent = this.getSector(nextTrack, nextSector)
             nextTrack = sectorContent.nextTrack
             nextSector = sectorContent.nextSector
@@ -395,6 +422,7 @@ class D64 {
             c.set(sectorContent.data, data.length)
             data = c
         }
+        console.log('(done)')
 
         return data
     }
@@ -458,12 +486,14 @@ class D64 {
         }
         let sectorCount = 0
         let byteIndex = 0
+        console.log(`Writing file ${fileName}`)
         let { track, sector } = this.getNextOpenSector(1, 0)
         const firstTrack = track
         const firstSector = sector
         while (byteIndex < fileBytes.length) {
             const sectorBytes = fileBytes.slice(byteIndex, Math.min(byteIndex + 254, fileBytes.length))
             byteIndex += 254
+            console.log(` - Track ${track.toString().padEnd(4, ' ')} Sector ${sector.toString().padEnd(4, ' ')}`)
             this.writeSector(track, sector, sectorBytes)
             if (byteIndex < fileBytes.length) {
                 const { track: nextTrack, sector: nextSector } = this.getNextOpenSector(track, sector)
@@ -473,6 +503,7 @@ class D64 {
             }
             sectorCount += 1
         }
+        console.log('(done)')
         this.addCatalogEntry(fileName, sectorCount, firstTrack, firstSector, 'PRG')
     }
 
@@ -481,15 +512,19 @@ class D64 {
             throw new Error('Cannot write to unloaded disc')
         }
         const fileInfo = this.getFileInfo(catalogIndex)
+        console.log(`Overwriting file ${fileInfo.name}`)
         let byteIndex = 0
         let track = fileInfo.firstTrackOfFile
         let sector = fileInfo.firstSectorOfFile
         let sectorData = this.getSector(track, sector)
         let addingSectors = false
+        let totalSectors = 0
         while (byteIndex < fileBytes.length) {
             const sectorBytes = fileBytes.slice(byteIndex, Math.min(byteIndex + 254, fileBytes.length))
             byteIndex += 254
-            this.writeSector(track, sector, sectorBytes)
+            console.log(` - Track ${track.toString().padEnd(4, ' ')} Sector ${sector.toString().padEnd(4, ' ')}${addingSectors ? ' - ADDED' : ''}`)
+            this.writeSector(track, sector, sectorBytes, -1, -1) 
+            totalSectors += 1
             // determine next track/sector
             let nextTrack = 0
             let nextSector = 0
@@ -497,7 +532,7 @@ class D64 {
                 if (addingSectors || sectorData.nextTrack === 0) {
                     addingSectors = true
                     ;({ track: nextTrack, sector: nextSector } = this.getNextOpenSector(track, sector))
-                    this.updateNextSector(track,sector, nextTrack, nextSector)
+                    this.updateNextSector(track, sector, nextTrack, nextSector)
                     sectorData = { nextTrack, nextSector }
                 } else {
                     nextTrack = sectorData.nextTrack
@@ -513,10 +548,20 @@ class D64 {
             sector = sectorData.nextSector
             while (track !== 0) {
                 sectorData = this.getSector(track, sector)
+                console.log(` - Track ${track.toString().padEnd(4, ' ')} Sector ${sector.toString().padEnd(4, ' ')} - CLEARED`)
                 this.clearSector(track, sector)
                 track = sectorData.nextTrack
                 sector = sectorData.nextSector
             }
         }
+        // update the catalog entry
+        let offset = D64.trackOffsets[fileInfo.catalogTrack] + 256 * fileInfo.catalogSector + 32 * fileInfo.catalogIndex + 30
+        const fsh = Math.floor(totalSectors / 256)
+        const fsl = totalSectors - 256 * fsh
+        this.discImageArray[offset++] = fsl
+        this.discImageArray[offset++] = fsh
+        console.log('(done - total sectors:',totalSectors,')')
+        this.catalogLoaded = false
+        this.catalog = []
     }
 }

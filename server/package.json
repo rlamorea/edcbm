@@ -1,0 +1,19 @@
+{
+  "name": "edcbmdebug",
+  "version": "1.0.0",
+  "description": "edcbm debug server",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "npx uvu test"
+  },
+  "author": "Rick Lamoreaux",
+  "license": "ISC",
+  "devDependencies": {
+    "uvu": "^0.5.6"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

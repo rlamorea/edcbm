@@ -69,20 +69,14 @@ class NameMenu {
         this.drop.addEventListener('click', () => { this.toggleMenu() })
     }
 
-    toggleMenu() {
+    toggleMenu(fromBlocker) {
         this.drop.classList.toggle('active')
         const isActive = this.drop.classList.contains('active')
-        this.menu.style.display = isActive ? 'block' : 'none'
-        this.parent.blocker.style.display = isActive ? 'block' : 'none'
         if (isActive) {
-            this.parent.blockShutdown = () => { this.hideMenu() }
-        } else {
-            this.parent.blockShutdown = null
+            window.blocker.show(this.menu, 'block', () => { this.toggleMenu(true) })
+        } else if (!fromBlocker) {
+            window.blocker.hide()
         }
-    }
-
-    hideMenu() {
-        this.toggleMenu()
     }
 
     selectionMade(e) {
@@ -150,33 +144,22 @@ class NameMenu {
     }
 }
 
-class Controls {
+class FileControls {
     static programStartAddress = {
         'c128' : 0x1c01,
-        'c64' : 0x0801
+        'c64' : 0x0801,
+        'vic20': 0x1001, // NOTE: could be 0x1201 if memory expansion in place
+        'c16': 0x1001,
+        'plus4': 0x1001,
+        'pet': 0x0401,
+        'pet-b': 0x0401,
+        'cbm2': 0x0003, // bank ram01
     }
 
     constructor() {
-        this.c64Button = document.getElementById('mode-c64')
-        this.c128Button = document.getElementById('mode-c128')
-        this.darkMode = false
-
-        this.c64Button.addEventListener('click', () => this.setMode('c64', this.darkMode))
-        this.c128Button.addEventListener('click', () => this.setMode('c128', this.darkMode))
-
-        this.darkButton = document.getElementById('dark-mode')
-        this.darkButton.addEventListener('click', () => this.setMode(this.mode, !this.darkMode))
-        this.darkButton.classList.add('inactive')
-
-        document.getElementById('clean').addEventListener('click', () => this.cleanCode())
-
-        this.blocker = document.getElementById('blocker')
-        this.blocker.addEventListener('click', () => { this.hideBlocker() })
         this.blockShutdown = null
 
-        this.mode = 'c128'
-        this.c64Button.classList.add('inactive')
-        document.body.className = 'c128'
+        this.machine = 'c128'
 
         this.file = null
         this.fileOptions = new NameMenu('fname', this, {
@@ -208,22 +191,12 @@ class Controls {
         if (window.editor) { window.editor.disabled = true }
     }
 
-    setMode(newMode, newDarkMode) {
-        this.mode = newMode
-        this.darkMode = newDarkMode
-        this.c64Button.classList.toggle('inactive', newMode !== 'c64')
-        this.c128Button.classList.toggle('inactive', newMode !== 'c128')
-        this.darkButton.classList.toggle('inactive', !this.darkMode)
-        document.body.className = this.darkMode ? '' : this.mode
-        window.editor.setMode(this.mode, this.darkMode)
-    }
-
-    cleanCode() {
-        window.editor.cleanProgram()
+    setMachine(machine) {
+        this.machine = machine
     }
 
     newFile(e) {
-        this.startAddress = Controls.programStartAddress[this.mode]
+        this.startAddress = Controls.programStartAddress[this.machine]
         window.editor.setProgram('')
         window.editor.disabled = false
         this.fileOptions.editName()
@@ -242,7 +215,7 @@ class Controls {
                 this.startAddress = parseInt(sa[1])
                 content = content.substring(content.indexOf('\n')).trim()
             } else {
-                this.startAddress = Controls.programStartAddress[this.mode]
+                this.startAddress = Controls.programStartAddress[this.machine]
             }
             window.editor.setProgram(content)
             const fname = file.name.replace(/\.EPRG$/, '').toUpperCase()
@@ -301,10 +274,8 @@ class Controls {
     discCatalog(e) {
         if (!this.currentDisc) { return }
 
-        this.catalog.style.display = 'block'
-        this.blocker.style.display = 'block'
-        this.blockShutdown = () => { this.catalog.style.display = 'none' }
-        if (this.catalogRendered) { return }
+        window.blocker.show(this.catalog)
+        if (this.catalogRendered && this.currentDisc.catalogLoaded) { return }
 
         const dnameEl = this.catalog.querySelector('h2 span')
         let dname = this.currentDisc.discName.padEnd(16) + ' '
@@ -378,7 +349,9 @@ class Controls {
 
         let fileIdx = 0
         this.startAddress = this.readWord(fileData, fileIdx)
-        if (this.startAddress === 0) { this.startAddress = Controls.programStartAddress[this.mode] }
+        if (this.startAddress === 0) { 
+            this.startAddress = Controls.programStartAddress[this.machine] 
+        }
         fileIdx += 2
         let program = ''
         while (fileIdx < fileData.length) {
@@ -402,15 +375,11 @@ class Controls {
 
         window.editor.setProgram(program)
         window.editor.disabled = false
-        this.hideBlocker()
-    }
-
-    hideBlocker() {
-        if (this.blockShutdown) { this.blockShutdown() }
-        this.blocker.style.display = 'none'
+        window.blocker.hide()
     }
 }
 
 window.addEventListener('load', () => {
-    new Controls()
+    window.fileControls = new FileControls()
 })
+
