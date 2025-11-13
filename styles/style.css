@@ -95,6 +95,11 @@ html, body {
     background: var(--button-background-hover);
     color: var(--menu-foreground-strong);
 }
+#menu button#assembler {
+    font-family: monospace;
+    font-size: 8px;
+    text-transform: uppercase;
+}
 
 #menu input[type=text] {
     border: none;
