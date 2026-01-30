@@ -70,7 +70,11 @@ class NameMenu {
     }
 
     toggleMenu(fromBlocker) {
-        this.drop.classList.toggle('active')
+        if (fromBlocker) {
+            this.drop.classList.remove('active')
+        } else {
+            this.drop.classList.toggle('active')
+        }
         const isActive = this.drop.classList.contains('active')
         if (isActive) {
             window.blocker.show(this.menu, 'block', () => { this.toggleMenu(true) })
@@ -105,6 +109,7 @@ class NameMenu {
     editName() {
         this.input.readOnly = false
         this.input.inert = false
+        this.input.select()
         this.input.focus()
     }
 
@@ -115,15 +120,37 @@ class NameMenu {
             return
         }
         e.preventDefault()
+        const curpos = this.input.selectionStart
+        if (this.input.selectionEnd > this.input.selectionStart) {
+            if (this.input.selectionStart === 0 && this.input.selectionEnd === this.input.value.length) {
+                this.input.value = '' // clear selection
+            } else {
+                // delete selected text
+                const val = this.input.value
+                const start = val.substring(0, this.input.selectionStart)
+                const end = val.substring(this.input.selectionEnd)
+                this.input.value = start + end
+                this.input.setSelectionRange(curpos, curpos)
+            }
+        }
         let modifier = (e.shiftKey ? 'shift' : '') + (e.ctrlKey ? 'ctrl' : '') + (e.altKey ? 'alt' : '')
         if (modifier.length === 0) { modifier = 'none' }
         const lookup = NameMenu.keyLookup[modifier] || {}
         const petscii = lookup[e.code]
         let val = this.input.value
         if (petscii) {
-            val += petscii
+            if (val.length >= 16) { return } // max length
+            if (curpos !== val.length) {
+                // insert at cursor position
+                const start = val.substring(0, this.input.selectionStart)
+                const end = val.substring(this.input.selectionStart)
+                val = start + petscii + end
+            } else {
+                val += petscii
+            }
             this.input.value = val
-            this.input.setSelectionRange(val.length, val.length)
+            console.log('resetting cursor to', curpos + 1)
+            this.input.setSelectionRange(curpos + 1, curpos + 1)
         }
     }
 
@@ -193,10 +220,11 @@ class FileControls {
 
     setMachine(machine) {
         this.machine = machine
+        this.startAddress = FileControls.programStartAddress[this.machine]
     }
 
     newFile(e) {
-        this.startAddress = Controls.programStartAddress[this.machine]
+        this.startAddress = FileControls.programStartAddress[this.machine]
         window.editor.setProgram('')
         window.editor.disabled = false
         this.fileOptions.editName()
@@ -215,7 +243,7 @@ class FileControls {
                 this.startAddress = parseInt(sa[1])
                 content = content.substring(content.indexOf('\n')).trim()
             } else {
-                this.startAddress = Controls.programStartAddress[this.machine]
+                this.startAddress = FileControls.programStartAddress[this.machine]
             }
             window.editor.setProgram(content)
             const fname = file.name.replace(/\.EPRG$/, '').toUpperCase()
@@ -350,7 +378,7 @@ class FileControls {
         let fileIdx = 0
         this.startAddress = this.readWord(fileData, fileIdx)
         if (this.startAddress === 0) { 
-            this.startAddress = Controls.programStartAddress[this.machine] 
+            this.startAddress = FileControls.programStartAddress[this.machine] 
         }
         fileIdx += 2
         let program = ''

@@ -10,7 +10,7 @@ class Editor {
             'BracketRight': '\uE05E', // pi
             'Backslash': '\uE05D', // primary vertical bar (shift-)
             'Minus': '\uE064', // underscore (cbm@)
-            'KeyA': '\uE041',
+            'KeyA': '\uE041', // shifted letters
             'KeyB': '\uE042',
             'KeyC': '\uE043',
             'KeyD': '\uE044',
@@ -36,7 +36,15 @@ class Editor {
             'KeyX': '\uE058',
             'KeyY': '\uE059',
             'KeyZ': '\uE05A',
-        },
+            'F1': '\uE0C5', // function keys
+            'F3': '\uE0C6',
+            'F5': '\uE0C7',
+            'F7': '\uE0C8',
+            'F2': '\uE0C9',
+            'F4': '\uE0CA',
+            'F6': '\uE0CB',
+            'F8': '\uE0CC',
+        },  
         'alt': {
             'Minus': '\uE040', // primary horizontal bar (shift*)
             'Equal': '\uE05B', // cross (shift+) 
@@ -48,7 +56,7 @@ class Editor {
             'Comma': '\x00', // ignore
             'Period': '\x00', // ignore
             'Slash': '\x00', // ignore
-            'KeyA': '\uE070',
+            'KeyA': '\uE070', // C= letters
             'KeyB': '\uE07F',
             'KeyC': '\uE07C',
             'KeyD': '\uE06C',
@@ -74,7 +82,7 @@ class Editor {
             'KeyX': '\uE07D',
             'KeyY': '\uE077',
             'KeyZ': '\uE06D',
-            'Digit1': '\uE0C1',
+            'Digit1': '\uE0C1', // C= colors
             'Digit2': '\uE0D5',
             'Digit3': '\uE0D6',
             'Digit4': '\uE0D7',
@@ -108,23 +116,23 @@ class Editor {
             'BracketLeft': '\uE09B',
         },
         'shiftctrlalt': {
-            'KeyB': '\uE0C2',
-            'KeyE': '\uE0C5',
-            'KeyF': '\uE0C6',
-            'KeyG': '\uE0C7',
-            'KeyH': '\uE0C8',
-            'KeyI': '\uE0C9',
-            'KeyJ': '\uE0CA',
-            'KeyK': '\uE0CB',
-            'KeyL': '\uE0CC',
-            'KeyM': '\uE0CD',
+            'KeyB': '\uE0C2', // inverted shift-A (spade)?
+            'KeyE': '\uE0C5', // F1
+            'KeyF': '\uE0C6', // F3
+            'KeyG': '\uE0C7', // F5
+            'KeyH': '\uE0C8', // F7
+            'KeyI': '\uE0C9', // F2
+            'KeyJ': '\uE0CA', // F4
+            'KeyK': '\uE0CB', // F6
+            'KeyL': '\uE0CC', // F8
+            'KeyM': '\uE0CD', // 
             'KeyN': '\uE0CE',
             'KeyO': '\uE0CF',
             'KeyS': '\uE0D3',
             'KeyT': '\uE0D4',
         },
         'ctrl': {
-            'Digit1': '\uE0D0',
+            'Digit1': '\uE0D0', // control colors
             'Digit2': '\uE085',
             'Digit3': '\uE09C',
             'Digit4': '\uE0DF',
@@ -345,6 +353,7 @@ class Editor {
         this.lineDecorations = []
         this.variableReferences = {}
         this.notations = {}
+        this.checksumAlgorithm = null
     }
 
     generateEditorTheme(name, colors) {
@@ -428,7 +437,7 @@ class Editor {
             }
         }
         this.writeWord(lineAddr, arrayOfArrays[lineIndex - 1])
-        let fileBytes = new Uint8Array(totalBytes + 2)
+        let fileBytes = new Uint8Array(totalBytes + 3) // two bytes to end program, 1 additional byte for BASIC EOF
         let fileIndex = 0
         for (const lb of arrayOfArrays) {
             fileBytes.set(lb, fileIndex)
@@ -682,6 +691,22 @@ class Editor {
             return program.substring(headerEnd + Editor.headerEnd.length).trim()
         }
         return program
+    }
+
+    setChecksumAlgorithm(algorithm) {
+        this.checksumAlgorithm = algorithm
+        if (algorithm === null) {
+            this.editor.updateOptions({ lineNumbers: false })
+        } else {
+            this.editor.updateOptions({ 
+                lineNumbers: (lineNumber) => {
+                    const lineContent = this.editor.getModel().getLineContent(lineNumber)
+                    if (lineContent.trim().length === 0) { return '' }
+                    return this.checksumAlgorithm(lineContent) + '&nbsp;'
+                },
+                lineNumbersMinChars: 3
+            })
+        }
     }
 }
 

@@ -86,6 +86,7 @@ class Controls {
         this.machineName.textContent = this.machine.display || machine
         if (window.editor) { window.editor.setMachine(this.machine) }
         if (window.palettes) { window.palettes.setMachine(this.machine) }
+        if (window.fileControls) { window.fileControls.setMachine(machine) }
         window.blocker.hide()
     }
 

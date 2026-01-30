@@ -75,16 +75,16 @@ class D64 {
     static trackSectors = [
         0, 
         21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21,
-        19, 19, 19, 19, 19, 19, 19, 19,
-        18, 18, 18, 18, 18,
+        19, 19, 19, 19, 19, 19, 19,
+        18, 18, 18, 18, 18, 18,
         17, 17, 17, 17, 17
     ]
     static trackOffsets = [
         0, 
         0x00000, 0x01500, 0x02A00, 0x03F00, 0x05400, 0x06900, 0x07E00, 0x09300, 0x0AB00, // 21-sector tracks
         0x0BD00, 0x0D200, 0x0E700, 0x0FC00, 0x11100, 0x12600, 0x13B00, 0x15000, 
-        0x16500, 0x17800, 0x18B00, 0x19E00, 0x1B100, 0x1C400, 0x1D700, 0x1EA00,  // 19-sector tracks
-        0x1FC00, 0x20E00, 0x22000, 0x23200, 0x24400,  // 18-sector tracks
+        0x16500, 0x17800, 0x18B00, 0x19E00, 0x1B100, 0x1C400, 0x1D700, // 19-sector tracks
+        0x1EA00, 0x1FC00, 0x20E00, 0x22000, 0x23200, 0x24400,  // 18-sector tracks
         0x25600, 0x26700, 0x27800, 0x28900, 0x29A00,  // 17-sector tracks
     ]
     static DOSType = [ 50, 65 ] // "2A"
@@ -181,7 +181,7 @@ class D64 {
         for (let byte = 1; byte <= 3; byte++) {
             let curMap = this.discImageArray[offset + byte]
             for (let bit = 0; bit < 8; bit++) {
-                let newBit = curMap & (2**bit)
+                let newBit = (curMap & (2**bit)) > 0 ? 1 : 0
                 if (sectorIdx === sector) {
                     newBit = inUse ? 0 : 1
                 } else if (sectorIdx >= trackSectors) {
@@ -202,15 +202,15 @@ class D64 {
 
     dumpBAM() {
         console.log('BAM Dump:')
-        console.log('                      1    1    2 ')
-        console.log('Track Free   1...5....0....5....0.')
+        console.log('                       1    1    2')
+        console.log('Track Free   .1...5....0....5....0xxx')
         for (let track = 1; track <= 35; track++) {
             const offset = D64.trackOffsets[18] + 0x04 * track
             const sectorsFree = this.discImageArray[offset]
-            let sectorMap = this.discImageArray[offset + 1]
-            sectorMap += this.discImageArray[offset + 2] * 256
-            sectorMap += this.discImageArray[offset + 3] * 65536
-            console.log(`${track.toString().padEnd(6, ' ')}${sectorsFree.toString().padEnd(7)}${sectorMap.toString(2).padEnd(D64.trackSectors[track], '0')}`);
+            let sectorMap = this.discImageArray[offset + 1].toString(2).padStart(8,'0').split('').reverse().join('')
+            sectorMap += this.discImageArray[offset + 2].toString(2).padStart(8,'0').split('').reverse().join('')
+            sectorMap += this.discImageArray[offset + 3].toString(2).padStart(8,'0').split('').reverse().join('')
+            console.log(`${track.toString().padEnd(6, ' ')}${sectorsFree.toString().padEnd(7)}${sectorMap}`);
         }
         console.log('(done)')
     }
@@ -232,7 +232,7 @@ class D64 {
             fullData.set(data)
             data = fullData
         }
-        if (nextTrack >= 0) {
+        if (nextTrack > 0) {
             this.discImageArray[writeAddr++] = nextTrack
             this.discImageArray[writeAddr++] = nextSector
         } else {
@@ -306,6 +306,9 @@ class D64 {
                 this.discImageArray[fileOffset++] = fsh
                 this.catalogLoaded = false
                 this.catalog = []
+                if (sector === 1 && entry === 0) {
+                    this.setBAM(18, 1) // special case for very first sector of catalog
+                }
                 return
             }
             fileOffset += 32
@@ -444,10 +447,10 @@ class D64 {
         this.discImageArray[discPointer++] = 0x41 // DOS version (default)
         discPointer++ // unused
         for (let track = 1; track <= D64.maxTrack; track++) {
-            this.discImageArray[discPointer++] = D64.trackSectors[track] - (track === 18) ? 1 : 0
+            this.discImageArray[discPointer++] = D64.trackSectors[track] - ((track === 18) ? 1 : 0)
             this.discImageArray[discPointer++] = (track === 18) ? 0xFE : 0xFF
             this.discImageArray[discPointer++] = 0xFF
-            this.discImageArray[discPointer++] = 2**((D64.trackSectors[track] - 16) - 1)
+            this.discImageArray[discPointer++] = (2**(D64.trackSectors[track] - 16) - 1)
         }
         this.writeName(discName, discPointer, 16)
         discPointer += 16
@@ -470,6 +473,7 @@ class D64 {
         this.discImageArray[discPointer++] = 0xA0
         this.discImageArray[discPointer++] = 0xA0
         // rest is blank
+        this.dumpBAM()
     }
 
     writeFileData(fileName, fileBytes) {
@@ -490,8 +494,10 @@ class D64 {
         let { track, sector } = this.getNextOpenSector(1, 0)
         const firstTrack = track
         const firstSector = sector
+        let finalSectorBytes = 0
         while (byteIndex < fileBytes.length) {
             const sectorBytes = fileBytes.slice(byteIndex, Math.min(byteIndex + 254, fileBytes.length))
+            finalSectorBytes = sectorBytes.length
             byteIndex += 254
             console.log(` - Track ${track.toString().padEnd(4, ' ')} Sector ${sector.toString().padEnd(4, ' ')}`)
             this.writeSector(track, sector, sectorBytes)
@@ -503,8 +509,10 @@ class D64 {
             }
             sectorCount += 1
         }
+        this.updateNextSector(track, sector, 0, finalSectorBytes)
         console.log('(done)')
         this.addCatalogEntry(fileName, sectorCount, firstTrack, firstSector, 'PRG')
+        this.dumpBAM()
     }
 
     overwriteFileData(catalogIndex, fileBytes) {
@@ -519,10 +527,12 @@ class D64 {
         let sectorData = this.getSector(track, sector)
         let addingSectors = false
         let totalSectors = 0
+        let finalSectorBytes = 0
         while (byteIndex < fileBytes.length) {
             const sectorBytes = fileBytes.slice(byteIndex, Math.min(byteIndex + 254, fileBytes.length))
+            finalSectorBytes = sectorBytes.length
             byteIndex += 254
-            console.log(` - Track ${track.toString().padEnd(4, ' ')} Sector ${sector.toString().padEnd(4, ' ')}${addingSectors ? ' - ADDED' : ''}`)
+            console.log(` - Track ${track.toString().padEnd(4, ' ')} Sector ${sector.toString().padEnd(4, ' ')} - ${addingSectors ? 'ADDED' : 'REPLACED'}`)
             this.writeSector(track, sector, sectorBytes, -1, -1) 
             totalSectors += 1
             // determine next track/sector
@@ -543,6 +553,7 @@ class D64 {
             track = nextTrack
             sector = nextSector
         }
+        this.updateNextSector(track, sector, 0, finalSectorBytes)
         if (sectorData.data) {
             track = sectorData.nextTrack
             sector = sectorData.nextSector
@@ -563,5 +574,6 @@ class D64 {
         console.log('(done - total sectors:',totalSectors,')')
         this.catalogLoaded = false
         this.catalog = []
+        this.dumpBAM()
     }
 }
