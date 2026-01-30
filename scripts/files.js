@@ -234,6 +234,23 @@ class FileControls {
         this.fileOptions.editName()
     }
 
+    cleanFilename(name, validExt = []) {
+        const extLoc = name.lastIndexOf('.')
+        let ext = ''
+        if (extLoc > 0) {
+            ext = name.substring(extLoc + 1)
+            name = name.substring(0, extLoc)
+            if (validExt.includes(ext.toUpperCase())) {
+                ext = ''
+            }
+        }
+        name = name.replace(/\(\d+\)$/, '') // remove (n) suffix
+        if (ext) {
+            name += '.' + ext
+        }
+        return name.toUpperCase()
+    }
+
     loadProgramFile(e, file, selection) {
         const reader = new FileReader()
         reader.onload = () => {
@@ -246,7 +263,7 @@ class FileControls {
                 this.startAddress = FileControls.programStartAddress[this.machine]
             }
             window.editor.setProgram(content)
-            const fname = file.name.replace(/\.EPRG$/, '').toUpperCase()
+            const fname = this.cleanFilename(file.name, ['EPRG'])
             this.fileOptions.setName(fname)
         }
         reader.readAsText(file)
@@ -333,6 +350,7 @@ class FileControls {
         this.catalogRendered = false
         await this.currentDisc.discLoaded()
         const dname = this.currentDisc.discName
+
         this.discOptions.setName(dname)
         this.discOptions.selectionsEnable()
         this.discCatalog()
