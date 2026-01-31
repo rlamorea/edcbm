@@ -230,7 +230,7 @@ class Tokenizer {
     }
 
     detokenize(byte, nextByte) {
-        let mapped = this.tokensMap[byte] || D64.petsciiTable[byte] || `{${byte}}`
+        let mapped = this.tokensMap[byte] || Petscii.table[byte] || `{${byte}}`
         let count = 1
         if (mapped instanceof Object && nextByte) {
             mapped = mapped[nextByte] || `{${byte}+${nextByte}}`
@@ -247,7 +247,7 @@ class Tokenizer {
             const nextByte = byteIndex < bytes.length ? bytes[byteIndex+1] : null
             if (byte === 34) { inQuotes = !inQuotes }
             if (inQuotes) {
-                line += D64.petsciiTable[byte] || `{${byte}}`
+                line += Petscii.table[byte] || `{${byte}}`
             } else {
                 const { mapped, count } = this.detokenize(byte, nextByte)
                 line += mapped
@@ -317,7 +317,7 @@ class Tokenizer {
             if (linesplit === '"') {
 ``               ;({ varName, varStart} = this.addVariable(variables, varName, varStart))
                 inQuote = !inQuote
-                tokenBytes.push(D64.petsciiLookup['"'])
+                tokenBytes.push(Petscii.lookup['"'])
                 lineIdx += 1
                 continue
             } else if (linesplit === ':') {
@@ -374,7 +374,7 @@ class Tokenizer {
                         ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
                     }
                     linesplit = linesplit.substring(1)
-                    tokenBytes.push(D64.petsciiLookup[char])
+                    tokenBytes.push(Petscii.lookup[char])
                     lineIdx += 1
                 }
             }

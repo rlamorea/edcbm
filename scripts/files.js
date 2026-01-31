@@ -10,7 +10,7 @@ class NameMenu {
     static {
         this.keyLookup = { 
             'none' : { 
-                ...Editor.petsciiLookup['none'],
+                ...Editor.petsciiKeymap['none'],
                 ...{
                     'KeyA' : 'A', 'KeyB' : 'B', 'KeyC' : 'C', 'KeyD' : 'D', 'KeyE' : 'E',
                     'KeyF' : 'F', 'KeyG' : 'G', 'KeyH' : 'H', 'KeyI' : 'I', 'KeyJ' : 'J',
@@ -26,7 +26,7 @@ class NameMenu {
                 }
             },
             'shift' : {
-                ...Editor.petsciiLookup['shift'],
+                ...Editor.petsciiKeymap['shift'],
                 ...{
                     'Digit1' : '!', 'Digit2': '@', 'Digit3' : '#', 'Digit4' : '$', 'Digit5' : '%',
                     'Digit7' : '&', 'Digit8': '*', 'Digit9' : '(', 'Digit0' : ')',
@@ -34,7 +34,7 @@ class NameMenu {
                     'Comma' : '<', 'Period': '>', 'Slash' : '?'
                 }
             },
-            'alt' : { ...Editor.petsciiLookup['alt'] }
+            'alt' : { ...Editor.petsciiKeymap['alt'] }
         }
     }
 
