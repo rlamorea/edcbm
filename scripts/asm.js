@@ -1056,7 +1056,7 @@ window.addEventListener('load', () => {
     `
 
     const assembler = new Assembler(code, { basicSYS: true })
-    waitForEditor(assembler)
+//    waitForEditor(assembler)
 })
 
 function waitForEditor(assembler) {

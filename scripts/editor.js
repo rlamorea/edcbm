@@ -106,6 +106,14 @@ class Editor {
             'KeyU': Petscii.named['cbm-U'],
             'KeyX': Petscii.named['toggle-tab'],
             'BracketLeft': Petscii.named['esc'],
+            'Digit1': Petscii.named['f1'],
+            'Digit2': Petscii.named['f2'],
+            'Digit3': Petscii.named['f3'],
+            'Digit4': Petscii.named['f4'],
+            'Digit5': Petscii.named['f5'],
+            'Digit6': Petscii.named['f6'],
+            'Digit7': Petscii.named['f7'],
+            'Digit8': Petscii.named['f8'],
         },
         'shiftctrlalt': {
             // 'KeyB': '\uE0C2',
@@ -245,7 +253,7 @@ class Editor {
 
     static languageRoot  = [
         [ /^\d+/, 'linenumber' ],
-        // NOTE: known bug means look-behind doesn't work
+        // NOTE: known bug means look-behind doesn't work (see: https://github.com/microsoft/monaco-editor/issues/3441)
         [ /(?<=go *(to|sub) *)\d+/, 'linenumber' ],
         [ /(?<=then *)\d+/, 'linenumber' ],
         [ /(`|rem).*/, 'comment' ],
@@ -345,6 +353,7 @@ class Editor {
         this.lineDecorations = []
         this.variableReferences = {}
         this.notations = {}
+        this.checksumAlgorithm = null
     }
 
     generateEditorTheme(name, colors) {
@@ -428,7 +437,7 @@ class Editor {
             }
         }
         this.writeWord(lineAddr, arrayOfArrays[lineIndex - 1])
-        let fileBytes = new Uint8Array(totalBytes + 2)
+        let fileBytes = new Uint8Array(totalBytes + 3) // two bytes to end program, 1 additional byte for BASIC EOF
         let fileIndex = 0
         for (const lb of arrayOfArrays) {
             fileBytes.set(lb, fileIndex)
@@ -682,6 +691,22 @@ class Editor {
             return program.substring(headerEnd + Editor.headerEnd.length).trim()
         }
         return program
+    }
+
+    setChecksumAlgorithm(algorithm) {
+        this.checksumAlgorithm = algorithm
+        if (algorithm === null) {
+            this.editor.updateOptions({ lineNumbers: false })
+        } else {
+            this.editor.updateOptions({ 
+                lineNumbers: (lineNumber) => {
+                    const lineContent = this.editor.getModel().getLineContent(lineNumber)
+                    if (lineContent.trim().length === 0) { return '' }
+                    return this.checksumAlgorithm(lineContent) + '&nbsp;'
+                },
+                lineNumbersMinChars: 3
+            })
+        }
     }
 }
 

@@ -56,8 +56,8 @@ html, body {
     position: fixed;
     vertical-align: top;
     top: 0;
-    height: 25px;
-    line-height: 25px;
+    height: 27px;
+    line-height: 27px;
     width: 100%;
     z-index: 5;
 }
@@ -185,11 +185,30 @@ html, body {
 #menu #server.connected svg.connected { display: inline; }
 #menu #server.disconnected svg.disconnected { display: inline; }
 
+#menu #checksum svg { display: none; }
+#menu #checksum.checksum-none svg.checksum-none { display: inline; }
+#menu #checksum.checksum-on svg.checksum-on { display: inline; }
+
+#menu #checksummenu {
+     left: unset; 
+     right: 23em; 
+     width: 54em;
+     text-align: right;
+}
+
 #container {
     width: 98vw;
     height: calc(99vh - 25px);
     margin-top: 25px;
     margin-left: 1vw;
+}
+.monaco-editor .margin {
+    background: black !important;
+}
+.monaco-editor .line-numbers {
+    font-family: monospace !important;
+    color: yellow !important;
+    font-size: 70% !important;
 }
 
 #catalog {
@@ -341,3 +360,4 @@ html, body {
     border-radius: 4px;
     color: var(--special-foreground) !important;
 }
+
