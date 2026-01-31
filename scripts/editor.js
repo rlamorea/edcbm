@@ -253,7 +253,7 @@ class Editor {
 
     static languageRoot  = [
         [ /^\d+/, 'linenumber' ],
-        // NOTE: known bug means look-behind doesn't work
+        // NOTE: known bug means look-behind doesn't work (see: https://github.com/microsoft/monaco-editor/issues/3441)
         [ /(?<=go *(to|sub) *)\d+/, 'linenumber' ],
         [ /(?<=then *)\d+/, 'linenumber' ],
         [ /(`|rem).*/, 'comment' ],

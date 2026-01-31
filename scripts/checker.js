@@ -1,7 +1,7 @@
 function toPetscii(rawline) {
     let petsciiline = new Uint8Array(rawline.length)
     for (let i = 0; i < rawline.length; i++) {
-        petsciiline[i] = D64.petsciiLookup[rawline[i]]
+        petsciiline[i] = Petscii.lookup[rawline[i]]
     }
     return petsciiline
 }
