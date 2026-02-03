@@ -351,6 +351,19 @@ class Editor {
         this.editor.addCommand(monaco.KeyCode.Enter, (accessor) => {
             this.processLine()
         })
+        this.newCursorLocation = null
+        this.editor.onDidFocusEditorWidget(() => {
+            if (this.newCursorLocation) {
+                setTimeout(() => {
+                    this.editor.setPosition(this.newCursorLocation)
+                    this.newCursorLocation = null
+                }, 20)
+            }
+        })
+        this.editor.onDidBlurEditorWidget(() => {
+            this.newCursorLocation = this.editor.getPosition()
+        })
+
         this.lineDecorations = []
         this.variableReferences = {}
         this.notations = {}
@@ -715,12 +728,8 @@ class Editor {
         var range = new monaco.Range(position.selectionStartLineNumber, position.selectionStartColumn, position.positionLineNumber, position.positionColumn)
         var id = { major: 1, minor: 1 }
         var op = {identifier: id, range, text: str, forceMoveMarkers: true}
-        this.editor.executeEdits("", [op], [{ 
-            selectionStartColumn: position.selectionStartColumn + str.length, 
-            positionColumn: position.selectionStartColumn + str.length, 
-            selectionStartLineNumber: position.positionLineNumber,
-            positionlineNumber: position.positionLineNumber 
-        }])
+        this.editor.executeEdits("", [op])
+        this.newCursorLocation = { lineNumber: position.positionLineNumber, column: position.selectionStartColumn + str.length }
     }
 }
 
