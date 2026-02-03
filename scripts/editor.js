@@ -106,14 +106,16 @@ class Editor {
             'KeyU': Petscii.named['cbm-U'],
             'KeyX': Petscii.named['toggle-tab'],
             'BracketLeft': Petscii.named['esc'],
-            'Digit1': Petscii.named['f1'],
-            'Digit2': Petscii.named['f2'],
-            'Digit3': Petscii.named['f3'],
-            'Digit4': Petscii.named['f4'],
-            'Digit5': Petscii.named['f5'],
-            'Digit6': Petscii.named['f6'],
-            'Digit7': Petscii.named['f7'],
-            'Digit8': Petscii.named['f8'],
+            'Digit1': Petscii.named['black'],
+            'Digit2': Petscii.named['white'],
+            'Digit3': Petscii.named['red'],
+            'Digit4': Petscii.named['cyan'],
+            'Digit5': Petscii.named['purple'],
+            'Digit6': Petscii.named['green'],
+            'Digit7': Petscii.named['blue'],
+            'Digit8': Petscii.named['yellow'],
+            'Digit9': Petscii.named['reverse-on'],
+            'Digit0': Petscii.named['reverse-off'],
         },
         'shiftctrlalt': {
             // 'KeyB': '\uE0C2',
@@ -349,7 +351,6 @@ class Editor {
         this.editor.addCommand(monaco.KeyCode.Enter, (accessor) => {
             this.processLine()
         })
-
         this.lineDecorations = []
         this.variableReferences = {}
         this.notations = {}
@@ -707,6 +708,19 @@ class Editor {
                 lineNumbersMinChars: 3
             })
         }
+    }
+
+    insertInto(str) {
+        var position = this.editor.getSelection()
+        var range = new monaco.Range(position.selectionStartLineNumber, position.selectionStartColumn, position.positionLineNumber, position.positionColumn)
+        var id = { major: 1, minor: 1 }
+        var op = {identifier: id, range, text: str, forceMoveMarkers: true}
+        this.editor.executeEdits("", [op], [{ 
+            selectionStartColumn: position.selectionStartColumn + str.length, 
+            positionColumn: position.selectionStartColumn + str.length, 
+            selectionStartLineNumber: position.positionLineNumber,
+            positionlineNumber: position.positionLineNumber 
+        }])
     }
 }
 

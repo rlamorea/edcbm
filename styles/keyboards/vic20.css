@@ -1,0 +1,15 @@
+
+#vkeyboard.kb-vic20 h2 { color: var(--dialog-foreground); }
+#vkeyboard.kb-vic20 .kb-layout {
+    font-family: "Play", sans-serif;
+}
+#vkeyboard.kb-vic20 .kb-layout key.k-fn {
+    background: #bf8f58; /* C64 function key color */
+    width: calc(var(--key-width) * 1.6);
+    margin-left: calc(var(--key-width) * 0.5);
+    border-color: rgb(from #bf8f58 calc(r * 0.5) calc(g * 0.5) calc(b * 0.5));
+}
+#vkeyboard.kb-vic20 .kb-layout key.k-space {
+    margin-left: calc(var(--key-width) * 3.6);
+    width: calc(var(--key-width) * 11.5);
+}

@@ -1038,26 +1038,26 @@ class Assembler {
     }
 }
 
-window.addEventListener('load', () => {
-    const code = `
-    HELLO   ZSTR "HELLO, WORLD!"
-    CHROUT  EQUL $FFD2
-    PLOT    EQUL $FFF0
-    START   LDX #$00
-            LDY #$00
-            JSR PLOT
-            LDX #$00
-    LOOP    LDA HELLO, X
-            BEQ DONE
-            JSR CHROUT
-            INX
-            JMP LOOP
-    DONE    RTS
-    `
+// window.addEventListener('load', () => {
+//     const code = `
+//     HELLO   ZSTR "HELLO, WORLD!"
+//     CHROUT  EQUL $FFD2
+//     PLOT    EQUL $FFF0
+//     START   LDX #$00
+//             LDY #$00
+//             JSR PLOT
+//             LDX #$00
+//     LOOP    LDA HELLO, X
+//             BEQ DONE
+//             JSR CHROUT
+//             INX
+//             JMP LOOP
+//     DONE    RTS
+//     `
 
-    const assembler = new Assembler(code, { basicSYS: true })
+//     const assembler = new Assembler(code, { basicSYS: true })
 //    waitForEditor(assembler)
-})
+// })
 
 function waitForEditor(assembler) {
     if (window.editor) {

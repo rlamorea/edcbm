@@ -1,0 +1,25 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
+
+#vkeyboard.kb-pet-b h2 { color: var(--dialog-foreground); }
+
+#vkeyboard.kb-pet-b .kb-layout {
+    font-family: "Microma", sans-serif;
+}
+#vkeyboard.kb-pet-b .kb-layout key.k-label-sm { font-size: 6px; }
+#vkeyboard.kb-pet-b .kb-layout key.k-gap25 {
+    margin-left: calc(var(--key-width) * 0.25)
+}
+#vkeyboard.kb-pet-b .kb-layout key.k-gap50 {
+    margin-left: calc(var(--key-width) * 0.5)
+}
+#vkeyboard.kb-pet-b .kb-layout key.k-gap75 {
+    margin-left: calc(var(--key-width) * 0.75)
+}
+#vkeyboard.kb-pet-b .kb-layout key.k-gap100 {
+    margin-left: calc(var(--key-width) * 1.1)
+}
+#vkeyboard.kb-pet-b .kb-layout key.k-space {
+    margin-left: calc(var(--key-width) * 3.6);
+    width: calc(var(--key-width) * 11.5);
+}
