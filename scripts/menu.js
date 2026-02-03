@@ -14,6 +14,7 @@ const Machines = {
         display: 'c128',
         menu: 'c128-80 columns',
         language: 'v7',
+        kb: 'c128',
     },
     'vic20' : {
         name: 'vic20',
@@ -87,6 +88,7 @@ class Controls {
         if (window.editor) { window.editor.setMachine(this.machine) }
         if (window.palettes) { window.palettes.setMachine(this.machine) }
         if (window.fileControls) { window.fileControls.setMachine(machine) }
+        if (window.virtualKeyboard) { window.virtualKeyboard.setMachine(this.machine) }
         window.blocker.hide()
     }
 

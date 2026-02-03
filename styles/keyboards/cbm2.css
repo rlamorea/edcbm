@@ -1,0 +1,59 @@
+:root {
+    --cbm2-fn-key-color: #76726b;
+}
+
+#vkeyboard.kb-cbm2 { 
+    width: 580px; 
+    height: 258px;
+}
+
+#vkeyboard.kb-cbm2 h2 { color: var(--dialog-foreground); }
+
+#vkeyboard.kb-cbm2 .kb-layout {
+    font-family: "Microma", sans-serif;
+}
+#vkeyboard.kb-cbm2 .kb-layout key.k-label-sm { font-size: 6px; }
+#vkeyboard.kb-cbm2 .kb-layout key.k-fnc, #vkeyboard.kb-cbm2 .kb-layout key.k-fn { background: var(--cbm2-fn-key-color); }
+#vkeyboard.kb-cbm2 .kb-layout key.k-fn { margin-bottom: 10px; }
+#vkeyboard.kb-cbm2 .kb-layout key.k-arr { font-size: 16px; background: var(--key-color); }
+
+#vkeyboard.kb-cbm2 .kb-layout key.k-w125 { width: calc(var(--key-width) * 1.5); }
+#vkeyboard.kb-cbm2 .kb-layout key.k-w150 { width: calc(var(--key-width) * 1.4); }
+#vkeyboard.kb-cbm2 .kb-layout key.k-w225 { width: calc(var(--key-width) * 2.1); }
+
+#vkeyboard.kb-cbm2 .kb-layout key.k-ret-top {
+    width: calc(var(--key-width) * 1.32);
+    height: var(--key-width);
+    border-radius: 4px 4px 0 4px;
+}
+#vkeyboard.kb-cbm2 .kb-layout key.k-ret-bot {
+    left: calc(var(--key-width) * 0.32);
+    top: calc(var(--key-width) + 3.5px);
+    height: calc(var(--key-width) + 2px);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+}
+#vkeyboard.kb-cbm2 .kb-layout .k-ret-mid {
+    position: absolute;
+    left: calc(var(--key-width) * 0.32 + 1px);
+    top: calc(var(--key-width) + 1px);
+    z-index: 11;
+    width: calc(var(--key-width) + 2px);
+    height: 5px;
+    background: #a09e9a;
+}
+#keyboard.kb-cbm2 .kb-layout key.k-cbm {
+    color: white;   
+}
+
+#vkeyboard.kb-cbm2 .kb-layout key.k-gap25 { margin-left: calc(var(--key-width) * 0.33); }
+#vkeyboard.kb-cbm2 .kb-layout key.k-gap50 { margin-left: calc(var(--key-width) * 0.5); }
+#vkeyboard.kb-cbm2 .kb-layout key.k-gap100 { margin-left: calc(var(--key-width) * 1.3); }   
+#vkeyboard.kb-cbm2 .kb-layout key.k-gapl2 { margin-left: calc(var(--key-width) * 2.5); }
+#vkeyboard.kb-cbm2 .kb-layout key.k-gapl3 { margin-left: calc(var(--key-width) * 2.2); }
+#vkeyboard.kb-cbm2 .kb-layout key.k-gapsp { margin-left: calc(var(--key-width) * 2); }
+#vkeyboard.kb-cbm2 .kb-layout key.k-gapl4 { margin-left: calc(var(--key-width) * 1); }
+#vkeyboard.kb-cbm2 .kb-layout key.k-gapl5 { margin-left: calc(var(--key-width) * 3.8); }
+#vkeyboard.kb-cbm2 .kb-layout key.k-space {
+    width: calc(var(--key-width) * 10.5);
+}

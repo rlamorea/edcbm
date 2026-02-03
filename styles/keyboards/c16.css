@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap');
+
+#vkeyboard.kb-c16 .kb-layout {
+    font-family: "Play", sans-serif;
+}
+#vkeyboard.kb-c16 .kb-layout key {
+    font-family: "Roboto Condensed", sans-serif;
+}
+#vkeyboard.kb-c128 .kb-layout key.k-arr { font-size: 16px; }
+
+#vkeyboard.kb-c16 .kb-layout key.k-fn {
+    background: #b8babc; /* C16 function key color */
+    width: calc(var(--key-width) * 1.6);
+    margin-left: calc(var(--key-width) * 0.5);
+    border-color: rgb(from #b8babc calc(r * 0.5) calc(g * 0.5) calc(b * 0.5));
+}
+#vkeyboard.kb-c16 .kb-layout key.k-space {
+    margin-left: calc(var(--key-width) * 3.6);
+    width: calc(var(--key-width) * 11.5);
+}

@@ -107,6 +107,7 @@ class Petscii {
                 'left': this.table[157],
                 'yellow': this.table[158],
                 'cyan': this.table[159],
+                'shift-+': this.table[166],
                 'shift-£': this.table[169],
                 'shift-@': this.table[186],               
             }

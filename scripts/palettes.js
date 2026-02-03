@@ -59,6 +59,7 @@ class Palette {
             '--dialog-foreground': foreground,
             '--dialog-background': background,
             '--menu-font': menuFont,
+            '--editor-font': `${this.editorFont}, monospace`,
             '--button-background': options.buttonBackground || '#dddddd',
             '--button-background-hover': options.buttonBackgroundHover || Palette.colorStrength(options.buttonBackground || '#dddddd', 7),
             // for now these are constants

@@ -1,0 +1,41 @@
+#vkeyboard.kb-c128 { 
+    width: 580px; 
+    height: 258px;
+}
+#vkeyboard.kb-c128 .kb-layout {
+    font-family: "Play", sans-serif;
+}
+#vkeyboard.kb-c128 .kb-layout key {
+    text-align: left;
+    align-content: start;
+    line-height: normal;
+} 
+#vkeyboard.kb-c128 .kb-layout key.k-label { font-size: 7px; }
+#vkeyboard.kb-c128 .kb-layout key.k-label-sm { font-size: 7px; }
+#vkeyboard.kb-c128 .kb-layout key.k-label-tiny { font-size: 5px; }
+#vkeyboard.kb-c128 .kb-layout key.k-gap { margin-left: 10px; }
+#vkeyboard.kb-c128 .kb-layout key.k-fn-gap { margin-left: 53px; }
+
+#vkeyboard.kb-c128 .kb-layout key.k-ctr { text-align: center; align-content: center; }
+#vkeyboard.kb-c128 .kb-layout key.k-fn {
+    background: #c9b9ba; /* C128 function key color */
+    border-color: rgb(from #c9b9ba calc(r * 0.5) calc(g * 0.5) calc(b * 0.5));
+    margin-bottom: 10px;
+}
+#vkeyboard.kb-c128 .kb-layout key.k-space {
+    margin-left: calc(var(--key-width) * 4.2);
+    width: calc(var(--key-width) * 10.7);
+}
+#vkeyboard.kb-c128 .kb-layout key svg {
+    padding: 0;
+    width: 12px;
+    height: 12px;
+}
+#vkeyboard.kb-c128 .kb-layout key.k-arr { font-size: 16px; }
+#vkeyboard.kb-c128 .kb-layout key.k-fk { font-size: 10px; }
+
+#vkeyboard.kb-c128 .kb-layout key.k-enter {
+    width: 6px;
+    padding-right: 17px;
+    word-wrap: break-word;
+}
