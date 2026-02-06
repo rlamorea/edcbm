@@ -172,17 +172,6 @@ class NameMenu {
 }
 
 class FileControls {
-    static programStartAddress = {
-        'c128' : 0x1c01,
-        'c64' : 0x0801,
-        'vic20': 0x1001, // NOTE: could be 0x1201 if memory expansion in place
-        'c16': 0x1001,
-        'plus4': 0x1001,
-        'pet': 0x0401,
-        'pet-b': 0x0401,
-        'cbm2': 0x0003, // bank ram01
-    }
-
     constructor() {
         this.blockShutdown = null
 
@@ -220,11 +209,11 @@ class FileControls {
 
     setMachine(machine) {
         this.machine = machine
-        this.startAddress = FileControls.programStartAddress[this.machine]
+        this.startAddress = machine.startAddress
     }
 
     newFile(e) {
-        this.startAddress = FileControls.programStartAddress[this.machine]
+        this.startAddress = this.startAddress
         window.editor.setProgram('')
         window.editor.disabled = false
         this.fileOptions.editName()
@@ -260,7 +249,7 @@ class FileControls {
                 this.startAddress = parseInt(sa[1])
                 content = content.substring(content.indexOf('\n')).trim()
             } else {
-                this.startAddress = FileControls.programStartAddress[this.machine]
+                this.startAddress = this.startAddress
             }
             window.editor.setProgram(content)
             const fname = this.cleanFilename(file.name, ['EPRG'])
@@ -396,7 +385,7 @@ class FileControls {
         let fileIdx = 0
         this.startAddress = this.readWord(fileData, fileIdx)
         if (this.startAddress === 0) { 
-            this.startAddress = FileControls.programStartAddress[this.machine] 
+            this.startAddress = this.startAddress
         }
         fileIdx += 2
         let program = ''

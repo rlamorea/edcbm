@@ -21,6 +21,7 @@ class KeyboardWindow {
 
         this.loadedKeyboards = {}
         this.loadedKeyboard = null
+        this.fontOffset = 0
 
         this.virtualKeyboard = this.keyboard.querySelector('.kb-layout')
         this.hostKeys = {
@@ -73,13 +74,14 @@ class KeyboardWindow {
             style.id = KeyboardWindow.CSS_ROOT_ID
             document.head.appendChild(style)
         }
-        let css = `:root {
+        const css = `:root {
             --key-case-color: ${kbData.caseColor || '#b2ad9d'};
             --key-color: ${kbData.keyColor || '#382a16'};
             --key-text-color: ${kbData.keyText || 'white'};
         }
         `
         style.textContent = css;
+        this.fontOffset = machine.fontOffset ?? 0
 
         this.keyboard.classList.add(`kb-${kbName}`)
         this.prepKeys()
@@ -245,6 +247,7 @@ class KeyboardWindow {
             const keyCode = label.codePointAt(0)
             if (keyCode >= 0xE000 && keyCode <= 0xE1FF) {
                 labelClass = 'cbm'
+                this.keyCode += this.fontOffset
             }
         } else if (maxWidth >= maxWidthCutoff) {
             labelClass = 'k-label-sm'
@@ -289,6 +292,13 @@ class KeyboardWindow {
             key.dataset.sendCode = null
             key.classList.add('k-unavail')
             label = keyData['keyLabel'] || keyCode
+        }
+        if (this.fontOffset) {
+            keyCode = keyCode.codePointAt(0)
+            if (keyCode >= 0xE000 && keyCode <= 0xE1FF) {
+                keyCode = keyCode + this.fontOffset
+            }
+            keyCode = String.fromCodePoint(keyCode)
         }
 
         key.dataset.sendCode = keyCode

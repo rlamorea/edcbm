@@ -4,10 +4,12 @@ const Machines = {
     'c64': {
         name: 'c64',
         language: 'v2',
+        startAddress: 0x801,
     },
     'c128' : {
         name: 'c128',
         language: 'v7',
+        startAddress: 0x1c01,
     },
     'c128-80' : {
         name: 'c128-80',
@@ -15,20 +17,25 @@ const Machines = {
         menu: 'c128-80 columns',
         language: 'v7',
         kb: 'c128',
+        startAddress: 0x1c01,
     },
     'vic20' : {
         name: 'vic20',
         language: 'v2',
+        fontOffset: 0x0200,
+        startAddress: 0x1001, // NOTE: could be 0x1201 if memory expansion in place
     },
     'plus4': {
         name: 'plus4',
         palette: 'ted',
         language: 'v3.5',
+        startAddress: 0x1001,
     },
     'c16': {
         name: 'c16',
         palette: 'ted',
         language: 'v3.5',
+        startAddress: 0x1001,
     },
     'pet-g': {
         name: 'pet-g',
@@ -36,6 +43,7 @@ const Machines = {
         menu: 'pet-graphics',
         palette: 'pet-40',
         language: 'v2',
+        startAddress: 0x0401,
     },
     'pet-b': {
         name: 'pet-b',
@@ -43,11 +51,15 @@ const Machines = {
         palette: 'pet',
         menu: 'pet-business',
         language: 'v4',
+        charSets: [ 'lower/UPPER' ],
+        startAddress: 0x0401,
     },
     'cbm2': {
         name: 'cbm2',
         palette: 'pet',
         language: 'v4+',
+        startAddress: 0x0003, // bank ram01
+        charSets: [ 'lower/UPPER', 'UPPER/Graphics' ]
     }
 }
 

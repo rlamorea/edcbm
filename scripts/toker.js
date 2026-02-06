@@ -5,7 +5,17 @@ class Tokenizer {
     static maximumLineNumber = 63999
     static maxLineLength = {
         'v2': 80,
-        'v7': 160
+        'v4': 80,
+        'v4+': 160,
+        'v3.5': 160,
+        'v7': 160,
+    }
+
+    static reserved = {
+        'v2': [ 'ST', 'TI', 'TI$' ],
+        'v3.5': [ 'DS', 'DS$', 'EL', 'ER' ],
+        'v4': [ 'DS', 'DS$' ],
+        'v4+': [ 'EL' ],
     }
 
     static tokensMap = {
@@ -87,20 +97,40 @@ class Tokenizer {
             202: 'MID$',
             203: 'GO'
         },
-        'v7': {
+        'v4': {
+            204: 'CONCAT',
+            205: 'DOPEN',
+            206: 'DCLOSE',
+            207: 'RECORD',
+            208: 'HEADER',
+            209: 'COLLECT',
+            210: 'BACKUP',
+            211: 'COPY',
+            212: 'APPEND',
+            213: 'DSAVE',
+            214: 'DLOAD',
+            215: 'CATALOG',
+            216: 'RENAME',
+            217: 'SCRATCH',
+            218: 'DIRECTORY',
+        },
+        'v4+': {
+            0xe0: 'DELETE',
+            0xdc: 'BANK',
+            0xdd: 'BLOAD',
+            0xde: 'BSAVE',
+            0x47: 'DISPOSE',
+            0xe6: 'USING',
+            0xe5: 'PUDEF',
+            0xe3: 'RESUME',
+            0xe2: 'TRAP',
+            0xe7: 'ERR$',
+            0xe8: 'INSTR'
+        },
+        'v3.5': {
             204: 'RGR',
             205: 'RCLR',
-            206: {  
-                2: 'POT',
-                3: 'BUMP',
-                4: 'PEN',
-                5: 'RSPPOS',
-                6: 'RSPRITE',
-                7: 'RSPCOLOR',
-                8: 'XOR',
-                9: 'RWINDOW',
-                10: 'POINTER'
-            },
+            206: 'RLUM',
             207: 'JOY',
             208: 'RDOT',
             209: 'DEC',
@@ -148,6 +178,19 @@ class Tokenizer {
             251: 'USING',
             252: 'UNTIL',
             253: 'WHILE',
+        },
+        'v7': {
+            206: {  
+                2: 'POT',
+                3: 'BUMP',
+                4: 'PEN',
+                5: 'RSPPOS',
+                6: 'RSPRITE',
+                7: 'RSPCOLOR',
+                8: 'XOR',
+                9: 'RWINDOW',
+                10: 'POINTER'
+            },
             254: {  
                 2: 'BANK',
                 3: 'FILTER',
@@ -189,16 +232,26 @@ class Tokenizer {
     }
     static lineNumberTokens = {
         'v2': [ 'GOTO', 'GO TO', 'GOSUB', 'THEN' ],
-        'v7': [ 'RESTORE' ]
+        'v4+': [ 'RESTORE', 'RESUME' ],
     }
     static {
-        this.tokensMap['v7'] = { ...this.tokensMap['v2'], ...this.tokensMap['v7'] }
+        this.reserved['v3.5'] = [ ...this.reserved['v2'], ...this.reserved['v3.5'] ]
+        this.reserved['v4'] = [ ...this.reserved['v2'], ...this.reserved['v4'] ]
+        this.reserved['v4+'] = [ ...this.reserved['v4'], ...this.reserved['v4+'] ]
+        this.reserved['v7'] = [ ...this.reserved['v3.5'] ]
+
+        this.tokensMap['v4'] = { ...this.tokensMap['v2'], ...this.tokensMap['v4'] }
+        this.tokensMap['v4+'] = { ...this.tokensMap['v4'], ...this.tokensMap['v4+'] }
+        this.tokensMap['v3.5'] = { ...this.tokensMap['v2'], ...this.tokensMap['v3.5'] }
+        this.tokensMap['v7'] = { ...this.tokensMap['v3.5'], ...this.tokensMap['v7'] }
         this.tokenLookup = {}
         this.tokenRegex = {}
-        for (const machine in this.tokensMap) {
+
+        this.keywords = {}
+        for (const version in this.tokensMap) {
             let lookup = {}
-            for (const code in this.tokensMap[machine]) {
-                const token = this.tokensMap[machine][code]
+            for (const code in this.tokensMap[version]) {
+                const token = this.tokensMap[version][code]
                 if (token instanceof Object) {
                     for (const subcode in token) {
                         const realToken = token[subcode]
@@ -208,15 +261,37 @@ class Tokenizer {
                     lookup[token] = code
                 }
             }
-            this.tokenLookup[machine] = lookup
-            const tokenList = Object.keys(lookup).map((t) => t.replace(/([\(\$\+\-\*\/\=\<\>])/, '\\$1'))
-            this.tokenRegex[machine] = `(${tokenList.join('|')})`
+            this.tokenLookup[version] = lookup
+            let keywords = Object.keys(lookup)
+            this.reserved[version].forEach(key => delete keywords[key])
+            this.keywords[version] = [ ...keywords ]
+
+            const tokenList = keywords.map((t) => t.replace(/([\(\$\+\-\*\/\=\<\>])/, '\\$1'))
+            this.tokenRegex[version] = `(${tokenList.join('|')})`
         }
-        this.lineNumberTokens['v7'] = [ ...this.lineNumberTokens['v2'], ...this.lineNumberTokens['v7'] ]
+
+        this.lineNumberTokens['v4+'] = [ ...this.lineNumberTokens['v2'], ...this.lineNumberTokens['v4+'] ]
+        this.lineNumberTokens['v3.5'] = [ ...this.lineNumberTokens['v4+'] ]
+        this.lineNumberTokens['v7'] = [ ...this.lineNumberTokens['v3.5'] ]
     }
 
     constructor() {
         this.setVersion('v7')
+        this.fontOffset = 0
+        this.minChar = '\uE000'
+        this.minCharCode = 0xE000
+        this.maxChar = '\uE1FF'
+        this.maxCharCode = 0xE1FF
+        this.charSet = 'UPPER/Graphics'
+    }
+
+    setFontOffset(fo, charSet) {
+        this.fontOffset = fo
+        this.minCharCode = 0xE000 + this.fontOffset
+        this.minChar = String.fromCodePoint(this.minCharCode)
+        this.maxCharCode = 0xE1FF + this.fontOffset
+        this.maxChar = String.fromCodePoint(this.maxCharCode)
+        this.charSet = charSet
     }
 
     setVersion(newVersion) {
@@ -227,6 +302,26 @@ class Tokenizer {
         this.tokenRegex = new RegExp(Tokenizer.tokenRegex[this.version], 'g')
         this.maxLineLength = Tokenizer.maxLineLength[this.version]
         this.lineNumberTokens = Tokenizer.lineNumberTokens[this.version]
+        this.keywords = Tokenizer.keywords[this.version]
+    }
+
+    shiftFont(str, dir = 'up') {
+        if (!str) { return str }
+        let shifted = str
+        const mult = (dir === 'up') ? 1 : -1
+        if (this.fontOffset > 0) {
+            for (const char of str) {
+                if (char >= this.minChar && char <= this.maxChar) {
+                    const shChar = String.fromCodePoint(char.codePointAt(0) + (mult * this.fontOffset))
+                    console.log('shifted', char.codePointAt(0).toString(16), dir, 'by', this.fontOffset.toString(16), 'to', shChar.codePointAt(0).toString(16))
+                    shifted += shChar
+                } else {
+                    shifted += char
+                    console.log('allowing', char.codePointAt(0).toString(16), 'to pass')
+                }
+            }
+        }
+        return str
     }
 
     detokenize(byte, nextByte) {
@@ -236,6 +331,7 @@ class Tokenizer {
             mapped = mapped[nextByte] || `{${byte}+${nextByte}}`
             count = 2
         }
+        mapped = this.shiftFont(mapped)
         return { mapped, count }
     }
 
@@ -247,10 +343,9 @@ class Tokenizer {
             const nextByte = byteIndex < bytes.length ? bytes[byteIndex+1] : null
             if (byte === 34) { inQuotes = !inQuotes }
             if (inQuotes) {
-                line += Petscii.table[byte] || `{${byte}}`
+                line += this.shiftFont(Petscii.table[byte]) || `{${byte}}`
             } else {
                 const { mapped, count } = this.detokenize(byte, nextByte)
-                line += mapped
                 byteIndex += count-1
             }
         }
@@ -356,7 +451,7 @@ class Tokenizer {
                     }
                     nextToken = (lineTokens.length > 0) ? lineTokens.shift() : null
                 } else {
-                    const char = linesplit[0]
+                    let char = linesplit[0]
                     if (!inQuote && !varName && /[A-Z]/.test(char)) {
                         varName = char
                         varStart = lineIdx
@@ -374,6 +469,7 @@ class Tokenizer {
                         ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
                     }
                     linesplit = linesplit.substring(1)
+                    char = this.shiftFont(char, 'down')
                     tokenBytes.push(Petscii.lookup[char])
                     lineIdx += 1
                 }

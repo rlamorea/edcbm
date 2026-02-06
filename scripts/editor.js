@@ -1,41 +1,52 @@
 class Editor {
+    static baseKeyMappings = {
+        'shift': {
+            'Digit6' : 0x5E, // up arrow
+            'Backquote': 0x5F, // left arrow
+            'Backslash': 0x7D, // centered vertical bar
+            'KeyA': 0x61, 'KeyB': 0x62, 'KeyC': 0x63, 'KeyD': 0x64, 'KeyE': 0x65, 'KeyF': 0x66, // shifted petscii
+            'KeyG': 0x67, 'KeyH': 0x68, 'KeyI': 0x69, 'KeyJ': 0x6A, 'KeyK': 0x6B, 'KeyL': 0x6C,
+            'KeyM': 0x6D, 'KeyN': 0x6E, 'KeyO': 0x6F, 'KeyP': 0x70, 'KeyQ': 0x71, 'KeyR': 0x72,
+            'KeyS': 0x73, 'KeyT': 0x74, 'KeyU': 0x75, 'KeyV': 0x76, 'KeyW': 0x77, 'KeyX': 0x78,
+            'KeyY': 0x79, 'KeyZ': 0x7A,
+            'Minus': 0xA4, // bottom 1 pixel line (underscore)
+        },
+        'alt': {
+            'KeyA': 0xB0, 'KeyB': 0xBF, 'KeyC': 0xBC, 'KeyD': 0xAC, 'KeyE': 0xB1, 'KeyF': 0xBB,
+            'KeyG': 0xA5, 'KeyH': 0xB4, 'KeyI': 0xA2, 'KeyJ': 0xB5, 'KeyK': 0xA1, 'KeyL': 0xB6,
+            'KeyM': 0xA7, 'KeyN': 0xAA, 'KeyO': 0xB9, 'KeyP': 0xAF, 'KeyQ': 0xAB, 'KeyR': 0xB2,
+            'KeyS': 0xAE, 'KeyT': 0xA3, 'KeyU': 0xB8, 'KeyV': 0xBE, 'KeyW': 0xB3, 'KeyX': 0xBD,
+            'KeyY': 0xB7, 'KeyZ': 0xAD,
+        },
+        'ctrl': 
+            '???': 0x60, // fix -- centered horizontal bar - shift-*
+            '???': 0x7B, // fix -- heavy cross - shift-+
+            '???': 0x7C, // fix -- vertical half checkerboard - cbm--
+            '+': 0xA6, // fix -- full checkerboard - cbm-+
+            '£': 0xA8, // fix -- horizontal half checkboard - cbm-£
+            '???': 0xA9, // fix -- upper left right triangle -- shift-£
+            '???': 0xBA, // fix -- lower right large border -- shift-@
+            '???': 0x7E, // fix -- pi (shift-up-arrow)
+            '???': 0x7F, // fix -- upper right right triangle - cbm-*
+            ''
+
+        }
+    }
+
     static petsciiKeymap = {
         'none' : {
-            'Backslash': Petscii.named['shift-@]'],
+            'F1': Petscii.named['f1'],
+            'F2': Petscii.named['f2'],
+            'F3': Petscii.named['f3'],
+            'F4': Petscii.named['f4'],
+            'F5': Petscii.named['f5'],
+            'F6': Petscii.named['f6'],
+            'F7': Petscii.named['f7'],
+            'F8': Petscii.named['f8'],
         },
         'shift': {
-            'Digit6': Petscii.named['up-arrow'],
-            'Backquote': Petscii.named['left-arrow'],
-            'BracketLeft': Petscii.named['£'],
+            'BracketLeft': Petscii.named['gpb'],
             'BracketRight': Petscii.named['pi'],
-            'Backslash': Petscii.named['shift--'],
-            'Minus': Petscii.named['cbm-@'],
-            'KeyA': Petscii.named['shift-A'],
-            'KeyB': Petscii.named['shift-B'],
-            'KeyC': Petscii.named['shift-C'],
-            'KeyD': Petscii.named['shift-D'],
-            'KeyE': Petscii.named['shift-E'],
-            'KeyF': Petscii.named['shift-F'],
-            'KeyG': Petscii.named['shift-G'],
-            'KeyH': Petscii.named['shift-H'],
-            'KeyI': Petscii.named['shift-I'],
-            'KeyJ': Petscii.named['shift-J'],
-            'KeyK': Petscii.named['shift-K'],
-            'KeyL': Petscii.named['shift-L'],
-            'KeyM': Petscii.named['shift-M'],
-            'KeyN': Petscii.named['shift-N'],
-            'KeyO': Petscii.named['shift-O'],
-            'KeyP': Petscii.named['shift-P'],
-            'KeyQ': Petscii.named['shift-Q'],
-            'KeyR': Petscii.named['shift-R'],
-            'KeyS': Petscii.named['shift-S'],
-            'KeyT': Petscii.named['shift-T'],
-            'KeyU': Petscii.named['shift-U'],
-            'KeyV': Petscii.named['shift-V'],
-            'KeyW': Petscii.named['shift-W'],
-            'KeyX': Petscii.named['shift-X'],
-            'KeyY': Petscii.named['shift-Y'],
-            'KeyZ': Petscii.named['shift-Z'],
         },
         'alt': {
             'Minus': Petscii.named['shift-*'],
@@ -84,28 +95,40 @@ class Editor {
             'Digit8': Petscii.named['lt-gray'],
         },
         'ctrlalt': {
+            'Tab': Petscii.named['tab'],
             'ArrowLeft': Petscii.named['left'],
             'ArrowRight': Petscii.named['right'],
             'ArrowUp': Petscii.named['up'],
             'ArrowDown': Petscii.named['down'],
+            'KeyA': Petscii.named['ctrl-A'],
             'KeyB': Petscii.named['underline-on'],
             'KeyC': Petscii.named['stop'],
-            'KeyE': Petscii.named['cbm-E'], 
-            'KeyF': Petscii.named['cbm-I'], 
+            'KeyD': Petscii.named['ctrl-D'],
+            'KeyE': Petscii.named['white'], 
+            'KeyF': Petscii.named['ctrl-F'], 
             'KeyG': Petscii.named['bell'],
-            // 'KeyH': Petscii.named['lock-case'],
+            'KeyH': Petscii.named['ctrl-H'],
             'KeyI': Petscii.named['tab'],
             'KeyJ': Petscii.named['linefeed'],
             'KeyK': Petscii.named['lock-case'],
             'KeyL': Petscii.named['unlock-case'],
-            'KeyM': Petscii.named['cbm-N'],
+            // skip ctrl-M as it is unprintable
             'KeyN': Petscii.named['lower-case'],
             'KeyO': Petscii.named['flash-on'],
+            'KeyP': Petscii.named['ctrl-P'],
+            'KeyQ': Petscii.named['down'],
+            'KeyR': Petscii.named['ctrl-R'],
             'KeyS': Petscii.named['home'],
-            'KeyT': Petscii.named['delete'],
-            'KeyU': Petscii.named['cbm-U'],
+            // skip ctrl-T as it is unprintable
+            'KeyU': Petscii.named['ctrl-U'],
+            'KeyV': Petscii.named['ctrl-V'],
+            'KeyW': Petscii.named['ctrl-W'],
             'KeyX': Petscii.named['toggle-tab'],
+            'KeyY': Petscii.named['ctrl-Y'],
+            'KeyZ': Petscii.named['ctrl-Z'],
             'BracketLeft': Petscii.named['esc'],
+            'BracketRight': Petscii.named['right'],
+            'Backquote': Petscii.named['ctrl-left-arrow'],
             'Digit1': Petscii.named['black'],
             'Digit2': Petscii.named['white'],
             'Digit3': Petscii.named['red'],
@@ -118,20 +141,11 @@ class Editor {
             'Digit0': Petscii.named['reverse-off'],
         },
         'shiftctrlalt': {
-            // 'KeyB': '\uE0C2',
-            'KeyE': Petscii.named['f1'],
-            'KeyF': Petscii.named['f3'],
-            'KeyG': Petscii.named['f5'],
-            'KeyH': Petscii.named['f7'],
-            'KeyI': Petscii.named['f2'],
-            'KeyJ': Petscii.named['f4'],
-            'KeyK': Petscii.named['f6'],
-            'KeyL': Petscii.named['f8'],
-            'KeyM': Petscii.named['shift-return'],
-            'KeyN': Petscii.named['upper-case'],
-            // 'KeyO': '\uE0CF',
+            'BracketLeft': Petscii.named['red'], // pound
+            'Backquote': Petscii.named['ctrl-left-arrow'],
+            'Digit2': Petscii.named['ctrl-@'],
+            'Digit6': Petscii.named['ctrl-up-arrow'],
             'KeyS': Petscii.named['clear'],
-            'KeyT': Petscii.named['insert'],
         },
         'ctrl': {
             'Digit1': Petscii.named['black'],
@@ -157,100 +171,6 @@ class Editor {
 
     static editorConfig = {
         brackets: [ [ '(', ')' ] ],
-    }
-
-    static reserved = {
-        'v2': [ 'ST', 'TI', 'TI$' ],
-        'v3.5': [ 'DS', 'DS$', 'EL', 'ER' ],
-        'v4': [ 'DS', 'DS$' ],
-        'v4+': [ 'EL' ],
-        'v7': [ 'DS', 'DS$', 'EL', 'ER' ]
-    }
-
-    static keywords = {
-        'v2': [
-            'ABS', 'ASC', 'ATN', 
-            'CHR$', 'CLOSE', 'CLR', 'CMD', 'CONT', 'COS', 
-            'DATA', 'DEF', 'DIM', 
-            'END', 'EXP', 
-            'FN', 'FOR', 'FRE', 
-            'GET', 'GET#', 'GOTO', 'GO TO', 'GOSUB', 
-            'IF', 'INPUT', 'INPUT#', 'INT', 
-            'LEFT$', 'LEN', 'LET', 'LIST', 'LOAD', 'LOG',
-            'MID$',
-            'NEW', 'NEXT',
-            'ON', 'OPEN',
-            'PEEK', 'POKE', 'POS', 'PRINT', 'PRINT#', 
-            'READ', 'REM', 'RESTORE', 'RETURN', 'RIGHT$', 'RND', 'RUN', 
-            'SAVE', 'SGN', 'SIN', 'SPC', 'SQR', 'STEP', 'STOP', 'STR$', 'SYS',
-            'TAB', 'TAN', 'THEN', 'TO',
-            'USR',
-            'VAL', 'VERIFY',
-            'WAIT',
-        ],
-        'v3.5': [
-            'AUTO', 
-            'BACKUP', 'BOX',
-            'CHAR', 'CIRCLE', 'COLLECT', 'COLOR', 'COPY', 
-            'DEC', 'DELETE', 'DIRECTORY', 'DLOAD', 'DO', 'DRAW', 'DSAVE', 
-            'ELSE', 'ERR$', 'EXIT', 
-            'GETKEY', 'GRAPHIC', 'GSHAPE', 
-            'HEADER', 'HELP', 'HEX$',
-            'INSTR', 
-            'JOY', 
-            'KEY',
-            'LOCATE', 'LOOP',
-            'MONITOR', 
-            'PAINT', 'PUDEF',
-            'RCLR', 'RDOT', 'RENAME', 'RENUMBER', 'RESUME', 'RGR', 'RLUM', 
-            'SCALE', 'SCNCLR', 'SOUND', 'SSHAPE',
-            'TRAP', 'TROFF', 'TRON',
-            'UNTIL', 'USING',
-            'VOL',
-            'WHILE',
-        ],
-        'v4': [
-            'APPEND', 
-            'BACKUP', 
-            'CATALOG', 'COLLECT', 'CONCAT', 'COPY', 
-            'DCLOSE', 'DIRECTORY', 'DLOAD', 'DOPEN', 'DSAVE', 
-            'RECORD', 'RENAME', 
-            'SCRATCH', 
-        ],
-        'v4+': [
-            'BANK', 'BLOAD', 'BSAVE', 
-            'DCLEAR', 'DELETE', 'DISPOSE', 
-            'ELSE', 'ERR$', 'ESC', 
-            'INSTR', 
-            'KEY', 
-            'PUDEF', 
-            'RESUME', 
-            'TRAP', 
-            'USING', 
-        ],
-        'v7': [
-            'APPEND', 'AUTO', 
-            'BACKUP', 'BANK', 'BEGIN', 'BEND', 'BLOAD', 'BOOT', 'BOX', 'BSAVE', 'BUMP',
-            'CATALOG', 'CHAR', 'CIRCLE', 'COLLECT', 'COLLISION', 'COLOR', 'CONCAT', 'COPY', 
-            'DCLEAR', 'DCLOSE', 'DEC', 'DELETE', 'DIRECTORY', 'DLOAD', 'DO', 'DOPEN', 'DRAW', 'DSAVE', 'DVERIFY', 
-            'ELSE', 'ENVELOPE', 'ERR$', 'EXIT', 
-            'FAST', 'FETCH', 'FILTER', 
-            'GETKEY', 'GO64', 'GRAPHIC', 'GSHAPE', 
-            'HEADER', 'HELP', 'HEX$', 
-            'INSTR', 
-            'JOY', 
-            'KEY', 
-            'LOCATE', 'LOOP', 
-            'MONITOR', 'MOVSPR', 
-            'PAINT', 'PEN', 'PLAY', 'POINTER', 'POT', 'PUDEF', 
-            'RCLR', 'RDOT', 'RECORD', 'RENAME', 'RENUMBER', 'RESUME', 'RGR', 'REG', 'RSPCOLOR', 'RSPPOS', 'RSPRITE', 'RWINDOW',
-            'SCALE', 'SCNCLR', 'SCRATCH', 'SLEEP', 'SLOW', 'SOUND', 'SPRCOLOR', 'SPRDEF', 'SPRITE', 'SPREAD', 'SSHAPE', 'STASH', 'SWAP',
-            'TEMPO', 'TRAP', 'TROF', 'TRON', 
-            'UNTIL', 'USING', 
-            'VOL', 
-            'WHILE', 'WIDTH', 'WINDOW',
-            'XOR'
-        ]
     }
 
     static languageRoot  = [
@@ -368,6 +288,11 @@ class Editor {
         this.variableReferences = {}
         this.notations = {}
         this.checksumAlgorithm = null
+        this.charSet = 'UPPER/Graphics'
+        this.fontOffset = 0
+        this.charSetOffset = 0
+        this.minFontChar = '\uE000'
+        this.maxFontChar = '\uE1FF'
     }
 
     generateEditorTheme(name, colors) {
@@ -404,6 +329,11 @@ class Editor {
     setMachine(machine) {
         const version = `${machine.language || 'v2'}basic`
         monaco.editor.setModelLanguage(this.editor.getModel(), version)
+        this.fontOffset = machine.fontOffset ?? 0
+        // TODO: theme returns char set and maybe a control?
+        this.charSet = machine.charSets ? machine.charSets[0] : 'UPPER/Graphics'
+        this.charSetOffset = (this.charSet === 'lower/UPPER') ? 0x100 : 0
+        window.tokenizer.setFontOffset(this.fontOffset + this.charSetOffset, this.charSet)
     }
 
     setTheme(name, font) {
@@ -479,11 +409,16 @@ class Editor {
         let modifier = (key.shiftKey ? 'shift' : '') + (key.ctrlKey ? 'ctrl' : '') + (key.altKey ? 'alt' : '')
         if (modifier.length === 0) { modifier = 'none' }
         const lookup = Editor.petsciiKeymap[modifier] || {}
-        const petscii = lookup[key.code]
+        let petscii = lookup[key.code]
         if (petscii) {
             key.preventDefault()
             key.stopPropagation()
             if (petscii === '\x00') { return }
+            if (this.charSet === 'lower/UPPER' && petscii >= '\uE041' && petscii <= '\uE05A') {
+                petscii = String.fromCodePoint(petscii.codePointAt(0) - 0xE000)
+            } else if ((this.fontOffset > 0 || this.charSetOffset > 0)  && petscii >= '\uE000' && petscii <= '\uE1FF') {
+                petscii = String.fromCodePoint(petscii.codePointAt(0) + this.fontOffset + this.charSetOffset)
+            }
             this.editor.executeEdits("", [{
                 range: new monaco.Range(
                     position.lineNumber,
@@ -498,7 +433,10 @@ class Editor {
         } else if (modifier === 'none' && key.code.startsWith('Key')) {
             key.preventDefault()
             key.stopPropagation()
-            const write = key.code.substring(3)
+            let write = key.code.substring(3)
+            if (this.charSet === 'lower/UPPER') {
+                write = write.toLowerCase()
+            }
             this.editor.executeEdits("", [{
                 range: new monaco.Range(
                     position.lineNumber,
