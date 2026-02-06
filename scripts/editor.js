@@ -1,4 +1,10 @@
 class Editor {
+    // danger zone:
+    // - "dead" composing keys:
+    //   - option-e
+    //   - option-u
+    //   - option-i
+    //   - option-n
     static baseKeyMappings = {
         'shift': {
             'Digit6' : 0x5E, // up arrow
@@ -17,152 +23,44 @@ class Editor {
             'KeyM': 0xA7, 'KeyN': 0xAA, 'KeyO': 0xB9, 'KeyP': 0xAF, 'KeyQ': 0xAB, 'KeyR': 0xB2,
             'KeyS': 0xAE, 'KeyT': 0xA3, 'KeyU': 0xB8, 'KeyV': 0xBE, 'KeyW': 0xB3, 'KeyX': 0xBD,
             'KeyY': 0xB7, 'KeyZ': 0xAD,
+            'Plus': 0x7B, // heavy cross
+            'Semicolon': 0xBA, // lower right large border
+            'BracketLeft': 0xA8, // horitozontal half checkerboard
+            'BracketRight': 0x7C, // vertical half checkerboard
+            'Backslash': 0xA6, // full checkerboard
+            'Quote': 0x7E, // pi
+            'Slash': 0x5C, // gb-pound
         },
-        'ctrl': 
-            '???': 0x60, // fix -- centered horizontal bar - shift-*
-            '???': 0x7B, // fix -- heavy cross - shift-+
-            '???': 0x7C, // fix -- vertical half checkerboard - cbm--
-            '+': 0xA6, // fix -- full checkerboard - cbm-+
-            '£': 0xA8, // fix -- horizontal half checkboard - cbm-£
-            '???': 0xA9, // fix -- upper left right triangle -- shift-£
-            '???': 0xBA, // fix -- lower right large border -- shift-@
-            '???': 0x7E, // fix -- pi (shift-up-arrow)
-            '???': 0x7F, // fix -- upper right right triangle - cbm-*
-            ''
-
-        }
+        'ctrlalt': { // lower control set
+            'KeyA': 0x01, 'KeyB': 0x02, 'KeyC': 0x03, 'KeyD': 0x04, 'KeyE': 0x05, 'KeyF': 0x06, 
+            'KeyG': 0x07, 'KeyH': 0x08, 'KeyI': 0x09, 'KeyJ': 0x0A, 'KeyK': 0x0B, 'KeyL': 0x0C, 
+            'KeyM': 0x0D, 'KeyN': 0x0E, 'KeyO': 0x0F, 'KeyP': 0x10, 'KeyQ': 0x11, 'KeyR': 0x12, 
+            'KeyS': 0x13, 'KeyT': 0x14, 'KeyU': 0x15, 'KeyV': 0x16, 'KeyW': 0x17, 'KeyX': 0x18, 
+            'KeyY': 0x19, 'KeyZ': 0x1A,
+            'BracketLeft': 0x1B,
+            'Slash': 0x1C,
+            'BracketRight': 0x1D,
+            'Minus': 0x1E,
+            'Equal': 0x1F
+        },
+        'shiftctrlalt': { // upper control set
+            'KeyA': 0x81, 'KeyB': 0x82, 'KeyC': 0x83, 'KeyD': 0x84, 'KeyE': 0x85, 'KeyF': 0x86, 
+            'KeyG': 0x87, 'KeyH': 0x88, 'KeyI': 0x89, 'KeyJ': 0x8A, 'KeyK': 0x8B, 'KeyL': 0x8C, 
+            'KeyM': 0x8D, 'KeyN': 0x8E, 'KeyO': 0x8F, 'KeyP': 0x90, 'KeyQ': 0x91, 'KeyR': 0x92, 
+            'KeyS': 0x93, 'KeyT': 0x94, 'KeyU': 0x95, 'KeyV': 0x96, 'KeyW': 0x97, 'KeyX': 0x98, 
+            'KeyY': 0x99, 'KeyZ': 0x9A,
+            'BracketLeft': 0x9B,
+            'Slash': 0x9C,
+            'BracketRight': 0x9D,
+            'Minus': 0x9E,
+            'Equal': 0x9F
+        },
     }
 
-    static petsciiKeymap = {
-        'none' : {
-            'F1': Petscii.named['f1'],
-            'F2': Petscii.named['f2'],
-            'F3': Petscii.named['f3'],
-            'F4': Petscii.named['f4'],
-            'F5': Petscii.named['f5'],
-            'F6': Petscii.named['f6'],
-            'F7': Petscii.named['f7'],
-            'F8': Petscii.named['f8'],
-        },
-        'shift': {
-            'BracketLeft': Petscii.named['gpb'],
-            'BracketRight': Petscii.named['pi'],
-        },
-        'alt': {
-            'Minus': Petscii.named['shift-*'],
-            'Equal': Petscii.named['shift-+'],
-            'BracketLeft': Petscii.named['cbm--'],
-            'BracketRight': Petscii.named['cbm-£'],
-            'Backslash': Petscii.named['cbm-+'],
-            'Semicolon': Petscii.named['shift-£'],
-            'Quote': Petscii.named['cbm-*'], 
-            'Comma': '\x00', // ignore
-            'Period': '\x00', // ignore
-            'Slash': '\x00', // ignore
-            'KeyA': Petscii.named['cbm-A'],
-            'KeyB': Petscii.named['cbm-B'],
-            'KeyC': Petscii.named['cbm-C'],
-            'KeyD': Petscii.named['cbm-D'],
-            'KeyE': Petscii.named['cbm-E'],
-            'KeyF': Petscii.named['cbm-F'],
-            'KeyG': Petscii.named['cbm-G'],
-            'KeyH': Petscii.named['cbm-H'],
-            'KeyI': Petscii.named['cbm-I'],
-            'KeyJ': Petscii.named['cbm-J'],
-            'KeyK': Petscii.named['cbm-K'],
-            'KeyL': Petscii.named['cbm-L'],
-            'KeyM': Petscii.named['cbm-M'],
-            'KeyN': Petscii.named['cbm-N'],
-            'KeyO': Petscii.named['cbm-O'],
-            'KeyP': Petscii.named['cbm-P'],
-            'KeyQ': Petscii.named['cbm-Q'],
-            'KeyR': Petscii.named['cbm-R'],
-            'KeyS': Petscii.named['cbm-S'],
-            'KeyT': Petscii.named['cbm-T'],
-            'KeyU': Petscii.named['cbm-U'],
-            'KeyV': Petscii.named['cbm-V'],
-            'KeyW': Petscii.named['cbm-W'],
-            'KeyX': Petscii.named['cbm-X'],
-            'KeyY': Petscii.named['cbm-Y'],
-            'KeyZ': Petscii.named['cbm-Z'],
-            'Digit1': Petscii.named['orange'],
-            'Digit2': Petscii.named['brown'],
-            'Digit3': Petscii.named['lt-red'],
-            'Digit4': Petscii.named['dk-gray'],
-            'Digit5': Petscii.named['med-gray'],
-            'Digit6': Petscii.named['lt-green'],
-            'Digit7': Petscii.named['lt-blue'],
-            'Digit8': Petscii.named['lt-gray'],
-        },
-        'ctrlalt': {
-            'Tab': Petscii.named['tab'],
-            'ArrowLeft': Petscii.named['left'],
-            'ArrowRight': Petscii.named['right'],
-            'ArrowUp': Petscii.named['up'],
-            'ArrowDown': Petscii.named['down'],
-            'KeyA': Petscii.named['ctrl-A'],
-            'KeyB': Petscii.named['underline-on'],
-            'KeyC': Petscii.named['stop'],
-            'KeyD': Petscii.named['ctrl-D'],
-            'KeyE': Petscii.named['white'], 
-            'KeyF': Petscii.named['ctrl-F'], 
-            'KeyG': Petscii.named['bell'],
-            'KeyH': Petscii.named['ctrl-H'],
-            'KeyI': Petscii.named['tab'],
-            'KeyJ': Petscii.named['linefeed'],
-            'KeyK': Petscii.named['lock-case'],
-            'KeyL': Petscii.named['unlock-case'],
-            // skip ctrl-M as it is unprintable
-            'KeyN': Petscii.named['lower-case'],
-            'KeyO': Petscii.named['flash-on'],
-            'KeyP': Petscii.named['ctrl-P'],
-            'KeyQ': Petscii.named['down'],
-            'KeyR': Petscii.named['ctrl-R'],
-            'KeyS': Petscii.named['home'],
-            // skip ctrl-T as it is unprintable
-            'KeyU': Petscii.named['ctrl-U'],
-            'KeyV': Petscii.named['ctrl-V'],
-            'KeyW': Petscii.named['ctrl-W'],
-            'KeyX': Petscii.named['toggle-tab'],
-            'KeyY': Petscii.named['ctrl-Y'],
-            'KeyZ': Petscii.named['ctrl-Z'],
-            'BracketLeft': Petscii.named['esc'],
-            'BracketRight': Petscii.named['right'],
-            'Backquote': Petscii.named['ctrl-left-arrow'],
-            'Digit1': Petscii.named['black'],
-            'Digit2': Petscii.named['white'],
-            'Digit3': Petscii.named['red'],
-            'Digit4': Petscii.named['cyan'],
-            'Digit5': Petscii.named['purple'],
-            'Digit6': Petscii.named['green'],
-            'Digit7': Petscii.named['blue'],
-            'Digit8': Petscii.named['yellow'],
-            'Digit9': Petscii.named['reverse-on'],
-            'Digit0': Petscii.named['reverse-off'],
-        },
-        'shiftctrlalt': {
-            'BracketLeft': Petscii.named['red'], // pound
-            'Backquote': Petscii.named['ctrl-left-arrow'],
-            'Digit2': Petscii.named['ctrl-@'],
-            'Digit6': Petscii.named['ctrl-up-arrow'],
-            'KeyS': Petscii.named['clear'],
-        },
-        'ctrl': {
-            'Digit1': Petscii.named['black'],
-            'Digit2': Petscii.named['white'],
-            'Digit3': Petscii.named['red'],
-            'Digit4': Petscii.named['cyan'],
-            'Digit5': Petscii.named['purple'],
-            'Digit6': Petscii.named['green'],
-            'Digit7': Petscii.named['blue'],
-            'Digit8': Petscii.named['yellow'],
-            'Digit9': Petscii.named['reverse-on'],
-            'Digit0': Petscii.named['reverse-off'],
-        }
-    }
+    static petsciiKeymap = { }
 
     static diacriticals = [
-        0xa8,
+        0xa8, 
         0xb4,
         0x2c6,
         0x2d6,
