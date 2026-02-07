@@ -234,8 +234,11 @@ html, body {
     color: yellow !important;
     font-size: 70% !important;
 }
-.monaco-editor:not(.focused) .cursors-layer .cursor {
-  visibility: inherit !important;
+#container:not(.read-only-mode) .monaco-editor:not(.focused) .cursors-layer .cursor {
+    visibility: inherit !important;
+}
+#container.read-only-mode .monaco-editor .cursors-layer .cursor {
+    display: none !important;
 }
 
 /* Disc Catalog */

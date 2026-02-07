@@ -51,7 +51,6 @@ const Machines = {
         palette: 'pet',
         menu: 'pet-business',
         language: 'v4',
-        charSets: [ 'lower/UPPER' ],
         startAddress: 0x0401,
     },
     'cbm2': {
@@ -59,7 +58,6 @@ const Machines = {
         palette: 'pet',
         language: 'v4+',
         startAddress: 0x0003, // bank ram01
-        charSets: [ 'lower/UPPER', 'UPPER/Graphics' ]
     }
 }
 
@@ -91,6 +89,17 @@ class Controls {
     waitForEditor() {
         if (window.editor) {
             this.setMachine(DEFAULT_MACHINE)
+            window.editor.setHelpText(
+`
+Welcome to EDCBM - the Ultimate In-Browser IDE for Commodore 8-bit Computers
+
+To Get Started:
+
+* Start a NEW Program
+* LOAD a Program Directly
+* LOAD a D64 Disk and then LOAD a program from its CATALOG
+`               
+            )
             return
         }
         setTimeout(() => { this.waitForEditor() }, 100)
@@ -107,6 +116,7 @@ class Controls {
         if (window.palettes) { window.palettes.setMachine(this.machine) }
         if (window.fileControls) { window.fileControls.setMachine(machine) }
         if (window.virtualKeyboard) { window.virtualKeyboard.setMachine(this.machine) }
+        if (window.tokenizer) { window.tokenizer.setMachine(this.machine) }
         window.blocker.hide()
     }
 

@@ -235,6 +235,10 @@ class Tokenizer {
         'v2': [ 'GOTO', 'GO TO', 'GOSUB', 'THEN' ],
         'v4+': [ 'RESTORE', 'RESUME' ],
     }
+    static keywordPetscii = {
+        ...Petscii.coreTable_Sym,
+        ...Petscii.coreTable_UC
+    }
     static {
         this.reserved['v3.5'] = [ ...this.reserved['v2'], ...this.reserved['v3.5'] ]
         this.reserved['v4'] = [ ...this.reserved['v2'], ...this.reserved['v4'] ]
@@ -247,6 +251,7 @@ class Tokenizer {
         this.tokensMap['v7'] = { ...this.tokensMap['v3.5'], ...this.tokensMap['v7'] }
         this.tokenLookup = {}
         this.tokenRegex = {}
+        this.keywordRegex = {}
 
         this.keywords = {}
         for (const version in this.tokensMap) {
@@ -273,22 +278,31 @@ class Tokenizer {
             })
             this.keywords[version] = [ ...keywords ]
 
-            this.tokenRegex[version] = `(${this.keywords[version].join('|')})`
+            this.keywordRegex[version] = `(${this.keywords[version].join('|')})`
+
+            this.tokenLookup[machine] = lookup
+            const tokenList = Object.keys(lookup).map((t) => t.replace(/([\(\$\+\-\*\/\=\<\>])/, '\\$1'))
+            this.tokenRegex[machine] = `(${tokenList.join('|')})`
         }
 
         this.lineNumberTokens['v4+'] = [ ...this.lineNumberTokens['v2'], ...this.lineNumberTokens['v4+'] ]
         this.lineNumberTokens['v3.5'] = [ ...this.lineNumberTokens['v4+'] ]
         this.lineNumberTokens['v7'] = [ ...this.lineNumberTokens['v3.5'] ]
+
+        this.keywordPetsciiLookup = new Map( Array.from(this.keywordPetscii, ([ k, v ]) => [ v, k ]))
     }
 
     constructor() {
-        this.setVersion('v7')
-        this.fontOffset = 0
-        this.minChar = '\uE000'
-        this.minCharCode = 0xE000
-        this.maxChar = '\uE1FF'
-        this.maxCharCode = 0xE1FF
-        this.charSet = 'UPPER/Graphics'
+        this.petscii = new Petscii()
+    }
+
+    setMachine(machine, charSet = 'default') {
+        this.machine = machine
+        this.setCharSet(charSet ?? 'default')
+    }
+
+    setCharSet(charSet = 'default') {
+        this.petscii.setMachine(this.machine, charSet)
     }
 
     setFontOffset(fo, charSet) {
@@ -411,7 +425,13 @@ class Tokenizer {
         const loByte = lineNumber - hiByte * 256
         let tokenBytes = [ loByte, hiByte ]
 
-        // parse the line by quotes
+        // convert the string to PETSCII codes, convert any "common Petscii" to letters/symbols for further parsing
+        let petsciiLine = ''
+        for (const char in line) {
+
+        }
+
+        // parse the line by key separators
         let varName = null
         let varStart = 0
         for (let linesplit of line.split(/("|:|DATA)/)) {

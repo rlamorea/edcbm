@@ -149,7 +149,6 @@ class NameMenu {
                 val += petscii
             }
             this.input.value = val
-            console.log('resetting cursor to', curpos + 1)
             this.input.setSelectionRange(curpos + 1, curpos + 1)
         }
     }
@@ -215,7 +214,6 @@ class FileControls {
     newFile(e) {
         this.startAddress = this.startAddress
         window.editor.setProgram('')
-        window.editor.disabled = false
         this.fileOptions.editName()
     }
 
@@ -252,6 +250,7 @@ class FileControls {
                 this.startAddress = this.startAddress
             }
             window.editor.setProgram(content)
+            window.editor.enableEditor()
             const fname = this.cleanFilename(file.name, ['EPRG'])
             this.fileOptions.setName(fname)
         }
@@ -291,6 +290,7 @@ class FileControls {
         const hasName = name.length > 0
         const disabled = hasName ? [ ] : [ 'rename', 'save-prg', 'save-to-disc' ]
         this.fileOptions.selectionsEnable(disabled)
+        window.editor.enableEditor()
     }
 
     newDisc(e) {
@@ -409,7 +409,7 @@ class FileControls {
         }
 
         window.editor.setProgram(program)
-        window.editor.disabled = false
+        window.editor.enableEditor()
         window.blocker.hide()
     }
 }

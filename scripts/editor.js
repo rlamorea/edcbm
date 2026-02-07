@@ -152,7 +152,7 @@ class Editor {
             for (const def of this.languageRoot) {
                 this.language[version].tokenizer.root.push(def)
             }
-            this.language[version].tokenizer.root.splice(5, 0, [ new RegExp(Tokenizer.tokenRegex[version]), 'keyword' ])
+            this.language[version].tokenizer.root.splice(5, 0, [ new RegExp(Tokenizer.keywordRegex[version]), 'keyword' ])
             const reserved = Tokenizer.reserved[version].map((r) => r.replace('$', '\\$'))
             this.language[version].tokenizer.root.splice(6, 0, [ new RegExp(`(${reserved.join('|')})`), 'reserved' ])
         }
@@ -174,7 +174,8 @@ class Editor {
 
     constructor() {
         this.setUpMonaco()
-        this.editor = monaco.editor.create(document.getElementById('container'), {
+        this.container = document.getElementById('container')
+        this.editor = monaco.editor.create(this.container, {
             language: 'v7basic',
             theme: 'vs-dark',
             fontFamily: 'cbmthick-40',
@@ -227,6 +228,7 @@ class Editor {
         this.hostMachine = window.navigator.userAgentData.platform
 
         this.petscii = new Petscii()
+        this.enableEditor(false)
     }
 
     restoreCursor() {
@@ -243,7 +245,6 @@ class Editor {
         const change = event.changes[0]
         let range = change.range
         const text = change.text
-        console.log(change)
         if (Editor.diacriticals.includes(text.codePointAt(0))) {
             if (text.length === 2) {
                 range.startColumn -= 1
@@ -252,14 +253,6 @@ class Editor {
         } else if (Editor.invalidChars.includes(text.charAt(0))) {
                 this.editor.executeEdits("", [{ range, text: '', forceMoveMarkers: true }]) 
         }
-        
-
-        // console.log('change of "', change.text, '" len', change.text.length, 'at', change.range)
-        // if (Editor.diacriticals.includes(change.text.codePointAt(0)) || Editor.invalidChars.includes(change.text.charAt(0))) {
-        //     // setTimeout(() => { 
-        //     //     console.log('deleting', range)
-        //     // }, 10)
-        // }
     }
 
     generateEditorTheme(name, colors) {
@@ -293,16 +286,17 @@ class Editor {
         monaco.editor.defineTheme(`${name}theme`, theme)
     }
 
-    setMachine(machine) {
+    setMachine(machine, charSet = 'default') {
         const version = `${machine.language || 'v2'}basic`
         monaco.editor.setModelLanguage(this.editor.getModel(), version)
-        this.fontOffset = machine.fontOffset ?? 0
         // TODO: theme returns char set and maybe a control?
-        this.charSet = machine.charSets ? machine.charSets[0] : 'UPPER/Graphics'
-        this.charSetOffset = (this.charSet === 'lower/UPPER') ? 0x100 : 0
+        this.machine = machine
         this.petsciiKeymap = Editor.petsciiKeymap[machine.name]
-        this.petscii.setMachine(machine)
-        window.tokenizer.setFontOffset(this.fontOffset + this.charSetOffset, this.charSet)
+        this.setCharSet(charSet ?? 'default')
+    }
+
+    setCharSet(charSet = 'default') {
+        this.petscii.setMachine(this.machine, charSet)
     }
 
     setTheme(name, font) {
@@ -311,11 +305,24 @@ class Editor {
         setTimeout(() => { monaco.editor.remeasureFonts() }, 25)
     }
 
+    enableEditor(enable = true) {
+        this.container.classList.toggle('read-only-mode', !enable)
+        this.editor.updateOptions({ readOnly: !enable })
+        if (enable) { 
+            this.editor.focus() 
+            setTimeout(() => { this.editor.setPosition({ lineNumber: 1, column: 1 }) })
+        }
+    }
+
     setProgram(program) {
         program = this.parseNotationsHeader(program)
         this.editor.setValue(program)
         this.parseLines()
         this.notateLines()
+    }
+
+    setHelpText(text) {
+        this.editor.setValue(text)
     }
 
     getProgram(withNotations = true) {
