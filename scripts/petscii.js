@@ -43,9 +43,9 @@ class Petscii {
 
     static generateCodeSequence(startCode, endCode, startPetscii) {
         let petscii = startPetscii
-        let codes = []
+        let codes = {}
         for (let code = startCode; code <= endCode; code++) {
-            codes.push(String.fromCodePoint(petscii++))
+            codes[code] = String.fromCodePoint(petscii++)
         }
         return codes
     }
@@ -87,7 +87,7 @@ class Petscii {
 
     static {
         this.tables['c64-Ug'] = {
-            ...this.generateCodeSequence(0x00, 0x2F, 0xE080),
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE080),
             ...this.coreTable_Sym,
             ...this.coreTable_UC,
             ...this.generateCodeSequence(0x60, 0x7F, 0xE040),
@@ -96,7 +96,7 @@ class Petscii {
             ...this.generateCodeSequence(0xC0, 0xFF, 0xE040)
         }
         this.tables['c64-lU'] = {
-            ...this.generateCodeSequence(0x00, 0x2F, 0xE180),
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE180),
             ...this.coreTable_Sym,
             ...this.coreTable_lc,
             ...this.generateCodeSequence(0x60, 0x7F, 0xE140),
@@ -105,7 +105,7 @@ class Petscii {
             ...this.generateCodeSequence(0xC0, 0xFF, 0xE140)
         }
         this.tables['c128-Ug'] = {
-            ...this.generateCodeSequence(0x00, 0x2F, 0xE280),
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE280),
             ...this.coreTable_Sym,
             ...this.coreTable_lc,
             ...this.generateCodeSequence(0x60, 0x7F, 0xE240),
@@ -114,7 +114,7 @@ class Petscii {
             ...this.generateCodeSequence(0xC0, 0xFF, 0xE240)
         }
         this.tables['c128-lc'] = {
-            ...this.generateCodeSequence(0x00, 0x2F, 0xE380),
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE380),
             ...this.coreTable_Sym,
             ...this.generateCodeSequence(0x40, 0x5F, 0xE300),
             ...this.generateCodeSequence(0x60, 0x7F, 0xE340),
@@ -123,7 +123,7 @@ class Petscii {
             ...this.generateCodeSequence(0xC0, 0xFF, 0xE340)
         }
         this.tables['pet-Ug'] = {
-            ...this.generateCodeSequence(0x00, 0x2F, 0xE280), // stealing control charas from VIC-20 set
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE280), // stealing control charas from VIC-20 set
             ...this.coreTable_Sym,
             ...this.coreTable_UC,
             ...this.generateCodeSequence(0x60, 0x7F, 0xE040),
@@ -132,7 +132,7 @@ class Petscii {
             ...this.generateCodeSequence(0xC0, 0xFF, 0xE040)
         }
         this.tables['pet-uL'] = {
-            ...this.generateCodeSequence(0x00, 0x2F, 0xE080), // VIC-20
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE280), // VIC-20
             ...this.coreTable_Sym,
             ...this.coreTable_lc,
             ...this.generateCodeSequence(0x60, 0x7F, 0xE0C0),
@@ -141,7 +141,7 @@ class Petscii {
             ...this.generateCodeSequence(0xC0, 0xFF, 0xE0C0)
         }
         this.tables['vic20-Ug'] = {
-            ...this.generateCodeSequence(0x00, 0x2F, 0xE280),
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE280),
             ...this.generateCodeSequence(0x20, 0x3F, 0xE220),
             ...this.generateCodeSequence(0x40, 0x5F, 0xE200),
             ...this.generateCodeSequence(0x60, 0x7F, 0xE240),
@@ -150,7 +150,7 @@ class Petscii {
             ...this.generateCodeSequence(0xC0, 0xFF, 0xE240)
         }
         this.tables['vic20-lU'] = {
-            ...this.generateCodeSequence(0x00, 0x2F, 0xE380),
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE380),
             ...this.generateCodeSequence(0x20, 0x3F, 0xE320),
             ...this.generateCodeSequence(0x40, 0x5F, 0xE300),
             ...this.generateCodeSequence(0x60, 0x7F, 0xE340),
@@ -159,7 +159,7 @@ class Petscii {
             ...this.generateCodeSequence(0xC0, 0xFF, 0xE340)
         }
         this.tables['cbm2-lU'] = {
-            ...this.generateCodeSequence(0x00, 0x2F, 0xE280), // stealing control charas from VIC-20 set
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE280), // stealing control charas from VIC-20 set
             ...this.generateCodeSequence(0x20, 0x3F, 0xE820),
             ...this.generateCodeSequence(0x40, 0x5F, 0xE800),
             ...this.generateCodeSequence(0x60, 0x7F, 0xE840),
@@ -168,7 +168,7 @@ class Petscii {
             ...this.generateCodeSequence(0xC0, 0xFF, 0xE840)
         }
         this.tables['cbm2-Ug'] = {
-            ...this.generateCodeSequence(0x00, 0x2F, 0xE280), // stealing control charas from VIC-20 set
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE280), // stealing control charas from VIC-20 set
             ...this.generateCodeSequence(0x20, 0x3F, 0xE8A0),
             ...this.generateCodeSequence(0x40, 0x5F, 0xE880),
             ...this.generateCodeSequence(0x60, 0x7F, 0xE8C0),
@@ -357,11 +357,10 @@ class Petscii {
     }
 
     constructor(machine, charSet) {
-        this.machine = machine.name
-        this.charSets = Petscii.machineMapping[this.machine]
-        this.charSet = charSet ?? this.charSets.default ?? 'Ug'
-
-        this.setCharSet()
+        if (machine) {
+            this.setMachine(machine)
+            this.setCharSet(charSet ?? 'default')
+        }
     }
 
     availableCharSets() {
@@ -370,15 +369,21 @@ class Petscii {
         return cs
     }
 
+    setMachine(machine, charSet) {
+        this.machine = machine.name
+        this.charSets = Petscii.machineMapping[this.machine]
+        this.setCharSet(charSet ?? 'default')
+    }
+
     setCharSet(charSet = 'default') {
         if (charSet === 'default') { this.charSets.default || 'Ug' }
-        charSet = (charSet === 'lower/UPPER' || charSet === 'lU') ? 'lU' : 'uG'
-        if (!(charSet in this.charSets)) { charSet = this.charSets.default ?? 'uG' }
+        charSet = (charSet === 'lower/UPPER' || charSet === 'lU') ? 'lU' : 'Ug'
+        if (!(charSet in this.charSets)) { charSet = this.charSets.default ?? 'Ug' }
         this.charSet = charSet
 
         this.setKey = `${this.machine}-${charSet}`
 
-        this.petscii = Petscii.tables[this.setKey]
+        this.table = Petscii.tables[this.setKey]
         this.lookup = Petscii.nameLookup[this.setKey]
         this.codes = Petscii.codeNames[this.setKey]
         this.nameLookup = Petscii.codeNames[this.setKey]

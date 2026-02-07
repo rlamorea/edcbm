@@ -85,9 +85,15 @@ class Controls {
         this.machineMenu.style.display = 'none'
 
         document.getElementById('clean').addEventListener('click', () => this.cleanCode())
-        this.setMachine(DEFAULT_MACHINE)
+        this.waitForEditor()
+    }
 
-        if (window.editor) { window.editor.disabled = true }
+    waitForEditor() {
+        if (window.editor) {
+            this.setMachine(DEFAULT_MACHINE)
+            return
+        }
+        setTimeout(() => { this.waitForEditor() }, 100)
     }
 
     setMachine(machine) {

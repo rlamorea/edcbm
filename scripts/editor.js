@@ -1,10 +1,8 @@
 class Editor {
-    // danger zone:
-    // - "dead" composing keys:
-    //   - option-e
-    //   - option-u
-    //   - option-i
-    //   - option-n
+    // notes:
+    // -- preserving BackQuote (`) and shift BracketLeft ({) and shift BracketRight (}) for special use
+    // -- using shift+alt combo for CBM (and some special chars) to avoid diacritical combo option sequences on Mac
+    // -- using ctrl+alt (and shift+ctrl+alt) for CTRL (and SHIFT-CTRL) to avoid collisions with CTRL-key editor combos on Windows
     static baseKeyMappings = {
         'shift': {
             'Digit6' : 0x5E, // up arrow
@@ -17,37 +15,43 @@ class Editor {
             'KeyY': 0x79, 'KeyZ': 0x7A,
             'Minus': 0xA4, // bottom 1 pixel line (underscore)
         },
-        'alt': {
+        'shiftalt': {
             'KeyA': 0xB0, 'KeyB': 0xBF, 'KeyC': 0xBC, 'KeyD': 0xAC, 'KeyE': 0xB1, 'KeyF': 0xBB,
             'KeyG': 0xA5, 'KeyH': 0xB4, 'KeyI': 0xA2, 'KeyJ': 0xB5, 'KeyK': 0xA1, 'KeyL': 0xB6,
             'KeyM': 0xA7, 'KeyN': 0xAA, 'KeyO': 0xB9, 'KeyP': 0xAF, 'KeyQ': 0xAB, 'KeyR': 0xB2,
             'KeyS': 0xAE, 'KeyT': 0xA3, 'KeyU': 0xB8, 'KeyV': 0xBE, 'KeyW': 0xB3, 'KeyX': 0xBD,
             'KeyY': 0xB7, 'KeyZ': 0xAD,
-            'Plus': 0x7B, // heavy cross
+            'Equal': 0x7B, // heavy cross
             'Semicolon': 0xBA, // lower right large border
             'BracketLeft': 0xA8, // horitozontal half checkerboard
             'BracketRight': 0x7C, // vertical half checkerboard
             'Backslash': 0xA6, // full checkerboard
             'Quote': 0x7E, // pi
             'Slash': 0x5C, // gb-pound
+            'Comma': 0xA9, // top-left triangle
+            'Period': 0x7F, // bottom-right triangle
         },
         'ctrlalt': { // lower control set
             'KeyA': 0x01, 'KeyB': 0x02, 'KeyC': 0x03, 'KeyD': 0x04, 'KeyE': 0x05, 'KeyF': 0x06, 
             'KeyG': 0x07, 'KeyH': 0x08, 'KeyI': 0x09, 'KeyJ': 0x0A, 'KeyK': 0x0B, 'KeyL': 0x0C, 
-            'KeyM': 0x0D, 'KeyN': 0x0E, 'KeyO': 0x0F, 'KeyP': 0x10, 'KeyQ': 0x11, 'KeyR': 0x12, 
-            'KeyS': 0x13, 'KeyT': 0x14, 'KeyU': 0x15, 'KeyV': 0x16, 'KeyW': 0x17, 'KeyX': 0x18, 
+            /* no CTRL-M */ 'KeyN': 0x0E, 'KeyO': 0x0F, 'KeyP': 0x10, 'KeyQ': 0x11, 'KeyR': 0x12, 
+            'KeyS': 0x13, /* No CTRL-T */ 'KeyU': 0x15, 'KeyV': 0x16, 'KeyW': 0x17, 'KeyX': 0x18, 
             'KeyY': 0x19, 'KeyZ': 0x1A,
             'BracketLeft': 0x1B,
             'Slash': 0x1C,
             'BracketRight': 0x1D,
             'Minus': 0x1E,
-            'Equal': 0x1F
+            'Equal': 0x1F,
+            'ArrowDown': 0x11,
+            'ArrowUp': 0x91,
+            'ArrowRight': 0x1D,
+            'ArrowLeft': 0x9D,
         },
         'shiftctrlalt': { // upper control set
             'KeyA': 0x81, 'KeyB': 0x82, 'KeyC': 0x83, 'KeyD': 0x84, 'KeyE': 0x85, 'KeyF': 0x86, 
             'KeyG': 0x87, 'KeyH': 0x88, 'KeyI': 0x89, 'KeyJ': 0x8A, 'KeyK': 0x8B, 'KeyL': 0x8C, 
-            'KeyM': 0x8D, 'KeyN': 0x8E, 'KeyO': 0x8F, 'KeyP': 0x90, 'KeyQ': 0x91, 'KeyR': 0x92, 
-            'KeyS': 0x93, 'KeyT': 0x94, 'KeyU': 0x95, 'KeyV': 0x96, 'KeyW': 0x97, 'KeyX': 0x98, 
+            /* No CTRL-M */ 'KeyN': 0x8E, 'KeyO': 0x8F, 'KeyP': 0x90, 'KeyQ': 0x91, 'KeyR': 0x92, 
+            'KeyS': 0x93, /* No CTRL-T */ 'KeyU': 0x95, 'KeyV': 0x96, 'KeyW': 0x97, 'KeyX': 0x98, 
             'KeyY': 0x99, 'KeyZ': 0x9A,
             'BracketLeft': 0x9B,
             'Slash': 0x9C,
@@ -56,16 +60,13 @@ class Editor {
             'Equal': 0x9F
         },
     }
+    static hostIgnoreKeys = {
+        'macOS': { 'alt': 'ALL' }
+    }
+    static invalidChars = 'àèìòùáéíóúäëïöüÿâêîôûãõñ' // these are all of them according to Gemini
+    static diacriticals = [ 0x60, 0xB4, 0xA8, 0x02C6, 0x02DC ]
 
     static petsciiKeymap = { }
-
-    static diacriticals = [
-        0xa8, 
-        0xb4,
-        0x2c6,
-        0x2d6,
-        0x60,
-    ]
 
     static editorConfig = {
         brackets: [ [ '(', ')' ] ],
@@ -97,34 +98,73 @@ class Editor {
     static themes = {}
 
     static {
-        this.reserved['v3.5'] = [ ...this.reserved['v2'], ...this.reserved['v3.5'] ]
-        this.reserved['v7'] = [ ...this.reserved['v2'], ...this.reserved['v7'] ]
-        this.keywords['v7'] = [ ...this.keywords['v2'], ...this.keywords['v7'] ]
-        this.reserved['v4'] = [ ...this.reserved['v2'], ...this.reserved['v4'] ]
-        this.reserved['v4+'] = [ ...this.reserved['v4'], ...this.reserved['v4+'] ]
+        this.petsciiKeymap['pet-g'] = this.baseKeyMappings
+        this.petsciiKeymap['pet-b'] = {
+            'none': {
+                'Tab': 0x09, 
+                'Backslash': 0x5C, // backslash (or gp-pound on cbm2)
+            },
+            'shift': { ...this.baseKeyMappings.shift },
+            'shiftalt': { ...this.baseKeyMappings.shiftalt },
+            'ctrlalt': { ...this.baseKeyMappings.ctrlalt },
+            'shiftctrlalt': { ...this.baseKeyMappings.shiftctrlalt },
+        }
+        this.petsciiKeymap['cbm2'] = this.petsciiKeymap['pet-b']
+        this.petsciiKeymap['vic20'] = {
+            'none': {
+                'Backslash': 0x6D, // diagonal top-left to bottom-right
+                'F1': 0x85, 'F3': 0x86, 'F5': 0x87, 'F7': 0x88,
+                'F2': 0x89, 'F4': 0x8A, 'F6': 0x8B, 'F8': 0x8C,
+            },
+            'shift': { ...this.baseKeyMappings.shift },
+            'shiftalt': { ...this.baseKeyMappings.shiftalt },
+            'ctrlalt': { 
+                ...this.baseKeyMappings.ctrlalt,
+                'Digit1': 0x90, 'Digit2': 0x05, 'Digit3': 0x1C, 'Digit4': 0x9F, // control colors
+                'Digit5': 0x9C, 'Digit6': 0x1E, 'Digit7': 0x1F, 'Digit8': 0x9E,
+                'Digit9': 0x12, 'Digit0': 0x92, // reverse on/off
+            },
+            'shiftctrlalt': { ...this.baseKeyMappings.shiftctrlalt },
+        }
+        this.petsciiKeymap['c64'] = {
+            'none': { ...this.petsciiKeymap['vic20'].none },
+            'shift': { ...this.petsciiKeymap['vic20'].shift },
+            'shiftalt': { 
+                ...this.petsciiKeymap['vic20'].shiftalt,
+                'Digit1': 0x81, 'Digit2': 0x95, 'Digit3': 0x96, 'Digit4': 0x97, // cbm colors
+                'Digit5': 0x98, 'Digit6': 0x99, 'Digit7': 0x9A, 'Digit8': 0x9B,
+            },
+            'ctrlalt': { ...this.petsciiKeymap['vic20'].ctrlalt },
+            'shiftctrlalt': { ...this.baseKeyMappings.shiftctrlalt },
+        }
+        this.petsciiKeymap['c128'] = this.petsciiKeymap['c64']
+        this.petsciiKeymap['c128-80'] = this.petsciiKeymap['c64']
+        this.petsciiKeymap['c16'] = this.petsciiKeymap['c64']
+        this.petsciiKeymap['plus-4'] = this.petsciiKeymap['c64']
 
         this.language = {}
-        for (const version in this.keywords) {
+        for (const version in Tokenizer.keywords) {
             this.language[version] = {
-                keywords: this.keywords[version],
+                keywords: Tokenizer.keywords[version],
                 ignoreCase: true,
                 tokenizer: { root: [] }
             }
             for (const def of this.languageRoot) {
                 this.language[version].tokenizer.root.push(def)
             }
-            const keywords = this.keywords[version].map((k) => k.replace('$', '\\$'))
-            this.language[version].tokenizer.root.splice(5, 0, [ new RegExp(`(${keywords.join('|')})`), 'keyword' ])
-            const reserved = this.reserved[version].map((r) => r.replace('$', '\\$'))
+            this.language[version].tokenizer.root.splice(5, 0, [ new RegExp(Tokenizer.tokenRegex[version]), 'keyword' ])
+            const reserved = Tokenizer.reserved[version].map((r) => r.replace('$', '\\$'))
             this.language[version].tokenizer.root.splice(6, 0, [ new RegExp(`(${reserved.join('|')})`), 'reserved' ])
         }
+
+        this.ignoreKeys = this.hostIgnoreKeys[window.navigator.userAgentData.platform] || {}
     }
     static monacoSetUp = false
 
     setUpMonaco() {
         if (Editor.monacoSetUp) { return }
         Editor.monacoSetUp = true
-        for (const version in Editor.keywords) {
+        for (const version in Editor.language) {
             const id = `${version}basic`
             monaco.languages.register({ id })
             monaco.languages.setLanguageConfiguration(id, Editor.editorConfig)
@@ -170,17 +210,9 @@ class Editor {
             this.processLine()
         })
         this.newCursorLocation = null
-        this.editor.onDidFocusEditorWidget(() => {
-            if (this.newCursorLocation) {
-                setTimeout(() => {
-                    this.editor.setPosition(this.newCursorLocation)
-                    this.newCursorLocation = null
-                }, 20)
-            }
-        })
-        this.editor.onDidBlurEditorWidget(() => {
-            this.newCursorLocation = this.editor.getPosition()
-        })
+        this.editor.onDidFocusEditorWidget(() => { this.restoreCursor() })
+        this.editor.onDidBlurEditorWidget(() => { this.newCursorLocation = this.editor.getPosition() })
+        this.editor.onDidChangeModelContent((event) => { this.checkInsertions(event) })
 
         this.lineDecorations = []
         this.variableReferences = {}
@@ -191,6 +223,43 @@ class Editor {
         this.charSetOffset = 0
         this.minFontChar = '\uE000'
         this.maxFontChar = '\uE1FF'
+
+        this.hostMachine = window.navigator.userAgentData.platform
+
+        this.petscii = new Petscii()
+    }
+
+    restoreCursor() {
+        if (this.newCursorLocation) {
+            setTimeout(() => {
+                this.editor.setPosition(this.newCursorLocation)
+                this.newCursorLocation = null
+            }, 20)
+        }
+    }
+
+    checkInsertions(event) {
+        if (event.changes.length !== 1) { return }
+        const change = event.changes[0]
+        let range = change.range
+        const text = change.text
+        console.log(change)
+        if (Editor.diacriticals.includes(text.codePointAt(0))) {
+            if (text.length === 2) {
+                range.startColumn -= 1
+                setTimeout(() => { this.editor.executeEdits("", [{ range, text: '', forceMoveMarkers: true }]) }, 10)
+            }
+        } else if (Editor.invalidChars.includes(text.charAt(0))) {
+                this.editor.executeEdits("", [{ range, text: '', forceMoveMarkers: true }]) 
+        }
+        
+
+        // console.log('change of "', change.text, '" len', change.text.length, 'at', change.range)
+        // if (Editor.diacriticals.includes(change.text.codePointAt(0)) || Editor.invalidChars.includes(change.text.charAt(0))) {
+        //     // setTimeout(() => { 
+        //     //     console.log('deleting', range)
+        //     // }, 10)
+        // }
     }
 
     generateEditorTheme(name, colors) {
@@ -231,6 +300,8 @@ class Editor {
         // TODO: theme returns char set and maybe a control?
         this.charSet = machine.charSets ? machine.charSets[0] : 'UPPER/Graphics'
         this.charSetOffset = (this.charSet === 'lower/UPPER') ? 0x100 : 0
+        this.petsciiKeymap = Editor.petsciiKeymap[machine.name]
+        this.petscii.setMachine(machine)
         window.tokenizer.setFontOffset(this.fontOffset + this.charSetOffset, this.charSet)
     }
 
@@ -306,17 +377,20 @@ class Editor {
         }
         let modifier = (key.shiftKey ? 'shift' : '') + (key.ctrlKey ? 'ctrl' : '') + (key.altKey ? 'alt' : '')
         if (modifier.length === 0) { modifier = 'none' }
-        const lookup = Editor.petsciiKeymap[modifier] || {}
+        const ignoreKeys = Editor.ignoreKeys[modifier] || []
+        if (ignoreKeys === 'ALL' || ignoreKeys.includes(key.code)) {
+            key.preventDefault()
+            key.stopPropagation()
+            return
+        }
+        const lookup = this.petsciiKeymap[modifier] || {}
         let petscii = lookup[key.code]
         if (petscii) {
             key.preventDefault()
             key.stopPropagation()
-            if (petscii === '\x00') { return }
-            if (this.charSet === 'lower/UPPER' && petscii >= '\uE041' && petscii <= '\uE05A') {
-                petscii = String.fromCodePoint(petscii.codePointAt(0) - 0xE000)
-            } else if ((this.fontOffset > 0 || this.charSetOffset > 0)  && petscii >= '\uE000' && petscii <= '\uE1FF') {
-                petscii = String.fromCodePoint(petscii.codePointAt(0) + this.fontOffset + this.charSetOffset)
-            }
+            if (petscii === 0x00) { return }
+            const petsciiChar = this.petscii.table[petscii]
+            console.log('petscii', petscii.toString(16), 'gets char', petsciiChar.codePointAt(0).toString(16))
             this.editor.executeEdits("", [{
                 range: new monaco.Range(
                     position.lineNumber,
@@ -324,7 +398,7 @@ class Editor {
                     position.lineNumber,
                     position.column
                 ),
-                text: petscii,
+                text: petsciiChar,
                 forceMoveMarkers: true
             }]);
             return
@@ -347,7 +421,7 @@ class Editor {
             }]);
             return
         } else {
-            // console.log('no code for', modifier, key.code)
+            console.log('no code for', modifier, key.code)
         }
     }
 

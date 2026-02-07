@@ -17,6 +17,7 @@ class Tokenizer {
         'v4': [ 'DS', 'DS$' ],
         'v4+': [ 'EL' ],
     }
+    static noKeywords = [ '+', '-', '*', '/', '\uE01E', 'AND', 'OR', '>', '=', '<' ]
 
     static tokensMap = {
         'v2' : {
@@ -262,12 +263,17 @@ class Tokenizer {
                 }
             }
             this.tokenLookup[version] = lookup
-            let keywords = Object.keys(lookup)
-            this.reserved[version].forEach(key => delete keywords[key])
+            let keywords = Object.keys(lookup).filter( (k) => {
+                return (!this.noKeywords.includes(k) && !this.reserved[version].includes(k))
+            })
+            keywords = keywords.map( (k) => {
+                k = k.replace(/\(/, '')
+                k = k.replace(/\$/, '\\$')
+                return k
+            })
             this.keywords[version] = [ ...keywords ]
 
-            const tokenList = keywords.map((t) => t.replace(/([\(\$\+\-\*\/\=\<\>])/, '\\$1'))
-            this.tokenRegex[version] = `(${tokenList.join('|')})`
+            this.tokenRegex[version] = `(${this.keywords[version].join('|')})`
         }
 
         this.lineNumberTokens['v4+'] = [ ...this.lineNumberTokens['v2'], ...this.lineNumberTokens['v4+'] ]
