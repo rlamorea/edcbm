@@ -1,4 +1,4 @@
-const DEFAULT_MACHINE = 'c128'
+const DEFAULT_MACHINE = 'c64'
 
 const Machines = {
     'c64': {
@@ -24,6 +24,7 @@ const Machines = {
         language: 'v2',
         fontOffset: 0x0200,
         startAddress: 0x1001, // NOTE: could be 0x1201 if memory expansion in place
+        menuPetscii: 'vic20'
     },
     'plus4': {
         name: 'plus4',
@@ -44,6 +45,7 @@ const Machines = {
         palette: 'pet-40',
         language: 'v2',
         startAddress: 0x0401,
+        menuPetscii: 'pet-g'
     },
     'pet-b': {
         name: 'pet-b',
@@ -52,12 +54,14 @@ const Machines = {
         menu: 'pet-business',
         language: 'v4',
         startAddress: 0x0401,
+        menuPetscii: 'pet-g'
     },
     'cbm2': {
         name: 'cbm2',
         palette: 'pet',
         language: 'v4+',
         startAddress: 0x0003, // bank ram01
+        menuPetscii: 'pet-g'
     }
 }
 
@@ -83,11 +87,15 @@ class Controls {
         this.machineMenu.style.display = 'none'
 
         document.getElementById('clean').addEventListener('click', () => this.cleanCode())
-        this.waitForEditor()
+        this.waitToLoad()
     }
 
-    waitForEditor() {
-        if (window.editor) {
+    waitToLoad() {
+        const ready = (window.editor != null && window.palettes != null && window.fileControls != null && 
+                       window.virtualKeyboard != null && window.tokenizer != null && window.petscii != null &&
+                       window.keymap != null)
+
+        if (ready) {
             this.setMachine(DEFAULT_MACHINE)
             window.editor.setHelpText(
 `
@@ -102,7 +110,7 @@ To Get Started:
             )
             return
         }
-        setTimeout(() => { this.waitForEditor() }, 100)
+        setTimeout(() => { this.waitToLoad() }, 100)
     }
 
     setMachine(machine) {
@@ -112,11 +120,14 @@ To Get Started:
         this.machine = Machines[machine]
         document.body.className = machine
         this.machineName.textContent = this.machine.display || machine
-        if (window.editor) { window.editor.setMachine(this.machine) }
-        if (window.palettes) { window.palettes.setMachine(this.machine) }
-        if (window.fileControls) { window.fileControls.setMachine(machine) }
-        if (window.virtualKeyboard) { window.virtualKeyboard.setMachine(this.machine) }
-        if (window.tokenizer) { window.tokenizer.setMachine(this.machine) }
+        window.petscii.setMachine(this.machine)
+        window.keymap.setMachine(this.machine)
+        window.palettes.setMachine(this.machine)
+        window.fileControls.setMachine(machine)
+        window.editor.setMachine(this.machine)
+        window.virtualKeyboard.setMachine(this.machine)
+        window.tokenizer.setMachine(this.machine)
+        
         window.blocker.hide()
     }
 

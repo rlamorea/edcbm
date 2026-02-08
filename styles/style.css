@@ -132,9 +132,13 @@ html, body {
     color: var(--menu-foreground);
     width: 16em;
     font-family: var(--menu-font);
+    caret-shape: block;
 }
 #menu input[readonly] { color: var(--menu-foreground-weak); }
-#menu input::placeholder { font-style: italic; }
+#menu input::placeholder { 
+    color: rgb(from var(--menu-foreground-weak) calc(r * 1.3) calc(g * 1.3) calc(b * 1.3));
+    font-style: italic; 
+}
 
 #menu .drop {
     cursor: pointer;

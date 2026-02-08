@@ -140,7 +140,7 @@ class Editor {
         this.petsciiKeymap['c128'] = this.petsciiKeymap['c64']
         this.petsciiKeymap['c128-80'] = this.petsciiKeymap['c64']
         this.petsciiKeymap['c16'] = this.petsciiKeymap['c64']
-        this.petsciiKeymap['plus-4'] = this.petsciiKeymap['c64']
+        this.petsciiKeymap['plus4'] = this.petsciiKeymap['c64']
 
         this.language = {}
         for (const version in Tokenizer.keywords) {
@@ -227,7 +227,6 @@ class Editor {
 
         this.hostMachine = window.navigator.userAgentData.platform
 
-        this.petscii = new Petscii()
         this.enableEditor(false)
     }
 
@@ -245,13 +244,14 @@ class Editor {
         const change = event.changes[0]
         let range = change.range
         const text = change.text
+        if (text.length === 0) { return }
         if (Editor.diacriticals.includes(text.codePointAt(0))) {
             if (text.length === 2) {
                 range.startColumn -= 1
                 setTimeout(() => { this.editor.executeEdits("", [{ range, text: '', forceMoveMarkers: true }]) }, 10)
             }
         } else if (Editor.invalidChars.includes(text.charAt(0))) {
-                this.editor.executeEdits("", [{ range, text: '', forceMoveMarkers: true }]) 
+            this.editor.executeEdits("", [{ range, text: '', forceMoveMarkers: true }]) 
         }
     }
 
@@ -286,17 +286,12 @@ class Editor {
         monaco.editor.defineTheme(`${name}theme`, theme)
     }
 
-    setMachine(machine, charSet = 'default') {
+    setMachine(machine) {
         const version = `${machine.language || 'v2'}basic`
         monaco.editor.setModelLanguage(this.editor.getModel(), version)
         // TODO: theme returns char set and maybe a control?
         this.machine = machine
         this.petsciiKeymap = Editor.petsciiKeymap[machine.name]
-        this.setCharSet(charSet ?? 'default')
-    }
-
-    setCharSet(charSet = 'default') {
-        this.petscii.setMachine(this.machine, charSet)
     }
 
     setTheme(name, font) {
@@ -309,8 +304,8 @@ class Editor {
         this.container.classList.toggle('read-only-mode', !enable)
         this.editor.updateOptions({ readOnly: !enable })
         if (enable) { 
-            this.editor.focus() 
-            setTimeout(() => { this.editor.setPosition({ lineNumber: 1, column: 1 }) })
+            this.editor.setPosition({ lineNumber: 1, column: 1 })
+            setTimeout(() => this.editor.focus(), 100) // delay focus until extraneous keypresses settle out and are ignored
         }
     }
 
@@ -367,7 +362,6 @@ class Editor {
     }
 
     keyDown(key) {
-        const event = key.event;
         if (key.metaKey) { return }
         const model = this.editor.getModel()
         const position = this.editor.getPosition()
@@ -396,8 +390,7 @@ class Editor {
             key.preventDefault()
             key.stopPropagation()
             if (petscii === 0x00) { return }
-            const petsciiChar = this.petscii.table[petscii]
-            console.log('petscii', petscii.toString(16), 'gets char', petsciiChar.codePointAt(0).toString(16))
+            const petsciiChar = window.petscii.table[petscii]
             this.editor.executeEdits("", [{
                 range: new monaco.Range(
                     position.lineNumber,
@@ -428,7 +421,7 @@ class Editor {
             }]);
             return
         } else {
-            console.log('no code for', modifier, key.code)
+            // console.log('no code for', modifier, key.code)
         }
     }
 
@@ -540,7 +533,7 @@ class Editor {
             this.editor.setPosition({ column: 1, lineNumber: lineNumber + 1 })
         }
 
-        const {  byteArray, lineNumber: basicLine, variables, specialComment } = window.tokenizer.tokenizeLine(lineContent)
+        const { byteArray, lineNumber: basicLine, variables, specialComment } = window.tokenizer.tokenizeLine(lineContent)
         if (byteArray.length > 0) {
             this.variableReferences[basicLine] = variables
         }

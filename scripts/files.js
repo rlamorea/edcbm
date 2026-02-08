@@ -6,37 +6,6 @@ class NameMenu {
         'Tab',
         'Enter',
     ]
-    static keyLookup
-    static {
-        this.keyLookup = { 
-            'none' : { 
-                ...Editor.petsciiKeymap['none'],
-                ...{
-                    'KeyA' : 'A', 'KeyB' : 'B', 'KeyC' : 'C', 'KeyD' : 'D', 'KeyE' : 'E',
-                    'KeyF' : 'F', 'KeyG' : 'G', 'KeyH' : 'H', 'KeyI' : 'I', 'KeyJ' : 'J',
-                    'KeyK' : 'K', 'KeyL' : 'L', 'KeyM' : 'M', 'KeyN' : 'N', 'KeyO' : 'O',
-                    'KeyP' : 'P', 'KeyQ' : 'Q', 'KeyR' : 'R', 'KeyS' : 'S', 'KeyT' : 'T',
-                    'KeyU' : 'U', 'KeyV' : 'V', 'KeyW' : 'W', 'KeyX' : 'X', 'KeyY' : 'Y',
-                    'KeyZ' : 'Z',
-                    'Digit0' : '0', 'Digit1' : '1', 'Digit2' : '2', 'Digit3' : '3', 'Digit4' : '4', 
-                    'Digit5' : '5', 'Digit6' : '6', 'Digit7' : '7', 'Digit8' : '8', 'Digit9' : '9', 
-                    'Minus' : '-', 'Equal' : '=', 'BracketLeft': '[', 'BracketRight': ']',
-                    'Semicolon': ';', 'Quote': "'", 'Comma': ',', 'Period' : '.', 'Slash': '/',
-                    'Space': ' '
-                }
-            },
-            'shift' : {
-                ...Editor.petsciiKeymap['shift'],
-                ...{
-                    'Digit1' : '!', 'Digit2': '@', 'Digit3' : '#', 'Digit4' : '$', 'Digit5' : '%',
-                    'Digit7' : '&', 'Digit8': '*', 'Digit9' : '(', 'Digit0' : ')',
-                    'Equal' : '+', 'Semicolon': ':', 'Quote' : '"',
-                    'Comma' : '<', 'Period': '>', 'Slash' : '?'
-                }
-            },
-            'alt' : { ...Editor.petsciiKeymap['alt'] }
-        }
-    }
 
     constructor(id, parent, handlers) {
         this.id = id
@@ -119,7 +88,6 @@ class NameMenu {
             if (e.code === 'Enter') { this.input.blur() }
             return
         }
-        e.preventDefault()
         const curpos = this.input.selectionStart
         if (this.input.selectionEnd > this.input.selectionStart) {
             if (this.input.selectionStart === 0 && this.input.selectionEnd === this.input.value.length) {
@@ -133,20 +101,23 @@ class NameMenu {
                 this.input.setSelectionRange(curpos, curpos)
             }
         }
-        let modifier = (e.shiftKey ? 'shift' : '') + (e.ctrlKey ? 'ctrl' : '') + (e.altKey ? 'alt' : '')
-        if (modifier.length === 0) { modifier = 'none' }
-        const lookup = NameMenu.keyLookup[modifier] || {}
-        const petscii = lookup[e.code]
+        const petscii = window.keymap.getPetsciiForKey(e, { noCtrl: true, noNonPet: true, passthrough: FileControls.passthroughKeys })
+        if (petscii < 0) { return } // pass through
+        e.preventDefault()
+        e.stopPropagation()
+        if (petscii === 0) { return } // invalid keypress
+
         let val = this.input.value
         if (petscii) {
             if (val.length >= 16) { return } // max length
+            const char = window.petscii.petsciiBytesToString(petscii)
             if (curpos !== val.length) {
                 // insert at cursor position
                 const start = val.substring(0, this.input.selectionStart)
                 const end = val.substring(this.input.selectionStart)
-                val = start + petscii + end
+                val = start + char + end
             } else {
-                val += petscii
+                val += char
             }
             this.input.value = val
             this.input.setSelectionRange(curpos + 1, curpos + 1)
@@ -156,15 +127,23 @@ class NameMenu {
     nameChanged() {
         this.input.readOnly = true
         this.input.inert = true
+        const name = window.petscii.stringToPetsciiString(this.input.value.trim())
         const handler = this.handlers['namechange']
-        if (handler) { handler(this.input.value.trim() )}
+        if (handler) { handler(name) }
     }
 
-    name() {
-        return this.input.value || ''
+    name(asPetscii = true) {
+        let name = this.input.value.trim() || ''
+        if (asPetscii) {
+            name = window.petscii.stringToPetsciiString(name)
+        }
+        return name
     }
 
-    setName(name) {
+    setName(name, isPetscii = true) {
+        if (isPetscii) {
+            name = window.petscii.petsciiStringToString(name || '')
+        }
         this.input.value = name || ''
         this.nameChanged()
     }
