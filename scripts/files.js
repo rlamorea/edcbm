@@ -1,12 +1,4 @@
 class NameMenu {
-    static passthroughKeys = [
-        'Backspace',
-        'ArrowLeft',
-        'ArrowRight',
-        'Tab',
-        'Enter',
-    ]
-
     constructor(id, parent, handlers) {
         this.id = id
         this.parent = parent
@@ -36,6 +28,17 @@ class NameMenu {
         })
 
         this.drop.addEventListener('click', () => { this.toggleMenu() })
+        window.petscii.registerRerenderHandler(this)
+
+        this.inDiacritical = false
+    }
+
+    preFontChange() {
+        this.inputPetsciiBytes = window.petscii.stringToPetscii(this.input.value)
+    }
+
+    postFontChange() {
+        this.input.value = window.petscii.petsciiBytesToString(this.inputPetsciiBytes)
     }
 
     toggleMenu(fromBlocker) {
@@ -82,10 +85,42 @@ class NameMenu {
         this.input.focus()
     }
 
+    cleanDiacriticals() {
+        let curpos = this.input.selectionStart
+        let cleanValue = ''
+        let delNext = false
+        for (const char of this.input.value) {
+            const charCode = char.codePointAt(0)
+            if (Keymap.diacriticals.includes(charCode)) {
+                curpos -= 1
+                delNext = true
+            } else if (delNext) {
+                curpos -= 1
+                delNext = false
+            } else if (Keymap.diacriticalChars.includes(char)) {
+                curpos -= 1
+            } else {
+                cleanValue += char
+            }
+        }
+        this.input.value = cleanValue
+        this.input.setSelectionRange(curpos, curpos)
+        this.inDiacritical = false
+    }
+
     nameKey(e) {
-        // pass through
-        if (e.ctrlKey || NameMenu.passthroughKeys.includes(e.code)) {
+        const petscii = window.keymap.getPetsciiForKey(e, { 
+            noCtrl: true, noNonPet: true, reportTrans: true, 
+            passthrough: FileControls.passthroughKeys 
+        })
+        if (this.inDiacritical && petscii !== Keymap.TRANSFORMER) {
+            setTimeout(() => this.cleanDiacriticals(), 20) // wait for OS to insert composed char
+            return
+        } else if (petscii === Keymap.PASSTHROUGH || petscii === Keymap.TRANSFORMER) { // pass through
             if (e.code === 'Enter') { this.input.blur() }
+            return
+        } else if (petscii === Keymap.DIACRITICAL) {
+            this.inDiacritical = true
             return
         }
         const curpos = this.input.selectionStart
@@ -101,8 +136,6 @@ class NameMenu {
                 this.input.setSelectionRange(curpos, curpos)
             }
         }
-        const petscii = window.keymap.getPetsciiForKey(e, { noCtrl: true, noNonPet: true, passthrough: FileControls.passthroughKeys })
-        if (petscii < 0) { return } // pass through
         e.preventDefault()
         e.stopPropagation()
         if (petscii === 0) { return } // invalid keypress
@@ -127,6 +160,7 @@ class NameMenu {
     nameChanged() {
         this.input.readOnly = true
         this.input.inert = true
+        if (this.inDiacritical) { this.cleanDiacriticals() }
         const name = window.petscii.stringToPetsciiString(this.input.value.trim())
         const handler = this.handlers['namechange']
         if (handler) { handler(name) }
@@ -188,6 +222,7 @@ class FileControls {
     setMachine(machine) {
         this.machine = machine
         this.startAddress = machine.startAddress
+
     }
 
     newFile(e) {
