@@ -115,30 +115,18 @@ class Editor {
         this.hostMachine = window.navigator.userAgentData.platform
         window.petscii.registerRerenderHandler(this)
 
-        this.bufferedProgram = []
+        this.bufferedProgram = null
 
         this.enableEditor(false)
     }
 
     preFontChange() {
-        this.bufferedProgram = []
-        const prog = this.editor.getValue() || ''
-        if (prog.trim() === '') { return }
-        for (const line of prog.split('\n')) {
-            this.bufferedProgram.push(window.petscii.stringToPetsciiString(line))
-        }
+        this.bufferedProgram = this.getProgram()
     }
 
     postFontChange() {
-        if (this.bufferedProgram.length === 0) { return }
-        let reProg = ''
-        for (const line of this.bufferedProgram) {
-            reProg += window.petscii.petsciiStringToString(line) + '\n'
-        }
-        this.editor.setValue(reProg)
-        this.parseLines()
-        this.notateLines()
-        this.bufferedProgram = []
+        this.setProgram(this.bufferedProgram)
+        this.bufferedProgram = null
     }
 
     restoreCursor() {
@@ -222,7 +210,7 @@ class Editor {
 
     setProgram(program) {
         program = this.parseNotationsHeader(program)
-        this.editor.setValue(program)
+        this.editor.setValue(window.petscii.petsciiStringToString(program))
         this.parseLines()
         this.notateLines()
     }
@@ -232,7 +220,7 @@ class Editor {
     }
 
     getProgram(withNotations = true) {
-        return (withNotations ? this.notationsHeader() : '') + this.editor.getValue()
+        return (withNotations ? this.notationsHeader() : '') + window.petscii.stringToPetsciiString(this.editor.getValue())
     }
 
     writeWord(val, array, idx = 0) {

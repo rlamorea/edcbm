@@ -289,6 +289,7 @@ class Tokenizer {
             this.tokenRegex[version] = `(${tokenList.join('|')})`
         }
 
+        this.lineNumberTokens['v4'] = this.lineNumberTokens['v2']
         this.lineNumberTokens['v4+'] = [ ...this.lineNumberTokens['v2'], ...this.lineNumberTokens['v4+'] ]
         this.lineNumberTokens['v3.5'] = [ ...this.lineNumberTokens['v4+'] ]
         this.lineNumberTokens['v7'] = [ ...this.lineNumberTokens['v3.5'] ]

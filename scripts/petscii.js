@@ -402,7 +402,12 @@ class Petscii {
 
     stringToPetscii(str, alwaysArray = false) {
         let petscii = []
-        for (const char of str) { petscii.push(this.lookup[char]) }
+        for (const char of str) { 
+            let petsciiByte = this.lookup[char]
+            if (!petsciiByte && char === '\n') { petsciiByte = 0x0D } // CR if necessary
+            if (petsciiByte) { petscii.push(this.lookup[char]) }
+            // NOTE: this will remove all non-petscii characters
+        }
         // return a single value if given a char
         if (!alwaysArray && str.length === 1 && petscii.length === 1) { petscii = petscii[0] }
         return petscii
@@ -410,7 +415,23 @@ class Petscii {
 
     stringToPetsciiString(str) {
         let petsciiStr = ''
-        for (const char of str) { petsciiStr += String.fromCodePoint(this.lookup[char] ?? 0) }
+        let raw = false
+        for (const char of str) { 
+            if (char === '\n') { 
+                petsciiStr += '\n' 
+                raw = false
+            } else if (char === '`') {
+                petsciiStr += '`'
+                raw = true
+            } else {
+                const petsciiByte = this.lookup[char]
+                if (petsciiByte <= 0) {
+                    petsciiStr += raw ? char : `{${char.codePointAt(0).toString(0).padStart(2, '0')}}`
+                } else {
+                    petsciiStr += String.fromCodePoint(petsciiByte)
+                }
+            }
+        }
         return petsciiStr
     }
 
@@ -423,7 +444,31 @@ class Petscii {
 
     petsciiStringToString(petsciiStr) {
         let str = ''
-        for (const char of petsciiStr) { str += this.table[char.codePointAt(0)] ?? `{\\u${char.codePointAt(0).toString(16)}}` }
+        let raw = false
+        let inBraces = null
+        for (const petsciiChar of petsciiStr) {
+            if (petsciiChar === '\n') {
+                str += '\n'
+                raw = false
+            } else if (petsciiChar === '`') {
+                str += '`'
+                raw = true
+            } else if (petsciiChar === '{') {
+                inBraces = ' '
+            } else if (petsciiChar === '}') {
+                str += String.fromCodePoint(parseInt(inBraces.trim(), 16))
+                inBraces = null
+            } else if (inBraces) {
+                inBraces += petsciiChar
+            } else {
+                let char = this.table[petsciiChar.codePointAt(0)]
+                if (char == null) {
+                    str += raw ? char : `{${petsciiChar.codePointAt(0).toString(16).padStart(2, '0')}}`
+                } else {
+                    str += char
+                }
+            }
+        }
         return str
     }
 }
