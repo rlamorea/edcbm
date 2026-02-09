@@ -332,12 +332,13 @@ class Tokenizer {
         for (let byteIndex = 0; byteIndex < bytes.length; byteIndex++) {
             const byte = bytes[byteIndex]
             const nextByte = byteIndex < bytes.length ? bytes[byteIndex+1] : null
-            if (byte === 34) { inQuotes = !inQuotes }
+            if (byte === 0x22) { inQuotes = !inQuotes }
             if (inQuotes) {
-                line += this.shiftFont(Petscii.table[byte]) || `{${byte}}`
+                line += window.petscii.table[byte] || `{${byte}}`
             } else {
                 const { mapped, count } = this.detokenize(byte, nextByte)
                 byteIndex += count-1
+                line += mapped
             }
         }
         return line
@@ -364,10 +365,8 @@ class Tokenizer {
     }
 
     tokenizeLine(origLine) {
-        let inQuote = false
-        let inData = false
-        let variables = {}
         let { line, lineIdx } = this.trimLine(origLine)
+        let variables = {}
         const specialCommentIndex = line.indexOf('`')
         let specialComment = null
         if (specialCommentIndex >= 0) {
@@ -411,27 +410,40 @@ class Tokenizer {
         }
 
         // parse the line by key separators
+        let inQuote = false
+        let inRem = false
+        let inData = false
+
         let varName = null
         let varStart = 0
-        for (let linesplit of petsciiLine.split(/("|:|DATA)/)) {
-            if (linesplit === '"') {
-``               ;({ varName, varStart} = this.addVariable(variables, varName, varStart))
-                inQuote = !inQuote
-                tokenBytes.push(0x22) // '"'
-                lineIdx += 1
-                continue
-            } else if (linesplit === ':') {
-                inData = false
-                ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
-                tokenBytes.push(0x3A) // ':'
-                lineIdx += 1
-                continue
-            } else if (linesplit === 'DATA') {
-                inData = true
-                ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
-                tokenBytes.push(0x83) // DATA
-                lineIdx += 4
-                continue
+        for (let linesplit of petsciiLine.split(/("|:|DATA|REM)/)) {
+            if (!inRem) {
+                if (linesplit === '"') {
+    ``               ;({ varName, varStart} = this.addVariable(variables, varName, varStart))
+                    inQuote = !inQuote
+                    tokenBytes.push(0x22) // '"'
+                    lineIdx += 1
+                    continue
+                } else if (linesplit === 'REM') {
+                    ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
+                    inRem = true // everything from here on is literal
+                    inQuote = true // use inQute state to get literal chars
+                    tokenBytes.push(0x8F) // REM
+                    lineIdx += 3
+                    continue
+                } else if (linesplit === ':') {
+                    inData = false
+                    ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
+                    tokenBytes.push(0x3A) // ':'
+                    lineIdx += 1
+                    continue
+                } else if (linesplit === 'DATA') {
+                    inData = true
+                    ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
+                    tokenBytes.push(0x83) // DATA
+                    lineIdx += 4
+                    continue
+                }
             }
             let lineTokens = (inQuote || inData) ? [] : linesplit.match(this.tokenRegex)
             let nextToken = (lineTokens && lineTokens.length > 0) ? lineTokens.shift() : null

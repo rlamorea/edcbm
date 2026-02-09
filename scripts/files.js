@@ -1,4 +1,10 @@
 class NameMenu {
+    static passthroughKeys = [ 
+        'Enter', 'Esc', 'Tab', // exit keys
+        'Backspace', 'Home', 'End', // edit keys
+        'ArrowLeft', 'ArrowRight', // cursor keys
+    ]
+
     constructor(id, parent, handlers) {
         this.id = id
         this.parent = parent
@@ -34,10 +40,12 @@ class NameMenu {
     }
 
     preFontChange() {
+        if (this.input.value.trim() === '') { return }
         this.inputPetsciiBytes = window.petscii.stringToPetscii(this.input.value)
     }
 
     postFontChange() {
+        if ((this.inputPetsciiBytes || '') === '') { return }
         this.input.value = window.petscii.petsciiBytesToString(this.inputPetsciiBytes)
     }
 
@@ -106,18 +114,19 @@ class NameMenu {
         this.input.value = cleanValue
         this.input.setSelectionRange(curpos, curpos)
         this.inDiacritical = false
+        this.nameAction = ''
     }
 
     nameKey(e) {
         const petscii = window.keymap.getPetsciiForKey(e, { 
             noCtrl: true, noNonPet: true, reportTrans: true, 
-            passthrough: FileControls.passthroughKeys 
+            passthrough: NameMenu.passthroughKeys 
         })
         if (this.inDiacritical && petscii !== Keymap.TRANSFORMER) {
             setTimeout(() => this.cleanDiacriticals(), 20) // wait for OS to insert composed char
             return
         } else if (petscii === Keymap.PASSTHROUGH || petscii === Keymap.TRANSFORMER) { // pass through
-            if (e.code === 'Enter') { this.input.blur() }
+            if (e.code === 'Enter' || e.code === 'Esc' || e.code === 'Tab') { this.input.blur() }
             return
         } else if (petscii === Keymap.DIACRITICAL) {
             this.inDiacritical = true
@@ -214,9 +223,16 @@ class FileControls {
         this.catalog = document.getElementById('catalog')
         this.catalog.style.display = 'none'
         this.catalogLoaded = false
+        this.catalogRendered = false
         this.catalog.querySelector('ul').addEventListener('click', (e) => { this.discFileSelected(e) })
 
-        if (window.editor) { window.editor.disabled = true }
+        window.petscii.registerRerenderHandler(this)
+
+        this.namingAction = ''
+    }
+
+    preFontChange() {
+        this.catalogRendered = false
     }
 
     setMachine(machine) {
@@ -227,12 +243,15 @@ class FileControls {
 
     newFile(e) {
         this.startAddress = this.startAddress
-        window.editor.setProgram('')
+        this.namingAction = 'new'
+        window.editor.enableEditor(false)
         this.fileOptions.editName()
     }
 
     renameFile(e) {
         this.fileOptions.editName()
+        this.namingAction = 'rename'
+        window.editor.enableEditor(false)
     }
 
     cleanFilename(name, validExt = []) {
@@ -304,6 +323,7 @@ class FileControls {
         const hasName = name.length > 0
         const disabled = hasName ? [ ] : [ 'rename', 'save-prg', 'save-to-disc' ]
         this.fileOptions.selectionsEnable(disabled)
+        if (this.namingAction === 'new') { window.editor.setProgram('') }
         window.editor.enableEditor()
     }
 
@@ -326,9 +346,9 @@ class FileControls {
         if (this.catalogRendered && this.currentDisc.catalogLoaded) { return }
 
         const dnameEl = this.catalog.querySelector('h2 span')
-        let dname = this.currentDisc.discName.padEnd(16) + ' '
-        dname += this.currentDisc.discId.padEnd(2) + ' '
-        dname += this.currentDisc.discDOS.padEnd(2)
+        let dname = window.petscii.petsciiStringToString(this.currentDisc.discName).padEnd(16) + ' '
+        dname += window.petscii.petsciiStringToString(this.currentDisc.discId).padEnd(2) + ' '
+        dname += window.petscii.petsciiStringToString(this.currentDisc.discDOS).padEnd(2)
         dnameEl.textContent = dname
 
         const catalog = this.currentDisc.getCatalog()
@@ -338,8 +358,8 @@ class FileControls {
             const li = document.createElement('li')
             const file = catalog[index]
             let fentry = file.fileSize.toString().padEnd(5)
-            fentry += '"' + file.name.padEnd(16) + '" '
-            fentry += file.fileType
+            fentry += '"' + window.petscii.petsciiStringToString(file.name).padEnd(16) + '" '
+            fentry += window.petscii.petsciiStringToString(file.fileType)
             li.textContent = fentry
             li.dataset.catalogIndex = index
             catalogEl.appendChild(li)

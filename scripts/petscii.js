@@ -384,14 +384,14 @@ class Petscii {
 
         this.setKey = `${this.machine}-${charSet}`
 
-        this.rerenderHandlers.forEach((h) => h.preFontChange())
+        this.rerenderHandlers.forEach((h) => h.preFontChange ? h.preFontChange() : 0)
 
         this.table = Petscii.tables[this.setKey]
         this.lookup = Petscii.lookup[this.setKey]
         this.codes = Petscii.codeNames[this.setKey]
         this.nameLookup = Petscii.nameLookup[this.setKey]
 
-        this.rerenderHandlers.forEach((h) => h.postFontChange())
+        this.rerenderHandlers.forEach((h) => h.postFontChange ? h.postFontChange() : 0)
     }
 
     availableCharSets() {

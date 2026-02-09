@@ -4,12 +4,13 @@ class Keymap {
     // -- using shift+alt combo for CBM (and some special chars) to avoid diacritical combo option sequences on Mac
     // -- using ctrl+alt (and shift+ctrl+alt) for CTRL (and SHIFT-CTRL) to avoid collisions with CTRL-key editor combos on Windows
     static PASSTHROUGH = -1
+    static NONPET = -2
     static DIACRITICAL = -2 
-    static TRANSFORMER = -3
+    static TRANSFORMER = -4
 
     static baseKeyMappings = {
         'none': {
-            'Backquote': Keymap.PASSTHROUGH, 'Tab': Keymap.PASSTHROUGH,
+            'Backquote': Keymap.NONPET, 
             'Digit0': 0x30, 'Digit1': 0x31, 'Digit2': 0x32, 'Digit3': 0x33, 'Digit4': 0x34, 
             'Digit5': 0x35, 'Digit6': 0x36, 'Digit7': 0x37, 'Digit8': 0x38, 'Digit9': 0x39, 
             'Minus': 0x2D,  'Equal': 0x3D,  'BracketLeft': 0x5B, 'BracketRight': 0x5D, 'Backslash': 0x5C, 
@@ -30,7 +31,7 @@ class Keymap {
             'KeyM': 0x6D, 'KeyN': 0x6E, 'KeyO': 0x6F, 'KeyP': 0x70, 'KeyQ': 0x71, 'KeyR': 0x72,
             'KeyS': 0x73, 'KeyT': 0x74, 'KeyU': 0x75, 'KeyV': 0x76, 'KeyW': 0x77, 'KeyX': 0x78,
             'KeyY': 0x79, 'KeyZ': 0x7A,
-            'BracketLeft': Keymap.PASSTHROUGH, 'BracketRight': Keymap.PASSTHROUGH,
+            'BracketLeft': Keymap.NONPET, 'BracketRight': Keymap.NONPET,
             'Minus': 0xA4, 'Equal': 0x2B, 
             'Semicolon': 0x3A, 'Quote': 0x22, 
             'Comma': 0x3C, 'Period': 0x3E, 'Slash': 0x3F
@@ -81,7 +82,7 @@ class Keymap {
         },
     }
     static hostIgnoreKeys = {
-        'macOS': { 'alt': 'ALL' }
+        'macOS': { 'alt': [ 'ALLBUT', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown' ] }
     }
     static diacriticalChars = 'àèìòùáéíóúäëïöüÿâêîôûãõñ' // these are all of them according to Gemini
     static diacriticals = [ 0x60, 0xB4, 0xA8, 0x02C6, 0x02DC ]
@@ -161,15 +162,19 @@ class Keymap {
         return false // Keymap.diacriticals.includes()
     }
 
-    getPetsciiForKey(key, options) {
+    getPetsciiForKey(key, options = {}) {
+        console.log(key)
         if (key.key === 'Dead') { return Keymap.DIACRITICAL }
         if (Keymap.diacriticalChars.includes(key.key)) { return 0 }
         if (options.reportTrans && Keymap.transformers.includes(key.key)) { return Keymap.TRANSFORMER }
-        if (key.metaKey) { return 0 }
+        if (key.metaKey) { return Keymap.PASSTHROUGH }
         let modifier = (key.shiftKey ? 'shift' : '') + (key.ctrlKey ? 'ctrl' : '') + (key.altKey ? 'alt' : '')
         if (modifier.length === 0) { modifier = 'none' }
         const ignoreKeys = Keymap.ignoreKeys[modifier] || []
-        if (ignoreKeys === 'ALL' || ignoreKeys.includes(key.code)) { return 0 }
+        if (ignoreKeys === 'ALL' || 
+            (ignoreKeys[0] === 'ALLBUT' && !ignoreKeys.includes(key.code)) || 
+            (ignoreKeys[0] !== 'ALLBUT' && ignoreKeys.includes(key.code))
+        ) { return 0 }
         const lookup = this.keymap[modifier] || {}
         const petscii = lookup[key.code]
         if (petscii && petscii >= 0x00) {
@@ -178,8 +183,9 @@ class Keymap {
             if (options.noExt && petscii >= 0xA0) { return 0 }
             return petscii
         }
-        if (options.noNonPet && petscii < 0) { return 0 }
+        if (options.noNonPet && petscii === Keymap.NONPET) { return 0 }
         if (options.passthrough && !options.passthrough.includes(key.code)) { return 0 }
+        if (petscii === Keymap.NOPET) { return Keymap.PASSTHROUGH }
         return Keymap.PASSTHROUGH
     }
 }
