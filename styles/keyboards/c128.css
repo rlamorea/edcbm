@@ -9,7 +9,13 @@
     text-align: left;
     align-content: start;
     line-height: normal;
-} 
+}
+#vkeyboard.kb-c128 .kb-layout key.cbm {
+    text-align: center;
+    align-content: center;
+    line-height: var(--key-width);
+    vertical-align: middle;
+}
 #vkeyboard.kb-c128 .kb-layout key.k-label { font-size: 7px; }
 #vkeyboard.kb-c128 .kb-layout key.k-label-sm { font-size: 7px; }
 #vkeyboard.kb-c128 .kb-layout key.k-label-tiny { font-size: 5px; }

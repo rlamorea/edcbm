@@ -121,11 +121,13 @@ class Editor {
     }
 
     preFontChange() {
+        this.newCursorLocation = this.editor.getPosition()
         this.bufferedProgram = this.getProgram()
     }
 
     postFontChange() {
         this.setProgram(this.bufferedProgram)
+        this.editor.setPosition(this.newCursorLocation)
         this.bufferedProgram = null
     }
 
@@ -206,6 +208,7 @@ class Editor {
             this.editor.setPosition({ lineNumber: 1, column: 1 })
             setTimeout(() => this.editor.focus(), 100) // delay focus until extraneous keypresses settle out and are ignored
         }
+        document.getElementById('edit-actions').style.display = enable ? 'inline' : 'none'
     }
 
     setProgram(program) {

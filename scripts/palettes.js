@@ -367,8 +367,12 @@ class PaletteMenu {
         this.menuButton = document.getElementById('palette')
         this.menu = document.getElementById('palettemenu')
         this.menuButton.addEventListener('click', () => { this.showMenu() })
+        this.palettes = []
         this.menu.querySelectorAll('li').forEach(li => {
-            li.dataset.palette = li.className.split(' ')[0]
+            const paletteName = li.className.split(' ')[0]
+            if (paletteName === '') { return }
+            li.dataset.palette = paletteName
+            this.palettes.push(paletteName)
             li.addEventListener('click', () => { this.paletteSelected(li) })
         })
 
@@ -392,7 +396,6 @@ class PaletteMenu {
         }
 
         this.menu.style.display = 'none'
-        this.menuButton.className = this.palette
         this.setPalette(this.palette)
 
         this.paletteEditor = new PaletteEditor(this)
@@ -418,6 +421,10 @@ class PaletteMenu {
         paletteDef.setCssRoot()
         paletteDef.setEditorTheme()
         this.paletteDefinition = paletteDef
+
+        window.localStorage.setItem('currentPalette', palette)
+        this.menuButton.classList.remove(...this.palettes)
+        this.menuButton.classList.add(palette)
     }
 
     setMachine(machine) {
@@ -443,8 +450,6 @@ class PaletteMenu {
             return this.paletteEditor.editPalette(this.paletteDefinition, edits)
         }
         this.setPalette(palette)
-        window.localStorage.setItem('currentPalette', palette)
-        this.menuButton.className = palette
         window.blocker.hide()
     }
 

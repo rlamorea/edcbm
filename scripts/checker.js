@@ -159,7 +159,8 @@ class ChecksumMenu {
 
     setAlgorithm(algorithm) {
         window.blocker.hide()
-        this.button.className = `checksum-${algorithm === 'checksum-none' ? 'none' : 'on'}`
+        this.button.classList.remove('checksum-none', 'checksum-on')
+        this.button.classList.add(`checksum-${algorithm === 'checksum-none' ? 'none' : 'on'}`)
         this.menu.querySelectorAll('li').forEach(li => {
             li.classList.toggle('disabled', li.dataset.checksum === algorithm)
         })

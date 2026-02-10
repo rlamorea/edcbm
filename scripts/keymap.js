@@ -32,6 +32,7 @@ class Keymap {
             'KeyS': 0x73, 'KeyT': 0x74, 'KeyU': 0x75, 'KeyV': 0x76, 'KeyW': 0x77, 'KeyX': 0x78,
             'KeyY': 0x79, 'KeyZ': 0x7A,
             'BracketLeft': Keymap.NONPET, 'BracketRight': Keymap.NONPET,
+            'Backslash': 0x7D,
             'Minus': 0xA4, 'Equal': 0x2B, 
             'Semicolon': 0x3A, 'Quote': 0x22, 
             'Comma': 0x3C, 'Period': 0x3E, 'Slash': 0x3F
@@ -42,9 +43,10 @@ class Keymap {
             'KeyM': 0xA7, 'KeyN': 0xAA, 'KeyO': 0xB9, 'KeyP': 0xAF, 'KeyQ': 0xAB, 'KeyR': 0xB2,
             'KeyS': 0xAE, 'KeyT': 0xA3, 'KeyU': 0xB8, 'KeyV': 0xBE, 'KeyW': 0xB3, 'KeyX': 0xBD,
             'KeyY': 0xB7, 'KeyZ': 0xAD,
+            'Minus': 0x60, // centered horizontal bar
             'Equal': 0x7B, // heavy cross
             'Semicolon': 0xBA, // lower right large border
-            'BracketLeft': 0xA8, // horitozontal half checkerboard
+            'BracketLeft': 0xA8, // horizontal half checkerboard
             'BracketRight': 0x7C, // vertical half checkerboard
             'Backslash': 0xA6, // full checkerboard
             'Quote': 0x7E, // pi
@@ -163,7 +165,6 @@ class Keymap {
     }
 
     getPetsciiForKey(key, options = {}) {
-        console.log(key)
         if (key.key === 'Dead') { return Keymap.DIACRITICAL }
         if (Keymap.diacriticalChars.includes(key.key)) { return 0 }
         if (options.reportTrans && Keymap.transformers.includes(key.key)) { return Keymap.TRANSFORMER }

@@ -65,6 +65,28 @@ const Machines = {
     }
 }
 
+class MenuButton {
+    constructor(button) {
+        this.showingMenu = false
+        this.menuWidth = document.getElementById('menu').offsetWidth
+        this.menuRight = null
+
+        this.button = button
+        button.addEventListener('click', () => { this.toggleMenu() })
+
+        this.menu = document.getElementById(this.button.dataset.menu)
+    }
+
+    toggleMenu() {
+        this.showingMenu = !this.showingMenu
+        if (!this.showingMenu) { return }
+        const locRight = this.button.offsetLeft + this.button.offsetWidth
+        if (this.menuRight === locRight) { return }
+        this.menuRight = this.menuWidth - locRight
+        this.menu.style.right = `${this.menuRight}px`
+    }
+}
+
 class Controls {
     constructor() {
         this.machine = Machines[DEFAULT_MACHINE]
@@ -97,17 +119,6 @@ class Controls {
 
         if (ready) {
             this.setMachine(DEFAULT_MACHINE)
-            window.editor.setHelpText(
-`
-Welcome to EDCBM - the Ultimate In-Browser IDE for Commodore 8-bit Computers
-
-To Get Started:
-
-* Start a NEW Program
-* LOAD a Program Directly
-* LOAD a D64 Disk and then LOAD a program from its CATALOG
-`               
-            )
             return
         }
         setTimeout(() => { this.waitToLoad() }, 100)
@@ -142,4 +153,5 @@ To Get Started:
 
 window.addEventListener('load', () => { 
     new Controls()
+    document.querySelectorAll('.menu-button').forEach((b) => { new MenuButton(b) })
 })
