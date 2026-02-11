@@ -58,7 +58,7 @@
     width: calc(var(--key-width) * 10.5);
 }
 
-#vkeyboard.kb-cbm2 .kb-layout key.k-ng .graph { display: 'inline'; }
-#vkeyboard.kb-cbm2 .kb-layout key.k-ng .norm { display: 'none'; }
-#vkeyboard.kb-cbm2 .kb-layout key.k-ng.k-toggled .graph { display: 'none'; }
-#vkeyboard.kb-cbm2 .kb-layout key.k-ng.k-toggled .norm { display: 'inline'; }
+#vkeyboard.kb-cbm2 .kb-layout key.k-ng .graph { display: inline; }
+#vkeyboard.kb-cbm2 .kb-layout key.k-ng .norm { display: none; }
+#vkeyboard.kb-cbm2 .kb-layout key.k-ng.k-toggled .graph { display: none; }
+#vkeyboard.kb-cbm2 .kb-layout key.k-ng.k-toggled .norm { display: inline; }
