@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="#c1c2bf" stroke="#000" stroke-linejoin="round">
+  <defs>
+    <rect id="k100" width="2.8" height="2.8"/>
+    <rect id="k150" width="4.3" height="2.8"/>
+    <rect id="k200" width="5.8" height="2.8"/>
+    <rect id="ksp"  width="27" height="2.8"/>
+  </defs>
+  <g transform="translate(0 10)">
+  <path fill="#444" d="M 78 76 v 3 l 14 -26 v -3"/>
+  <path fill="#444" d="M 78 76 v 3 h -70 v -3 h 70"/>
+  <path d="M 77 77 l 16 -29 v -18 l -9 17 l -0.5 8 l -6.5 18 z"/>
+  <path stroke-width="0.5" d="M 76.5 77 v -3.5 h -70 v 3.5 h 70"/>
+  <path stroke-width="0.5" d="M 76.5 73.5 h -70 l 6.5 -18 h 70 z
+    m 6.5 -18 h -70 l 0.5 -8.2 h 70 z
+    m 0.5 -8.2 h -70 l 9 -17.5 h 70.5"/>
+  <path stroke="none" fill="#444" d="M 15 48 l -0.3 7 h 66 l 0.3 -7 h -66 z"/>
+  <path stroke="#888" stroke-linecap="round" stroke-width="1.5" d="M 17 51.5 h 12"/>
+  <path stroke="#888" stroke-width="3.5" d="M 43 50.75 h 12"/>
+  <path stroke="#888" stroke-linecap="round" stroke-width="1" d="M 44 53.5 h 10"/>
+  <path stroke="#888" stroke-linecap="round" stroke-width="1.5" d="M 65 50.5 h 12 m -12 2 h 10"/>
+  <g stroke-width="0.25" stroke="#888" fill="#201f1f" transform="translate(11 52) scale(1, 1) skewX(-21)">
+    <!-- row 1 -->
+    <use href="#k100" x="10" y="5"/>
+    <use href="#k100" x="13" y="5"/>
+    <use href="#k100" x="16" y="5"/>
+    <use href="#k100" x="19" y="5"/>
+    <use href="#k100" x="22" y="5"/>
+    <use href="#k100" x="25" y="5"/>
+    <use href="#k100" x="28" y="5"/>
+    <use href="#k100" x="31" y="5"/>
+    <use href="#k100" x="34" y="5"/>
+    <use href="#k100" x="37" y="5"/>
+    <use href="#k100" x="40" y="5"/>
+    <use href="#k100" x="43" y="5"/>
+    <use href="#k100" x="46" y="5"/>
+    <use href="#k100" x="49" y="5"/>
+    <use href="#k100" x="55" y="5"/>
+    <use href="#k100" x="58" y="5"/>
+    <use href="#k100" x="61" y="5"/>
+    <use href="#k100" x="64" y="5"/>
+    <!-- row 2 -->
+    <use href="#k150" x="10" y="8"/>
+    <use href="#k100" x="14.5" y="8"/>
+    <use href="#k100" x="17.5" y="8"/>
+    <use href="#k100" x="20.5" y="8"/>
+    <use href="#k100" x="23.5" y="8"/>
+    <use href="#k100" x="26.5" y="8"/>
+    <use href="#k100" x="29.5" y="8"/>
+    <use href="#k100" x="32.5" y="8"/>
+    <use href="#k100" x="35.5" y="8"/>
+    <use href="#k100" x="38.5" y="8"/>
+    <use href="#k100" x="41.5" y="8"/>
+    <use href="#k100" x="44.5" y="8"/>
+    <use href="#k100" x="47.5" y="8"/>
+    <use href="#k100" x="50.5" y="8"/>
+    <use href="#k150" x="55" y="8"/>
+    <use href="#k100" x="58" y="8"/>
+    <use href="#k100" x="61" y="8"/>
+    <use href="#k100" x="64" y="8"/>
+    <!-- row 3 -->
+    <use href="#k150" x="11" y="11"/>
+    <use href="#k100" x="15.5" y="11"/>
+    <use href="#k100" x="18.5" y="11"/>
+    <use href="#k100" x="21.5" y="11"/>
+    <use href="#k100" x="24.5" y="11"/>
+    <use href="#k100" x="27.5" y="11"/>
+    <use href="#k100" x="30.5" y="11"/>
+    <use href="#k100" x="33.5" y="11"/>
+    <use href="#k100" x="36.5" y="11"/>
+    <use href="#k100" x="39.5" y="11"/>
+    <use href="#k100" x="42.5" y="11"/>
+    <use href="#k100" x="45.5" y="11"/>
+    <use href="#k150" x="48.5" y="11"/>
+    <use href="#k150" x="55" y="11"/>
+    <use href="#k100" x="58" y="11"/>
+    <use href="#k100" x="61" y="11"/>
+    <use href="#k100" x="64" y="11"/>
+    <!-- row 4 -->
+    <use href="#k200" x="11" y="14"/>
+    <use href="#k150" x="17" y="14"/>
+    <use href="#k100" x="20" y="14"/>
+    <use href="#k100" x="23" y="14"/>
+    <use href="#k100" x="26" y="14"/>
+    <use href="#k100" x="29" y="14"/>
+    <use href="#k100" x="32" y="14"/>
+    <use href="#k100" x="35" y="14"/>
+    <use href="#k100" x="38" y="14"/>
+    <use href="#k100" x="41" y="14"/>
+    <use href="#k100" x="44" y="14"/>
+    <use href="#k200" x="47" y="14"/>
+    <use href="#k150" x="55" y="14"/>
+    <use href="#k100" x="58" y="14"/>
+    <use href="#k100" x="61" y="14"/>
+    <use href="#k100" x="64" y="14"/>
+    <!-- space -->
+    <use href="#ksp"  x="18.5" y="17"/>
+  </g>
+  </g>
+  <g transform="translate(22 8) scale(0.7 0.7)">
+  <path d="M 7 17 h 66 l 6 52 h -78 z"/>
+  <path fill="#444" d="M 9 19 h 62 l 5 48 h -72 z"/>
+  <path d="M 73 17 l 13 -14 l 5 46 l -12 20"/>
+  <path d="M 7 17 l 15 -14 h 64 l -13 14"/>
+  <path fill="#000" stroke-width="0.5" d="M 16 26 a 50 10 0 0 1 48 0 a 20 50 0 0 1 0 34 a 50 10 0 0 1 -48 0 a 20 50 0 0 1 0 -34"/>
+  <rect fill="#000" stroke="none" x="20" y="30" width="40" height="26"/>
+  <g stroke="#000" stroke-width="0.1" fill="#65D045">
+    <rect x="38" y="32" width="1.9" height="2.8"/>
+    <rect x="36" y="35" width="1.9" height="2.8"/>
+    <rect x="38" y="35" width="1.9" height="2.8"/>
+    <rect x="40" y="35" width="1.9" height="2.8"/>
+    <rect x="36" y="38" width="1.9" height="2.8"/>
+    <rect x="34" y="38" width="1.9" height="2.8"/>
+    <rect x="38" y="38" width="1.9" height="2.8"/>
+    <rect x="40" y="38" width="1.9" height="2.8"/>
+    <rect x="42" y="38" width="1.9" height="2.8"/>
+    <rect x="32" y="41" width="1.9" height="2.8"/>
+    <rect x="34" y="41" width="1.9" height="2.8"/>
+    <rect x="36" y="41" width="1.9" height="2.8"/>
+    <rect x="38" y="41" width="1.9" height="2.8"/>
+    <rect x="40" y="41" width="1.9" height="2.8"/>
+    <rect x="42" y="41" width="1.9" height="2.8"/>
+    <rect x="44" y="41" width="1.9" height="2.8"/>
+    <rect x="32" y="44" width="1.9" height="2.8"/>
+    <rect x="34" y="44" width="1.9" height="2.8"/>
+    <rect x="36" y="44" width="1.9" height="2.8"/>
+    <rect x="38" y="44" width="1.9" height="2.8"/>
+    <rect x="40" y="44" width="1.9" height="2.8"/>
+    <rect x="42" y="44" width="1.9" height="2.8"/>
+    <rect x="44" y="44" width="1.9" height="2.8"/>
+    <rect x="36" y="47" width="1.9" height="2.8"/>
+    <rect x="38" y="47" width="1.9" height="2.8"/>
+    <rect x="40" y="47" width="1.9" height="2.8"/>
+    <rect x="34" y="50" width="1.9" height="2.8"/>
+    <rect x="36" y="50" width="1.9" height="2.8"/>
+    <rect x="38" y="50" width="1.9" height="2.8"/>
+    <rect x="40" y="50" width="1.9" height="2.8"/>
+    <rect x="42" y="50" width="1.9" height="2.8"/>
+  </g>
+</g>
+</svg>

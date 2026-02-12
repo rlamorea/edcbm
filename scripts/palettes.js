@@ -126,7 +126,7 @@ const PaletteDefinitions = {
     'c128' : new Palette('c128', '#777777', '#cdffac', { '--menu-border': '#cdffac', '--menu-foreground': '#777777' }),
     'c128-80' : new Palette('c128-80', '#000000', '#00ffff', { '--menu-border': '#444444', editorBase: 'vs-dark', font: 'cbmthick-80', menuFont: 'cbmthick-40' }),
     'c64' : new Palette('c64', '#4555d6', '#8e9aff', { '--menu-border': '#8e9aff', '--menu-foreground': '#4555d6' }),
-    'vic20' : new Palette('vic20', '#ffffff', '#E747E6', { '--menu-border': '#80ffff', '--menu-foreground': Palette.colorStrength('#E747E6', 2, 'weaker'), font: 'cbmthin-22', menuFont: 'cbmthin-40'}), // slightly darker menu color than text color
+    'vic20' : new Palette('vic20', '#ffffff', '#5800FC', { '--menu-border': '#80ffff', '--menu-foreground': Palette.colorStrength('#E747E6', 2, 'weaker'), font: 'cbmthin-22', menuFont: 'cbmthin-40'}), // slightly darker menu color than text color
     'ted' : new Palette('ted', '#ffffff', '#000000', { '--menu-border': '#ff9bd8', '--menu-foreground': '#202020' }), 
     'pet-40' : new Palette('pet-40', '#000000', '#65D045', { '--menu-border': '#444444', editorBase: 'vs-dark', font: 'cbmthin-40' }),
     'pet' : new Palette('pet', '#000000', '#65D045', { '--menu-border': '#444444', editorBase: 'vs-dark', font: 'cbmthin-80', menuFont: 'cbmthin-40' }),

@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="#b2ad9d" stroke="#000" stroke-linejoin="round">
+  <defs>
+    <rect id="k100" width="2.8" height="2.8"/>
+    <rect id="k150" width="4.3" height="2.8"/>
+    <rect id="k200" width="5.8" height="2.8"/>
+    <rect id="ksp" width="29.8" height="2.8"/>
+  </defs>
+  <g transform="translate(0 50)scale(1, 0.6)">
+  <path d="M8 76c-2-1-2-6-2-6s-1-5 1-13l10-25 3-4h74l-2 5-10 25c-3 8-2 13-2 13s0 5 1.5 5H8"/>
+  <path d="m82 76 14-24v-8l-2-16-3 4-10 25c-3 8-2 13-2 13s0 5 3.2 6"/>
+  <path stroke="#888" stroke-width=".5" d="M20.2 28.5h72.6m-.6 1h-72.6m-.7 1h72.5m-.7 1h-72.5"/>
+  <path class="c-badge" stroke-width="2" stroke-linecap="round" stroke="#666" d="M24 30h20m36 0h5"/>
+  <circle class="c-pwr" cx="83" cy="30" r=".75" stroke="none"/>
+  <path stroke="#888" stroke-width=".5" d="M6.5 70h72"/>
+  <g stroke-width="0.25" class="c-key" transform="scale(1.2 1.2) skewX(-22) translate(19, -6)">
+    <!-- row 1 -->
+    <use href="#k100" x="10" y="38"/>
+    <use href="#k100" x="13" y="38"/>
+    <use href="#k100" x="16" y="38"/>
+    <use href="#k100" x="19" y="38"/>
+    <use href="#k100" x="22" y="38"/>
+    <use href="#k100" x="25" y="38"/>
+    <use href="#k100" x="28" y="38"/>
+    <use href="#k100" x="31" y="38"/>
+    <use href="#k100" x="34" y="38"/>
+    <use href="#k100" x="37" y="38"/>
+    <use href="#k100" x="40" y="38"/>
+    <use href="#k100" x="43" y="38"/>
+    <use href="#k100" x="46" y="38"/>
+    <use href="#k100" x="49" y="38"/>
+    <use href="#k100" x="52" y="38"/>
+    <use href="#k100" x="55" y="38"/>
+    <!-- row 2 -->
+    <use href="#k150" x="10" y="41"/>
+    <use href="#k100" x="14.5" y="41"/>
+    <use href="#k100" x="17.5" y="41"/>
+    <use href="#k100" x="20.5" y="41"/>
+    <use href="#k100" x="23.5" y="41"/>
+    <use href="#k100" x="26.5" y="41"/>
+    <use href="#k100" x="29.5" y="41"/>
+    <use href="#k100" x="32.5" y="41"/>
+    <use href="#k100" x="35.5" y="41"/>
+    <use href="#k100" x="38.5" y="41"/>
+    <use href="#k100" x="41.5" y="41"/>
+    <use href="#k100" x="44.5" y="41"/>
+    <use href="#k100" x="47.5" y="41"/>
+    <use href="#k100" x="50.5" y="41"/>
+    <use href="#k150" x="53.5" y="41"/>
+    <!-- row 3 -->
+    <use href="#k100" x="9" y="44"/>
+    <use href="#k100" x="12" y="44"/>
+    <use href="#k100" x="15" y="44"/>
+    <use href="#k100" x="18" y="44"/>
+    <use href="#k100" x="21" y="44"/>
+    <use href="#k100" x="24" y="44"/>
+    <use href="#k100" x="27" y="44"/>
+    <use href="#k100" x="30" y="44"/>
+    <use href="#k100" x="33" y="44"/>
+    <use href="#k100" x="36" y="44"/>
+    <use href="#k100" x="39" y="44"/>
+    <use href="#k100" x="42" y="44"/>
+    <use href="#k100" x="45" y="44"/>
+    <use href="#k100" x="48" y="44"/> 
+    <use href="#k200" x="51" y="44"/>
+    <!-- row 4 -->
+    <use href="#k100" x="9" y="47"/>
+    <use href="#k150" x="12" y="47"/>
+    <use href="#k100" x="16.5" y="47"/>
+    <use href="#k100" x="19.5" y="47"/>
+    <use href="#k100" x="22.5" y="47"/>
+    <use href="#k100" x="25.5" y="47"/>
+    <use href="#k100" x="28.5" y="47"/>
+    <use href="#k100" x="31.5" y="47"/>
+    <use href="#k100" x="34.5" y="47"/>
+    <use href="#k100" x="37.5" y="47"/>
+    <use href="#k100" x="40.5" y="47"/>
+    <use href="#k100" x="43.5" y="47"/>
+    <use href="#k150" x="46.5" y="47"/>
+    <use href="#k100" x="51" y="47"/>
+    <use href="#k100" x="54" y="47"/>
+    <!-- space -->
+    <use href="#ksp"  x="18" y="50"/>
+    <!-- fn keys -->
+    <g class="c-fn">
+      <use href="#k150" x="60" y="38"/>
+      <use href="#k150" x="60" y="41"/>
+      <use href="#k150" x="60" y="44"/>
+      <use href="#k150" x="60" y="47"/>
+    </g>
+  </g>
+  </g>
+</svg>
