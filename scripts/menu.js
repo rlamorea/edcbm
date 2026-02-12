@@ -1,13 +1,15 @@
-const DEFAULT_MACHINE = 'c128'
+const DEFAULT_MACHINE = 'c64'
 
 const Machines = {
     'c64': {
         name: 'c64',
         language: 'v2',
+        startAddress: 0x801,
     },
     'c128' : {
         name: 'c128',
         language: 'v7',
+        startAddress: 0x1c01,
     },
     'c128-80' : {
         name: 'c128-80',
@@ -15,20 +17,26 @@ const Machines = {
         menu: 'c128-80 columns',
         language: 'v7',
         kb: 'c128',
+        startAddress: 0x1c01,
     },
     'vic20' : {
         name: 'vic20',
         language: 'v2',
+        fontOffset: 0x0200,
+        startAddress: 0x1001, // NOTE: could be 0x1201 if memory expansion in place
+        menuPetscii: 'vic20'
     },
     'plus4': {
         name: 'plus4',
         palette: 'ted',
         language: 'v3.5',
+        startAddress: 0x1001,
     },
     'c16': {
         name: 'c16',
         palette: 'ted',
         language: 'v3.5',
+        startAddress: 0x1001,
     },
     'pet-g': {
         name: 'pet-g',
@@ -36,6 +44,8 @@ const Machines = {
         menu: 'pet-graphics',
         palette: 'pet-40',
         language: 'v2',
+        startAddress: 0x0401,
+        menuPetscii: 'pet-g'
     },
     'pet-b': {
         name: 'pet-b',
@@ -43,11 +53,37 @@ const Machines = {
         palette: 'pet',
         menu: 'pet-business',
         language: 'v4',
+        startAddress: 0x0401,
+        menuPetscii: 'pet-g'
     },
     'cbm2': {
         name: 'cbm2',
         palette: 'pet',
         language: 'v4+',
+        startAddress: 0x0003, // bank ram01
+        menuPetscii: 'pet-g'
+    }
+}
+
+class MenuButton {
+    constructor(button) {
+        this.showingMenu = false
+        this.menuWidth = document.getElementById('menu').offsetWidth
+        this.menuRight = null
+
+        this.button = button
+        button.addEventListener('click', () => { this.toggleMenu() })
+
+        this.menu = document.getElementById(this.button.dataset.menu)
+    }
+
+    toggleMenu() {
+        this.showingMenu = !this.showingMenu
+        if (!this.showingMenu) { return }
+        const locRight = this.button.offsetLeft + this.button.offsetWidth
+        if (this.menuRight === locRight) { return }
+        this.menuRight = this.menuWidth - locRight
+        this.menu.style.right = `${this.menuRight}px`
     }
 }
 
@@ -73,9 +109,19 @@ class Controls {
         this.machineMenu.style.display = 'none'
 
         document.getElementById('clean').addEventListener('click', () => this.cleanCode())
-        this.setMachine(DEFAULT_MACHINE)
+        this.waitToLoad()
+    }
 
-        if (window.editor) { window.editor.disabled = true }
+    waitToLoad() {
+        const ready = (window.editor != null && window.palettes != null && window.fileControls != null && 
+                       window.virtualKeyboard != null && window.tokenizer != null && window.petscii != null &&
+                       window.keymap != null)
+
+        if (ready) {
+            this.setMachine(DEFAULT_MACHINE)
+            return
+        }
+        setTimeout(() => { this.waitToLoad() }, 100)
     }
 
     setMachine(machine) {
@@ -85,10 +131,14 @@ class Controls {
         this.machine = Machines[machine]
         document.body.className = machine
         this.machineName.textContent = this.machine.display || machine
-        if (window.editor) { window.editor.setMachine(this.machine) }
-        if (window.palettes) { window.palettes.setMachine(this.machine) }
-        if (window.fileControls) { window.fileControls.setMachine(machine) }
-        if (window.virtualKeyboard) { window.virtualKeyboard.setMachine(this.machine) }
+        window.petscii.setMachine(this.machine)
+        window.keymap.setMachine(this.machine)
+        window.palettes.setMachine(this.machine)
+        window.fileControls.setMachine(machine)
+        window.editor.setMachine(this.machine)
+        window.virtualKeyboard.setMachine(this.machine)
+        window.tokenizer.setMachine(this.machine)
+        
         window.blocker.hide()
     }
 
@@ -103,4 +153,5 @@ class Controls {
 
 window.addEventListener('load', () => { 
     new Controls()
+    document.querySelectorAll('.menu-button').forEach((b) => { new MenuButton(b) })
 })

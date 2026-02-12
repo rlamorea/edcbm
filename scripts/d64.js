@@ -98,14 +98,14 @@ class D64 {
         for (let i = 0; i < length; i++) {
             const byte = nameBytes[i]
             if (skipFiller && byte === 160) continue
-            name += Petscii.table[byte] || '?'
+            name += String.fromCodePoint(byte) || '?'
         }
         return name
     }
 
     writeName(name, discPointer, length) {
         for (let i = 0; i < length; i++) {
-            const byte = (i < name.length) ? (Petscii.lookup[name[i]] || 160) : 160
+            const byte = (i < name.length) ? (name.codePointAt(i) || 160) : 160
             this.discImageArray[discPointer++] = byte
         }
     }

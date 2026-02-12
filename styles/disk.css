@@ -1,0 +1,37 @@
+/* Disc Catalog */
+
+#catalog {
+    z-index: 20;
+    font-family: var(--menu-font);
+    font-size: 16px;
+    position: fixed;
+    width: 28em;
+    padding: 1em;
+    border: solid 1em var(--dialog-border);
+    height: 70vh;
+    overflow-y: auto;
+    top: 15vh;
+    left: calc(50vw - 14em);
+    color: var(--dialog-foreground);
+    background: var(--dialog-background);
+}
+#catalog h2 {
+    padding: 0;
+    margin: 0;
+    font-size: 16px;
+}
+#catalog h2 span { white-space: pre; }
+#catalog ul {
+    padding: 0;
+    margin: 0;
+}
+#catalog ul li { 
+    list-style: none; 
+    white-space: pre;  
+    cursor: pointer;
+}
+#catalog h2 span, #disc ul li:hover {
+    color: var(--dialog-background);
+    background: var(--dialog-foreground);
+}
+

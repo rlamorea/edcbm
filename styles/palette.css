@@ -1,0 +1,117 @@
+/* Palette Editor */
+
+#paletteeditor {
+    z-index: 20;
+    font-family: var(--menu-font);
+    font-size: 12px;
+    position: fixed;
+    width: 30em;
+    padding: 0;
+    border: solid 0.5em var(--dialog-border);
+    height: auto;
+    top: 10vh;
+    left: calc(50vw - 15em);
+    color: var(--dialog-foreground);
+    background: var(--dialog-background);
+    display: block;
+    text-transform: uppercase;
+    display: none;
+}
+#paletteeditor h2 {
+    margin: 0;
+    padding: 1px 0;
+    font-size: 16px;
+    color: var(--dialog-background);
+    background: var(--dialog-foreground);
+}
+#paletteeditor h3 {
+    margin: 0;
+    padding: 0.25em 0 0 0.5em;
+    font-size: 14px;
+    border-bottom: solid 1px var(--dialog-border);
+    font-family: 'cbmthick-40' !important;
+}
+#paletteeditor .grid .elem {
+    display: block;
+    border: solid 1px transparent;
+    padding: 4px 0;
+    text-align: center;
+    cursor: pointer;
+}
+#paletteeditor .grid .elem select {
+    appearance: base-select;
+    border: none;
+    padding: 0;
+    margin: 0 0 -13px 0;
+    width: calc(100% - 7em);
+    height: 80%;
+    background: none;
+    color: var(--dialog-foreground);
+    font-family: var(--menu-font);
+    font-size: 12px;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+::picker(select) {
+    appearance: base-select;
+    border: solid 1px var(--dialog-border);
+    padding: 3px;
+    background: var(--dialog-background);
+    color: var(--dialog-foreground);
+}
+#paletteeditor .grid .elem select:focus {
+    outline: none;
+    border-radius: 0;
+}
+#paletteeditor .grid .elem option::checkmark { 
+    font-family: cbmthick-40;
+}
+#paletteeditor .grid .elem option[value=cbmthick-40] { font-family: cbmthick-40; }
+#paletteeditor .grid .elem option[value=cbmthick-80] { font-family: cbmthick-80; }
+#paletteeditor .grid .elem option[value=cbmthin-40] { font-family: cbmthin-40; }
+#paletteeditor .grid .elem option[value=cbmthin-80] { font-family: cbmthin-80; }
+#paletteeditor .grid .elem option[value=cbmthin-22] { font-family: cbmthin-22; }
+#paletteeditor .grid .elem option[value=mono-code] { font-family: mono-code; }
+
+#paletteeditor .grid .elem select:has(option[value=cbmthick-40]:checked) { font-family: cbmthick-40; }
+#paletteeditor .grid .elem select:has(option[value=cbmthick-80]:checked) { font-family: cbmthick-80; }
+#paletteeditor .grid .elem select:has(option[value=cbmthin-40]:checked) { font-family: cbmthin-40; }
+#paletteeditor .grid .elem select:has(option[value=cbmthin-80]:checked) { font-family: cbmthin-80; }
+#paletteeditor .grid .elem select:has(option[value=cbmthin-22]:checked) { 
+    font-family: cbmthin-22; 
+    white-space: nowrap;
+    overflow: hidden;   
+    width: calc(100% - 14em);
+}
+#paletteeditor .grid .elem select:has(option[value=mono-code]:checked) { font-family: mono-code; }
+
+#paletteeditor .grid .elem input[type=color]  {
+    margin: 0;
+    border: none;
+    padding: 0;
+    width: 0;
+    height: 0;
+}
+
+#paletteeditor .grid .elem:hover {
+    border-color: var(--dialog-foreground);
+}
+#paletteeditor .actions {
+    border-top: solid 1px var(--dialog-border);
+    padding: 4px 0.5em;
+    text-align: right;
+}
+
+.force-petscii {
+    font-family: cbmthick-80;
+    font-size: 12px;
+}
+
+.special-variable {
+    font-family: monospace;
+    font-size: 10pt;
+    background: var(--special-background);
+    border-radius: 4px;
+    color: var(--special-foreground) !important;
+}
+

@@ -1,42 +1,9 @@
 class NameMenu {
-    static passthroughKeys = [
-        'Backspace',
-        'ArrowLeft',
-        'ArrowRight',
-        'Tab',
-        'Enter',
+    static passthroughKeys = [ 
+        'Enter', 'Esc', 'Tab', // exit keys
+        'Backspace', 'Home', 'End', // edit keys
+        'ArrowLeft', 'ArrowRight', // cursor keys
     ]
-    static keyLookup
-    static {
-        this.keyLookup = { 
-            'none' : { 
-                ...Editor.petsciiKeymap['none'],
-                ...{
-                    'KeyA' : 'A', 'KeyB' : 'B', 'KeyC' : 'C', 'KeyD' : 'D', 'KeyE' : 'E',
-                    'KeyF' : 'F', 'KeyG' : 'G', 'KeyH' : 'H', 'KeyI' : 'I', 'KeyJ' : 'J',
-                    'KeyK' : 'K', 'KeyL' : 'L', 'KeyM' : 'M', 'KeyN' : 'N', 'KeyO' : 'O',
-                    'KeyP' : 'P', 'KeyQ' : 'Q', 'KeyR' : 'R', 'KeyS' : 'S', 'KeyT' : 'T',
-                    'KeyU' : 'U', 'KeyV' : 'V', 'KeyW' : 'W', 'KeyX' : 'X', 'KeyY' : 'Y',
-                    'KeyZ' : 'Z',
-                    'Digit0' : '0', 'Digit1' : '1', 'Digit2' : '2', 'Digit3' : '3', 'Digit4' : '4', 
-                    'Digit5' : '5', 'Digit6' : '6', 'Digit7' : '7', 'Digit8' : '8', 'Digit9' : '9', 
-                    'Minus' : '-', 'Equal' : '=', 'BracketLeft': '[', 'BracketRight': ']',
-                    'Semicolon': ';', 'Quote': "'", 'Comma': ',', 'Period' : '.', 'Slash': '/',
-                    'Space': ' '
-                }
-            },
-            'shift' : {
-                ...Editor.petsciiKeymap['shift'],
-                ...{
-                    'Digit1' : '!', 'Digit2': '@', 'Digit3' : '#', 'Digit4' : '$', 'Digit5' : '%',
-                    'Digit7' : '&', 'Digit8': '*', 'Digit9' : '(', 'Digit0' : ')',
-                    'Equal' : '+', 'Semicolon': ':', 'Quote' : '"',
-                    'Comma' : '<', 'Period': '>', 'Slash' : '?'
-                }
-            },
-            'alt' : { ...Editor.petsciiKeymap['alt'] }
-        }
-    }
 
     constructor(id, parent, handlers) {
         this.id = id
@@ -67,6 +34,19 @@ class NameMenu {
         })
 
         this.drop.addEventListener('click', () => { this.toggleMenu() })
+        window.petscii.registerRerenderHandler(this)
+
+        this.inDiacritical = false
+    }
+
+    preFontChange() {
+        if (this.input.value.trim() === '') { return }
+        this.inputPetsciiBytes = window.petscii.stringToPetscii(this.input.value)
+    }
+
+    postFontChange() {
+        if ((this.inputPetsciiBytes || '') === '') { return }
+        this.input.value = window.petscii.petsciiBytesToString(this.inputPetsciiBytes)
     }
 
     toggleMenu(fromBlocker) {
@@ -113,13 +93,45 @@ class NameMenu {
         this.input.focus()
     }
 
+    cleanDiacriticals() {
+        let curpos = this.input.selectionStart
+        let cleanValue = ''
+        let delNext = false
+        for (const char of this.input.value) {
+            const charCode = char.codePointAt(0)
+            if (Keymap.diacriticals.includes(charCode)) {
+                curpos -= 1
+                delNext = true
+            } else if (delNext) {
+                curpos -= 1
+                delNext = false
+            } else if (Keymap.diacriticalChars.includes(char)) {
+                curpos -= 1
+            } else {
+                cleanValue += char
+            }
+        }
+        this.input.value = cleanValue
+        this.input.setSelectionRange(curpos, curpos)
+        this.inDiacritical = false
+        this.nameAction = ''
+    }
+
     nameKey(e) {
-        // pass through
-        if (e.ctrlKey || NameMenu.passthroughKeys.includes(e.code)) {
-            if (e.code === 'Enter') { this.input.blur() }
+        const petscii = window.keymap.getPetsciiForKey(e, { 
+            noCtrl: true, noNonPet: true, reportTrans: true, 
+            passthrough: NameMenu.passthroughKeys 
+        })
+        if (this.inDiacritical && petscii !== Keymap.TRANSFORMER) {
+            setTimeout(() => this.cleanDiacriticals(), 20) // wait for OS to insert composed char
+            return
+        } else if (petscii === Keymap.PASSTHROUGH || petscii === Keymap.TRANSFORMER) { // pass through
+            if (e.code === 'Enter' || e.code === 'Esc' || e.code === 'Tab') { this.input.blur() }
+            return
+        } else if (petscii === Keymap.DIACRITICAL) {
+            this.inDiacritical = true
             return
         }
-        e.preventDefault()
         const curpos = this.input.selectionStart
         if (this.input.selectionEnd > this.input.selectionStart) {
             if (this.input.selectionStart === 0 && this.input.selectionEnd === this.input.value.length) {
@@ -133,23 +145,23 @@ class NameMenu {
                 this.input.setSelectionRange(curpos, curpos)
             }
         }
-        let modifier = (e.shiftKey ? 'shift' : '') + (e.ctrlKey ? 'ctrl' : '') + (e.altKey ? 'alt' : '')
-        if (modifier.length === 0) { modifier = 'none' }
-        const lookup = NameMenu.keyLookup[modifier] || {}
-        const petscii = lookup[e.code]
+        e.preventDefault()
+        e.stopPropagation()
+        if (petscii === 0) { return } // invalid keypress
+
         let val = this.input.value
         if (petscii) {
             if (val.length >= 16) { return } // max length
+            const char = window.petscii.petsciiBytesToString(petscii)
             if (curpos !== val.length) {
                 // insert at cursor position
                 const start = val.substring(0, this.input.selectionStart)
                 const end = val.substring(this.input.selectionStart)
-                val = start + petscii + end
+                val = start + char + end
             } else {
-                val += petscii
+                val += char
             }
             this.input.value = val
-            console.log('resetting cursor to', curpos + 1)
             this.input.setSelectionRange(curpos + 1, curpos + 1)
         }
     }
@@ -157,32 +169,30 @@ class NameMenu {
     nameChanged() {
         this.input.readOnly = true
         this.input.inert = true
+        if (this.inDiacritical) { this.cleanDiacriticals() }
+        const name = window.petscii.stringToPetsciiString(this.input.value.trim())
         const handler = this.handlers['namechange']
-        if (handler) { handler(this.input.value.trim() )}
+        if (handler) { handler(name) }
     }
 
-    name() {
-        return this.input.value || ''
+    name(asPetscii = true) {
+        let name = this.input.value.trim() || ''
+        if (asPetscii) {
+            name = window.petscii.stringToPetsciiString(name)
+        }
+        return name
     }
 
-    setName(name) {
+    setName(name, isPetscii = true) {
+        if (isPetscii) {
+            name = window.petscii.petsciiStringToString(name || '')
+        }
         this.input.value = name || ''
         this.nameChanged()
     }
 }
 
 class FileControls {
-    static programStartAddress = {
-        'c128' : 0x1c01,
-        'c64' : 0x0801,
-        'vic20': 0x1001, // NOTE: could be 0x1201 if memory expansion in place
-        'c16': 0x1001,
-        'plus4': 0x1001,
-        'pet': 0x0401,
-        'pet-b': 0x0401,
-        'cbm2': 0x0003, // bank ram01
-    }
-
     constructor() {
         this.blockShutdown = null
 
@@ -213,25 +223,35 @@ class FileControls {
         this.catalog = document.getElementById('catalog')
         this.catalog.style.display = 'none'
         this.catalogLoaded = false
+        this.catalogRendered = false
         this.catalog.querySelector('ul').addEventListener('click', (e) => { this.discFileSelected(e) })
 
-        if (window.editor) { window.editor.disabled = true }
+        window.petscii.registerRerenderHandler(this)
+
+        this.namingAction = ''
+    }
+
+    preFontChange() {
+        this.catalogRendered = false
     }
 
     setMachine(machine) {
         this.machine = machine
-        this.startAddress = FileControls.programStartAddress[this.machine]
+        this.startAddress = machine.startAddress
+
     }
 
     newFile(e) {
-        this.startAddress = FileControls.programStartAddress[this.machine]
-        window.editor.setProgram('')
-        window.editor.disabled = false
+        this.startAddress = this.startAddress
+        this.namingAction = 'new'
+        window.editor.enableEditor(false)
         this.fileOptions.editName()
     }
 
     renameFile(e) {
         this.fileOptions.editName()
+        this.namingAction = 'rename'
+        window.editor.enableEditor(false)
     }
 
     cleanFilename(name, validExt = []) {
@@ -260,9 +280,10 @@ class FileControls {
                 this.startAddress = parseInt(sa[1])
                 content = content.substring(content.indexOf('\n')).trim()
             } else {
-                this.startAddress = FileControls.programStartAddress[this.machine]
+                this.startAddress = this.startAddress
             }
             window.editor.setProgram(content)
+            window.editor.enableEditor()
             const fname = this.cleanFilename(file.name, ['EPRG'])
             this.fileOptions.setName(fname)
         }
@@ -302,6 +323,8 @@ class FileControls {
         const hasName = name.length > 0
         const disabled = hasName ? [ ] : [ 'rename', 'save-prg', 'save-to-disc' ]
         this.fileOptions.selectionsEnable(disabled)
+        if (this.namingAction === 'new') { window.editor.setProgram('') }
+        window.editor.enableEditor()
     }
 
     newDisc(e) {
@@ -323,9 +346,9 @@ class FileControls {
         if (this.catalogRendered && this.currentDisc.catalogLoaded) { return }
 
         const dnameEl = this.catalog.querySelector('h2 span')
-        let dname = this.currentDisc.discName.padEnd(16) + ' '
-        dname += this.currentDisc.discId.padEnd(2) + ' '
-        dname += this.currentDisc.discDOS.padEnd(2)
+        let dname = window.petscii.petsciiStringToString(this.currentDisc.discName).padEnd(16) + ' '
+        dname += window.petscii.petsciiStringToString(this.currentDisc.discId).padEnd(2) + ' '
+        dname += window.petscii.petsciiStringToString(this.currentDisc.discDOS).padEnd(2)
         dnameEl.textContent = dname
 
         const catalog = this.currentDisc.getCatalog()
@@ -335,8 +358,8 @@ class FileControls {
             const li = document.createElement('li')
             const file = catalog[index]
             let fentry = file.fileSize.toString().padEnd(5)
-            fentry += '"' + file.name.padEnd(16) + '" '
-            fentry += file.fileType
+            fentry += '"' + window.petscii.petsciiStringToString(file.name).padEnd(16) + '" '
+            fentry += window.petscii.petsciiStringToString(file.fileType)
             li.textContent = fentry
             li.dataset.catalogIndex = index
             catalogEl.appendChild(li)
@@ -396,7 +419,7 @@ class FileControls {
         let fileIdx = 0
         this.startAddress = this.readWord(fileData, fileIdx)
         if (this.startAddress === 0) { 
-            this.startAddress = FileControls.programStartAddress[this.machine] 
+            this.startAddress = this.startAddress
         }
         fileIdx += 2
         let program = ''
@@ -420,7 +443,7 @@ class FileControls {
         }
 
         window.editor.setProgram(program)
-        window.editor.disabled = false
+        window.editor.enableEditor()
         window.blocker.hide()
     }
 }

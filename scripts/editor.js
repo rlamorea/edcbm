@@ -1,256 +1,8 @@
 class Editor {
-    static petsciiKeymap = {
-        'none' : {
-            'Backslash': Petscii.named['shift-@]'],
-        },
-        'shift': {
-            'Digit6': Petscii.named['up-arrow'],
-            'Backquote': Petscii.named['left-arrow'],
-            'BracketLeft': Petscii.named['£'],
-            'BracketRight': Petscii.named['pi'],
-            'Backslash': Petscii.named['shift--'],
-            'Minus': Petscii.named['cbm-@'],
-            'KeyA': Petscii.named['shift-A'],
-            'KeyB': Petscii.named['shift-B'],
-            'KeyC': Petscii.named['shift-C'],
-            'KeyD': Petscii.named['shift-D'],
-            'KeyE': Petscii.named['shift-E'],
-            'KeyF': Petscii.named['shift-F'],
-            'KeyG': Petscii.named['shift-G'],
-            'KeyH': Petscii.named['shift-H'],
-            'KeyI': Petscii.named['shift-I'],
-            'KeyJ': Petscii.named['shift-J'],
-            'KeyK': Petscii.named['shift-K'],
-            'KeyL': Petscii.named['shift-L'],
-            'KeyM': Petscii.named['shift-M'],
-            'KeyN': Petscii.named['shift-N'],
-            'KeyO': Petscii.named['shift-O'],
-            'KeyP': Petscii.named['shift-P'],
-            'KeyQ': Petscii.named['shift-Q'],
-            'KeyR': Petscii.named['shift-R'],
-            'KeyS': Petscii.named['shift-S'],
-            'KeyT': Petscii.named['shift-T'],
-            'KeyU': Petscii.named['shift-U'],
-            'KeyV': Petscii.named['shift-V'],
-            'KeyW': Petscii.named['shift-W'],
-            'KeyX': Petscii.named['shift-X'],
-            'KeyY': Petscii.named['shift-Y'],
-            'KeyZ': Petscii.named['shift-Z'],
-        },
-        'alt': {
-            'Minus': Petscii.named['shift-*'],
-            'Equal': Petscii.named['shift-+'],
-            'BracketLeft': Petscii.named['cbm--'],
-            'BracketRight': Petscii.named['cbm-£'],
-            'Backslash': Petscii.named['cbm-+'],
-            'Semicolon': Petscii.named['shift-£'],
-            'Quote': Petscii.named['cbm-*'], 
-            'Comma': '\x00', // ignore
-            'Period': '\x00', // ignore
-            'Slash': '\x00', // ignore
-            'KeyA': Petscii.named['cbm-A'],
-            'KeyB': Petscii.named['cbm-B'],
-            'KeyC': Petscii.named['cbm-C'],
-            'KeyD': Petscii.named['cbm-D'],
-            'KeyE': Petscii.named['cbm-E'],
-            'KeyF': Petscii.named['cbm-F'],
-            'KeyG': Petscii.named['cbm-G'],
-            'KeyH': Petscii.named['cbm-H'],
-            'KeyI': Petscii.named['cbm-I'],
-            'KeyJ': Petscii.named['cbm-J'],
-            'KeyK': Petscii.named['cbm-K'],
-            'KeyL': Petscii.named['cbm-L'],
-            'KeyM': Petscii.named['cbm-M'],
-            'KeyN': Petscii.named['cbm-N'],
-            'KeyO': Petscii.named['cbm-O'],
-            'KeyP': Petscii.named['cbm-P'],
-            'KeyQ': Petscii.named['cbm-Q'],
-            'KeyR': Petscii.named['cbm-R'],
-            'KeyS': Petscii.named['cbm-S'],
-            'KeyT': Petscii.named['cbm-T'],
-            'KeyU': Petscii.named['cbm-U'],
-            'KeyV': Petscii.named['cbm-V'],
-            'KeyW': Petscii.named['cbm-W'],
-            'KeyX': Petscii.named['cbm-X'],
-            'KeyY': Petscii.named['cbm-Y'],
-            'KeyZ': Petscii.named['cbm-Z'],
-            'Digit1': Petscii.named['orange'],
-            'Digit2': Petscii.named['brown'],
-            'Digit3': Petscii.named['lt-red'],
-            'Digit4': Petscii.named['dk-gray'],
-            'Digit5': Petscii.named['med-gray'],
-            'Digit6': Petscii.named['lt-green'],
-            'Digit7': Petscii.named['lt-blue'],
-            'Digit8': Petscii.named['lt-gray'],
-        },
-        'ctrlalt': {
-            'ArrowLeft': Petscii.named['left'],
-            'ArrowRight': Petscii.named['right'],
-            'ArrowUp': Petscii.named['up'],
-            'ArrowDown': Petscii.named['down'],
-            'KeyB': Petscii.named['underline-on'],
-            'KeyC': Petscii.named['stop'],
-            'KeyE': Petscii.named['cbm-E'], 
-            'KeyF': Petscii.named['cbm-I'], 
-            'KeyG': Petscii.named['bell'],
-            // 'KeyH': Petscii.named['lock-case'],
-            'KeyI': Petscii.named['tab'],
-            'KeyJ': Petscii.named['linefeed'],
-            'KeyK': Petscii.named['lock-case'],
-            'KeyL': Petscii.named['unlock-case'],
-            'KeyM': Petscii.named['cbm-N'],
-            'KeyN': Petscii.named['lower-case'],
-            'KeyO': Petscii.named['flash-on'],
-            'KeyS': Petscii.named['home'],
-            'KeyT': Petscii.named['delete'],
-            'KeyU': Petscii.named['cbm-U'],
-            'KeyX': Petscii.named['toggle-tab'],
-            'BracketLeft': Petscii.named['esc'],
-            'Digit1': Petscii.named['black'],
-            'Digit2': Petscii.named['white'],
-            'Digit3': Petscii.named['red'],
-            'Digit4': Petscii.named['cyan'],
-            'Digit5': Petscii.named['purple'],
-            'Digit6': Petscii.named['green'],
-            'Digit7': Petscii.named['blue'],
-            'Digit8': Petscii.named['yellow'],
-            'Digit9': Petscii.named['reverse-on'],
-            'Digit0': Petscii.named['reverse-off'],
-        },
-        'shiftctrlalt': {
-            // 'KeyB': '\uE0C2',
-            'KeyE': Petscii.named['f1'],
-            'KeyF': Petscii.named['f3'],
-            'KeyG': Petscii.named['f5'],
-            'KeyH': Petscii.named['f7'],
-            'KeyI': Petscii.named['f2'],
-            'KeyJ': Petscii.named['f4'],
-            'KeyK': Petscii.named['f6'],
-            'KeyL': Petscii.named['f8'],
-            'KeyM': Petscii.named['shift-return'],
-            'KeyN': Petscii.named['upper-case'],
-            // 'KeyO': '\uE0CF',
-            'KeyS': Petscii.named['clear'],
-            'KeyT': Petscii.named['insert'],
-        },
-        'ctrl': {
-            'Digit1': Petscii.named['black'],
-            'Digit2': Petscii.named['white'],
-            'Digit3': Petscii.named['red'],
-            'Digit4': Petscii.named['cyan'],
-            'Digit5': Petscii.named['purple'],
-            'Digit6': Petscii.named['green'],
-            'Digit7': Petscii.named['blue'],
-            'Digit8': Petscii.named['yellow'],
-            'Digit9': Petscii.named['reverse-on'],
-            'Digit0': Petscii.named['reverse-off'],
-        }
-    }
-
-    static diacriticals = [
-        0xa8,
-        0xb4,
-        0x2c6,
-        0x2d6,
-        0x60,
-    ]
+    static petsciiKeymap = { }
 
     static editorConfig = {
         brackets: [ [ '(', ')' ] ],
-    }
-
-    static reserved = {
-        'v2': [ 'ST', 'TI', 'TI$' ],
-        'v3.5': [ 'DS', 'DS$', 'EL', 'ER' ],
-        'v4': [ 'DS', 'DS$' ],
-        'v4+': [ 'EL' ],
-        'v7': [ 'DS', 'DS$', 'EL', 'ER' ]
-    }
-
-    static keywords = {
-        'v2': [
-            'ABS', 'ASC', 'ATN', 
-            'CHR$', 'CLOSE', 'CLR', 'CMD', 'CONT', 'COS', 
-            'DATA', 'DEF', 'DIM', 
-            'END', 'EXP', 
-            'FN', 'FOR', 'FRE', 
-            'GET', 'GET#', 'GOTO', 'GO TO', 'GOSUB', 
-            'IF', 'INPUT', 'INPUT#', 'INT', 
-            'LEFT$', 'LEN', 'LET', 'LIST', 'LOAD', 'LOG',
-            'MID$',
-            'NEW', 'NEXT',
-            'ON', 'OPEN',
-            'PEEK', 'POKE', 'POS', 'PRINT', 'PRINT#', 
-            'READ', 'REM', 'RESTORE', 'RETURN', 'RIGHT$', 'RND', 'RUN', 
-            'SAVE', 'SGN', 'SIN', 'SPC', 'SQR', 'STEP', 'STOP', 'STR$', 'SYS',
-            'TAB', 'TAN', 'THEN', 'TO',
-            'USR',
-            'VAL', 'VERIFY',
-            'WAIT',
-        ],
-        'v3.5': [
-            'AUTO', 
-            'BACKUP', 'BOX',
-            'CHAR', 'CIRCLE', 'COLLECT', 'COLOR', 'COPY', 
-            'DEC', 'DELETE', 'DIRECTORY', 'DLOAD', 'DO', 'DRAW', 'DSAVE', 
-            'ELSE', 'ERR$', 'EXIT', 
-            'GETKEY', 'GRAPHIC', 'GSHAPE', 
-            'HEADER', 'HELP', 'HEX$',
-            'INSTR', 
-            'JOY', 
-            'KEY',
-            'LOCATE', 'LOOP',
-            'MONITOR', 
-            'PAINT', 'PUDEF',
-            'RCLR', 'RDOT', 'RENAME', 'RENUMBER', 'RESUME', 'RGR', 'RLUM', 
-            'SCALE', 'SCNCLR', 'SOUND', 'SSHAPE',
-            'TRAP', 'TROFF', 'TRON',
-            'UNTIL', 'USING',
-            'VOL',
-            'WHILE',
-        ],
-        'v4': [
-            'APPEND', 
-            'BACKUP', 
-            'CATALOG', 'COLLECT', 'CONCAT', 'COPY', 
-            'DCLOSE', 'DIRECTORY', 'DLOAD', 'DOPEN', 'DSAVE', 
-            'RECORD', 'RENAME', 
-            'SCRATCH', 
-        ],
-        'v4+': [
-            'BANK', 'BLOAD', 'BSAVE', 
-            'DCLEAR', 'DELETE', 'DISPOSE', 
-            'ELSE', 'ERR$', 'ESC', 
-            'INSTR', 
-            'KEY', 
-            'PUDEF', 
-            'RESUME', 
-            'TRAP', 
-            'USING', 
-        ],
-        'v7': [
-            'APPEND', 'AUTO', 
-            'BACKUP', 'BANK', 'BEGIN', 'BEND', 'BLOAD', 'BOOT', 'BOX', 'BSAVE', 'BUMP',
-            'CATALOG', 'CHAR', 'CIRCLE', 'COLLECT', 'COLLISION', 'COLOR', 'CONCAT', 'COPY', 
-            'DCLEAR', 'DCLOSE', 'DEC', 'DELETE', 'DIRECTORY', 'DLOAD', 'DO', 'DOPEN', 'DRAW', 'DSAVE', 'DVERIFY', 
-            'ELSE', 'ENVELOPE', 'ERR$', 'EXIT', 
-            'FAST', 'FETCH', 'FILTER', 
-            'GETKEY', 'GO64', 'GRAPHIC', 'GSHAPE', 
-            'HEADER', 'HELP', 'HEX$', 
-            'INSTR', 
-            'JOY', 
-            'KEY', 
-            'LOCATE', 'LOOP', 
-            'MONITOR', 'MOVSPR', 
-            'PAINT', 'PEN', 'PLAY', 'POINTER', 'POT', 'PUDEF', 
-            'RCLR', 'RDOT', 'RECORD', 'RENAME', 'RENUMBER', 'RESUME', 'RGR', 'REG', 'RSPCOLOR', 'RSPPOS', 'RSPRITE', 'RWINDOW',
-            'SCALE', 'SCNCLR', 'SCRATCH', 'SLEEP', 'SLOW', 'SOUND', 'SPRCOLOR', 'SPRDEF', 'SPRITE', 'SPREAD', 'SSHAPE', 'STASH', 'SWAP',
-            'TEMPO', 'TRAP', 'TROF', 'TRON', 
-            'UNTIL', 'USING', 
-            'VOL', 
-            'WHILE', 'WIDTH', 'WINDOW',
-            'XOR'
-        ]
     }
 
     static languageRoot  = [
@@ -279,25 +31,18 @@ class Editor {
     static themes = {}
 
     static {
-        this.reserved['v3.5'] = [ ...this.reserved['v2'], ...this.reserved['v3.5'] ]
-        this.reserved['v7'] = [ ...this.reserved['v2'], ...this.reserved['v7'] ]
-        this.keywords['v7'] = [ ...this.keywords['v2'], ...this.keywords['v7'] ]
-        this.reserved['v4'] = [ ...this.reserved['v2'], ...this.reserved['v4'] ]
-        this.reserved['v4+'] = [ ...this.reserved['v4'], ...this.reserved['v4+'] ]
-
         this.language = {}
-        for (const version in this.keywords) {
+        for (const version in Tokenizer.keywords) {
             this.language[version] = {
-                keywords: this.keywords[version],
+                keywords: Tokenizer.keywords[version],
                 ignoreCase: true,
                 tokenizer: { root: [] }
             }
             for (const def of this.languageRoot) {
                 this.language[version].tokenizer.root.push(def)
             }
-            const keywords = this.keywords[version].map((k) => k.replace('$', '\\$'))
-            this.language[version].tokenizer.root.splice(5, 0, [ new RegExp(`(${keywords.join('|')})`), 'keyword' ])
-            const reserved = this.reserved[version].map((r) => r.replace('$', '\\$'))
+            this.language[version].tokenizer.root.splice(5, 0, [ new RegExp(Tokenizer.keywordRegex[version]), 'keyword' ])
+            const reserved = Tokenizer.reserved[version].map((r) => r.replace('$', '\\$'))
             this.language[version].tokenizer.root.splice(6, 0, [ new RegExp(`(${reserved.join('|')})`), 'reserved' ])
         }
     }
@@ -306,7 +51,7 @@ class Editor {
     setUpMonaco() {
         if (Editor.monacoSetUp) { return }
         Editor.monacoSetUp = true
-        for (const version in Editor.keywords) {
+        for (const version in Editor.language) {
             const id = `${version}basic`
             monaco.languages.register({ id })
             monaco.languages.setLanguageConfiguration(id, Editor.editorConfig)
@@ -316,7 +61,8 @@ class Editor {
 
     constructor() {
         this.setUpMonaco()
-        this.editor = monaco.editor.create(document.getElementById('container'), {
+        this.container = document.getElementById('container')
+        this.editor = monaco.editor.create(this.container, {
             language: 'v7basic',
             theme: 'vs-dark',
             fontFamily: 'cbmthick-40',
@@ -352,22 +98,62 @@ class Editor {
             this.processLine()
         })
         this.newCursorLocation = null
-        this.editor.onDidFocusEditorWidget(() => {
-            if (this.newCursorLocation) {
-                setTimeout(() => {
-                    this.editor.setPosition(this.newCursorLocation)
-                    this.newCursorLocation = null
-                }, 20)
-            }
-        })
-        this.editor.onDidBlurEditorWidget(() => {
-            this.newCursorLocation = this.editor.getPosition()
-        })
+        this.editor.onDidFocusEditorWidget(() => { this.restoreCursor() })
+        this.editor.onDidBlurEditorWidget(() => { this.newCursorLocation = this.editor.getPosition() })
+        this.editor.onDidChangeModelContent((event) => { this.checkInsertions(event) })
 
         this.lineDecorations = []
         this.variableReferences = {}
         this.notations = {}
         this.checksumAlgorithm = null
+        this.charSet = 'UPPER/Graphics'
+        this.fontOffset = 0
+        this.charSetOffset = 0
+        this.minFontChar = '\uE000'
+        this.maxFontChar = '\uE1FF'
+
+        this.hostMachine = window.navigator.userAgentData.platform
+        window.petscii.registerRerenderHandler(this)
+
+        this.bufferedProgram = null
+
+        this.enableEditor(false)
+    }
+
+    preFontChange() {
+        this.newCursorLocation = this.editor.getPosition()
+        this.bufferedProgram = this.getProgram()
+    }
+
+    postFontChange() {
+        this.setProgram(this.bufferedProgram)
+        this.editor.setPosition(this.newCursorLocation)
+        this.bufferedProgram = null
+    }
+
+    restoreCursor() {
+        if (this.newCursorLocation) {
+            setTimeout(() => {
+                this.editor.setPosition(this.newCursorLocation)
+                this.newCursorLocation = null
+            }, 20)
+        }
+    }
+
+    checkInsertions(event) {
+        if (event.changes.length !== 1) { return }
+        const change = event.changes[0]
+        let range = change.range
+        const text = change.text
+        if (text.length === 0) { return }
+        if (Keymap.diacriticals.includes(text.codePointAt(0))) {
+            if (text.length === 2) {
+                range.startColumn -= 1
+                setTimeout(() => { this.editor.executeEdits("", [{ range, text: '', forceMoveMarkers: true }]) }, 10)
+            }
+        } else if (Keymap.diacriticalChars.includes(text.charAt(0))) {
+            this.editor.executeEdits("", [{ range, text: '', forceMoveMarkers: true }]) 
+        }
     }
 
     generateEditorTheme(name, colors) {
@@ -404,6 +190,9 @@ class Editor {
     setMachine(machine) {
         const version = `${machine.language || 'v2'}basic`
         monaco.editor.setModelLanguage(this.editor.getModel(), version)
+        // TODO: theme returns char set and maybe a control?
+        this.machine = machine
+        this.petsciiKeymap = Editor.petsciiKeymap[machine.name]
     }
 
     setTheme(name, font) {
@@ -412,15 +201,29 @@ class Editor {
         setTimeout(() => { monaco.editor.remeasureFonts() }, 25)
     }
 
+    enableEditor(enable = true) {
+        this.container.classList.toggle('read-only-mode', !enable)
+        this.editor.updateOptions({ readOnly: !enable })
+        if (enable) { 
+            this.editor.setPosition({ lineNumber: 1, column: 1 })
+            setTimeout(() => this.editor.focus(), 100) // delay focus until extraneous keypresses settle out and are ignored
+        }
+        document.getElementById('edit-actions').style.display = enable ? 'inline' : 'none'
+    }
+
     setProgram(program) {
         program = this.parseNotationsHeader(program)
-        this.editor.setValue(program)
+        this.editor.setValue(window.petscii.petsciiStringToString(program))
         this.parseLines()
         this.notateLines()
     }
 
+    setHelpText(text) {
+        this.editor.setValue(text)
+    }
+
     getProgram(withNotations = true) {
-        return (withNotations ? this.notationsHeader() : '') + this.editor.getValue()
+        return (withNotations ? this.notationsHeader() : '') + window.petscii.stringToPetsciiString(this.editor.getValue())
     }
 
     writeWord(val, array, idx = 0) {
@@ -461,8 +264,12 @@ class Editor {
     }
 
     keyDown(key) {
-        const event = key.event;
-        if (key.metaKey) { return }
+        const petscii = window.keymap.getPetsciiForKey(key)
+        if (petscii === 0) {
+            key.preventDefault()
+            key.stopPropagation()
+            return
+        }
         const model = this.editor.getModel()
         const position = this.editor.getPosition()
         const lineValue = model.getLineContent(position.lineNumber)
@@ -476,43 +283,22 @@ class Editor {
             }])
             return
         }
-        let modifier = (key.shiftKey ? 'shift' : '') + (key.ctrlKey ? 'ctrl' : '') + (key.altKey ? 'alt' : '')
-        if (modifier.length === 0) { modifier = 'none' }
-        const lookup = Editor.petsciiKeymap[modifier] || {}
-        const petscii = lookup[key.code]
-        if (petscii) {
-            key.preventDefault()
-            key.stopPropagation()
-            if (petscii === '\x00') { return }
-            this.editor.executeEdits("", [{
-                range: new monaco.Range(
-                    position.lineNumber,
-                    position.column,
-                    position.lineNumber,
-                    position.column
-                ),
-                text: petscii,
-                forceMoveMarkers: true
-            }]);
-            return
-        } else if (modifier === 'none' && key.code.startsWith('Key')) {
-            key.preventDefault()
-            key.stopPropagation()
-            const write = key.code.substring(3)
-            this.editor.executeEdits("", [{
-                range: new monaco.Range(
-                    position.lineNumber,
-                    position.column,
-                    position.lineNumber,
-                    position.column
-                ),
-                text: write,
-                forceMoveMarkers: true
-            }]);
-            return
-        } else {
-            // console.log('no code for', modifier, key.code)
-        }
+        if (petscii === Keymap.PASSTHROUGH) { return }
+        key.preventDefault()
+        key.stopPropagation()
+        if (petscii === 0x00) { return }
+        
+        const petsciiChar = window.petscii.table[petscii]
+        this.editor.executeEdits("", [{
+            range: new monaco.Range(
+                position.lineNumber,
+                position.column,
+                position.lineNumber,
+                position.column
+            ),
+            text: petsciiChar,
+            forceMoveMarkers: true
+        }]);
     }
 
     parseSpecialComment(specialComment, lineNumber, lineContent) {
@@ -623,7 +409,7 @@ class Editor {
             this.editor.setPosition({ column: 1, lineNumber: lineNumber + 1 })
         }
 
-        const {  byteArray, lineNumber: basicLine, variables, specialComment } = window.tokenizer.tokenizeLine(lineContent)
+        const { byteArray, lineNumber: basicLine, variables, specialComment } = window.tokenizer.tokenizeLine(lineContent)
         if (byteArray.length > 0) {
             this.variableReferences[basicLine] = variables
         }

@@ -1,18 +1,34 @@
 class KeyboardWindow {
     static CapsCodes = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     static SmallLabelMininum = 5
-    static PrependKeys = {
+    static DefaultPrependKeys = {
         'key': '',
         'shft' : 's',
-        'cbm': 'a',
+        'cbm': 'sa',
         'ctrl' : 'ca'
     }
     static CSS_ROOT_ID = 'vkeyboard-palette'
+
+    static LETTERS = { 'Ug': {}, 'lU': {} }
+    
+    static {
+        let code = 0x41
+        for (const letter of KeyboardWindow.CapsCodes) {
+            this.LETTERS['Ug'][code] = letter
+            this.LETTERS['lU'][code] = letter.toLowerCase()
+            this.LETTERS['lU'][code + 0x20] = letter
+            code += 1
+        }
+    }
 
     constructor() {
         this.keyboardShowing = false
         this.kbButton = document.getElementById('keyboard')
         this.kbButton.addEventListener('click', () => this.toggleKeyboard() )
+
+        this.charsetButton = document.getElementById('charset')
+        this.charsetButton.addEventListener('click', () => { this.toggleCharset() } )
+        this.charsetButton.style.display = 'none'
 
         this.keyboard = document.getElementById('vkeyboard')
         this.header = this.keyboard.querySelector('h2')
@@ -21,6 +37,7 @@ class KeyboardWindow {
 
         this.loadedKeyboards = {}
         this.loadedKeyboard = null
+        this.charset = ''
 
         this.virtualKeyboard = this.keyboard.querySelector('.kb-layout')
         this.hostKeys = {
@@ -35,6 +52,9 @@ class KeyboardWindow {
             'shft': false,
             'cbm': false,
             'ctrl': false,
+        }
+        if (!window.navigator.userAgentData.platform === 'macOS') {
+            this.hostKeys['fn'].style.display = 'none'
         }
 
         this.repeat = this.keyboard.querySelector('#key-repeat')
@@ -73,7 +93,7 @@ class KeyboardWindow {
             style.id = KeyboardWindow.CSS_ROOT_ID
             document.head.appendChild(style)
         }
-        let css = `:root {
+        const css = `:root {
             --key-case-color: ${kbData.caseColor || '#b2ad9d'};
             --key-color: ${kbData.keyColor || '#382a16'};
             --key-text-color: ${kbData.keyText || 'white'};
@@ -82,6 +102,24 @@ class KeyboardWindow {
         style.textContent = css;
 
         this.keyboard.classList.add(`kb-${kbName}`)
+        this.prepKeyHandlers()
+        setTimeout(() => { this.toggleCharset('default') }, 10) // slight delay to be sure petscii catches up
+    }
+
+    toggleCharset(set = 'swap') {
+        if (set === 'default') {
+            const charsets = window.petscii.charSets
+            this.charsetButton.style.display = (charsets.length === 1) ? 'none' : 'inline'
+            this.charset = charsets.default ?? 'Ug'
+        } else if (set === 'swap') {
+            this.charset = (this.charset === 'Ug') ? 'lU' : 'Ug'
+        } else {
+            this.charset = set
+        }
+        window.petscii.setCharSet(this.charset)
+        this.charsetButton.classList.remove('Ug', 'lU')
+        this.charsetButton.classList.add(this.charset)
+
         this.prepKeys()
     }
 
@@ -95,12 +133,18 @@ class KeyboardWindow {
         this.kbButton.classList.toggle('enabled', this.keyboardShowing)
     }
 
-    prepKeys() {
+    prepKeyHandlers() {
         this.virtualKeyboard.querySelectorAll('key').forEach(key => {
             key.addEventListener('mouseover', (e) => this.keyOver(e))
             key.addEventListener('mouseout', (e) => this.keyOut(e))
             key.addEventListener('click', (e) => this.keyClicked(e))
-            this.toggleKey(key, 'key')
+        })
+    }
+
+    prepKeys() {
+        const toggle = this.getToggle()
+        this.virtualKeyboard.querySelectorAll('key').forEach(key => {
+            this.toggleKey(key, toggle)
         })
     }
 
@@ -114,12 +158,13 @@ class KeyboardWindow {
             toggle = (KeyboardWindow.CapsCodes.indexOf(baseCode) >= 0) ? 'shft' : 'key'
         }
         let hostKey = keyData[`${toggle}Host`]
-        let prependKeys = hostKey ? '' : KeyboardWindow.PrependKeys[toggle]
-        hostKey = hostKey || keyData.keyHost || keyData.key || ''
+        let prependKeys = hostKey ? '' : KeyboardWindow.DefaultPrependKeys[toggle]
+        const letter = KeyboardWindow.LETTERS[this.charset][parseInt(keyData.key, 16)]
+        hostKey = hostKey || keyData.keyHost || letter || ''
         let dotIdx = hostKey.indexOf('.')
         if (dotIdx === hostKey.length - 1) { dotIdx = -1 }
         if (dotIdx < 0 && prependKeys.length > 0) { 
-            hostKey = `.${hostKey}` 
+            hostKey = `.${hostKey}`
             dotIdx = 0
         }
         dotIdx += prependKeys.length
@@ -225,7 +270,7 @@ class KeyboardWindow {
         return len
     }
 
-    cleanLabel(label) {
+    cleanLabel(label, keyCode) {
         let labelClass = null
         let maxWidth = label.length
         let maxWidthCutoff = KeyboardWindow.SmallLabelMininum
@@ -242,9 +287,13 @@ class KeyboardWindow {
 
         // check for cbm
         if (maxWidth === 1) {
-            const keyCode = label.codePointAt(0)
-            if (keyCode >= 0xE000 && keyCode <= 0xE1FF) {
-                labelClass = 'cbm'
+            const labelCode = label.codePointAt(0)
+            if (labelCode >= 0xE000 && labelCode <= 0xEFFF) {
+                if (keyCode < 0x20 || keyCode === 0x60 || keyCode >= 0x7B) { 
+                    labelClass = 'cbm' 
+                } else if (this.charset === 'Ug' && keyCode >= 0x60) {
+                    labelClass = 'cbm'
+                }
             }
         } else if (maxWidth >= maxWidthCutoff) {
             labelClass = 'k-label-sm'
@@ -274,25 +323,30 @@ class KeyboardWindow {
         // deal with regular keys
         key.classList.remove('cbm', 'k-label', 'k-label-sm')
 
-        const baseCode = keyData.key
-        let keyCode = baseCode
-        let label = baseCode
+        const basePetscii = parseInt(keyData.key, 16)
+        let keyCode = basePetscii
+        let label = keyData.keyLabel
+
         // deal with caps case
         if (toggle === 'caps') {
-            toggle = (KeyboardWindow.CapsCodes.indexOf(baseCode) >= 0) ? 'shft' : 'key'
+            toggle = (basePetscii >= 0x41 && basePetscii <= 0x5A) ? 'shft' : 'key'
         }
         // determine state by seeing if there is a code associated with the current state
         if (toggle in keyData) {
-            keyCode = keyData[toggle]
-            label = keyData[`${toggle}Label`] || keyCode
+            keyCode = parseInt(keyData[toggle], 16)
+            label = keyData[`${toggle}Label`]
         } else {
             key.dataset.sendCode = null
             key.classList.add('k-unavail')
-            label = keyData['keyLabel'] || keyCode
         }
 
-        key.dataset.sendCode = keyCode
-        const { cleanLabel, labelClass } = this.cleanLabel(label)
+        if (!label) {
+            const letter = KeyboardWindow.LETTERS[this.charset][keyCode]
+            label = letter ?? window.petscii.table[keyCode]
+        }
+
+        key.dataset.sendCode = window.petscii.table[keyCode]
+        const { cleanLabel, labelClass } = this.cleanLabel(label, keyCode)
         if (labelClass) { key.classList.add(labelClass) }
         if (cleanLabel !== '{keep}') {
             key.innerHTML = cleanLabel

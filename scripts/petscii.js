@@ -1,176 +1,478 @@
 class Petscii {
-    static table = { 
-        2: '\uE082', 3: '\uE083', 4: '\uE084', 5: '\uE085', 7: '\uE087',
-        8: '\uE088', 9: '\uE089', 10: '\uE08A', 11: '\uE08B',
-        12: '\uE08C', 13: '\uE08D', 14: '\uE08E', 15: '\uE08F',
-        17: '\uE091', 18: '\uE092', 19: '\uE093', 20: '\uE094',
-        24: '\uE098', 27: '\uE09B', 28: '\uE09C', 29: '\uE09D',
-        30: '\uE09E', 31: '\uE09F',
-        32: ' ', 33: '!', 34: '"', 35: '#', 36: '$', 37: '%', 38: '&', 39: "'", 
-        40: '(', 41: ')', 42: '*', 43: '+', 44: ',', 45: '-', 46: '.', 47: '/', 
-        48: '0', 49: '1', 50: '2', 51: '3', 52: '4', 53: '5', 54: '6', 55: '7', 
-        56: '8', 57: '9', 58: ':', 59: ';', 60: '<', 61: '=', 62: '>', 63: '?', 
-        64: '@', 65: 'A', 66: 'B', 67: 'C', 68: 'D', 69: 'E', 70: 'F', 71: 'G',
-        72: 'H', 73: 'I', 74: 'J', 75: 'K', 76: 'L', 77: 'M', 78: 'N', 79: 'O', 
-        80: 'P', 81: 'Q', 82: 'R', 83: 'S', 84: 'T', 85: 'U', 86: 'V', 87: 'W', 
-        88: 'X', 89: 'Y', 90: 'Z', 91: '[', 92: '£', 93: ']', 94: '\uE01E', 95: '\uE01F',
-        96: '\uE040', 97: '\uE041', 98: '\uE042', 99: '\uE043',
-        100: '\uE044', 101: '\uE045', 102: '\uE046', 103: '\uE047',
-        104: '\uE048', 105: '\uE049', 106: '\uE04A', 107: '\uE04B',
-        108: '\uE04C', 109: '\uE04D', 110: '\uE04E', 111: '\uE04F',
-        112: '\uE050', 113: '\uE051', 114: '\uE052', 115: '\uE053',
-        116: '\uE054', 117: '\uE055', 118: '\uE056', 119: '\uE057',
-        120: '\uE058', 121: '\uE059', 122: '\uE05A', 123: '\uE05B',
-        124: '\uE05C', 125: '\uE05D', 126: '\uE05E', 127: '\uE05F',
-        129: '\uE0C1', 130: '\uE0C2', 131: '\uE0C3', 133: '\uE0C5',
-        134: '\uE0C6', 135: '\uE0C7', 136: '\uE0C8', 137: '\uE0C9',
-        138: '\uE0CA', 139: '\uE0CB', 140: '\uE0CC', 141: '\uE0CD',
-        142: '\uE0CE', 143: '\uE0CF', 144: '\uE0D0', 145: '\uE0D1',
-        146: '\uE0D2', 147: '\uE0D3', 148: '\uE0D4', 149: '\uE0D5',
-        150: '\uE0D6', 151: '\uE0D7', 152: '\uE0D8', 153: '\uE0D9',
-        154: '\uE0DA', 155: '\uE0DB', 156: '\uE0DC', 157: '\uE0DD',
-        158: '\uE0DE', 159: '\uE0DF',
-        160: '\uE060', 161: '\uE061', 162: '\uE062', 163: '\uE063',
-        164: '\uE064', 165: '\uE065', 166: '\uE066', 167: '\uE067',
-        168: '\uE068', 169: '\uE069', 170: '\uE06A', 171: '\uE06B',
-        172: '\uE06C', 173: '\uE06D', 174: '\uE06E', 175: '\uE06F',
-        176: '\uE070', 177: '\uE071', 178: '\uE072', 179: '\uE073',
-        180: '\uE074', 181: '\uE075', 182: '\uE076', 183: '\uE077',
-        184: '\uE078', 185: '\uE079', 186: '\uE07A', 187: '\uE07B',
-        188: '\uE07C', 189: '\uE07D', 190: '\uE07E', 191: '\uE07F',
-        192: '\uE040', 193: '\uE041', 194: '\uE042', 195: '\uE043',
-        196: '\uE044', 197: '\uE045', 198: '\uE046', 199: '\uE047',
-        200: '\uE048', 201: '\uE049', 202: '\uE04A', 203: '\uE04B',
-        204: '\uE04C', 205: '\uE04D', 206: '\uE04E', 207: '\uE04F',
-        208: '\uE050', 209: '\uE051', 210: '\uE052', 211: '\uE053',
-        212: '\uE054', 213: '\uE055', 214: '\uE056', 215: '\uE057',
-        216: '\uE058', 217: '\uE059', 218: '\uE05A', 219: '\uE05B',
-        220: '\uE05C', 221: '\uE05D', 222: '\uE05E', 223: '\uE05F',
-        224: '\uE060', 225: '\uE061', 226: '\uE062', 227: '\uE063',
-        228: '\uE064', 229: '\uE065', 230: '\uE066', 231: '\uE067',
-        232: '\uE068', 233: '\uE069', 234: '\uE06A', 235: '\uE06B',
-        236: '\uE06C', 237: '\uE06D', 238: '\uE06E', 239: '\uE06F',
-        240: '\uE070', 241: '\uE071', 242: '\uE072', 243: '\uE073',
-        244: '\uE074', 245: '\uE075', 246: '\uE076', 247: '\uE077',
-        248: '\uE078', 249: '\uE079', 250: '\uE07A', 251: '\uE07B',
-        252: '\uE07C', 253: '\uE07D', 254: '\uE07E', 255: '\uE07F',
+    static coreTable_Sym = {
+        0x20: ' ', 0x21: '!', 0x22: '"', 0x23: '#', 0x24: '$', 0x25: '%', 0x26: '&', 0x27: "'", 
+        0x28: '(', 0x29: ')', 0x2A: '*', 0x2B: '+', 0x2C: ',', 0x2D: '-', 0x2E: '.', 0x2F: '/', 
+        0x30: '0', 0x31: '1', 0x32: '2', 0x33: '3', 0x34: '4', 0x35: '5', 0x36: '6', 0x37: '7', 
+        0x38: '8', 0x39: '9', 0x3A: ':', 0x3B: ';', 0x3C: '<', 0x3D: '=', 0x3E: '>', 0x3F: '?', 
     }
-    static {
-        this.lookup = {}
-        for (const code in this.table) {
-            const char = this.table[code]
-            if (char in this.lookup) { continue }
-            this.lookup[char] = code
-        }
+    static coreTable_UC = {
+        0x40: '@', 0x41: 'A', 0x42: 'B', 0x43: 'C', 0x44: 'D', 0x45: 'E', 0x46: 'F', 0x47: 'G',
+        0x48: 'H', 0x49: 'I', 0x4A: 'J', 0x4B: 'K', 0x4C: 'L', 0x4D: 'M', 0x4E: 'N', 0x4F: 'O', 
+        0x50: 'P', 0x51: 'Q', 0x52: 'R', 0x53: 'S', 0x54: 'T', 0x55: 'U', 0x56: 'V', 0x57: 'W', 
+        0x58: 'X', 0x59: 'Y', 0x5A: 'Z', 0x5B: '[', 
+        0x5C: '\uE01C' /* pound */, 0x5D: ']', 0x5E: '\uE01E' /* up arrow */, 0x5F: '\uE01F', /* left arrow */
+    }
+    static coreTable_lc = {
+        0x40: '@', 0x41: 'a', 0x42: 'b', 0x43: 'c', 0x44: 'd', 0x45: 'e', 0x46: 'f', 0x47: 'g',
+        0x48: 'h', 0x49: 'i', 0x4A: 'j', 0x4B: 'k', 0x4C: 'l', 0x4D: 'm', 0x4E: 'n', 0x4F: 'o', 
+        0x50: 'p', 0x51: 'q', 0x52: 'r', 0x53: 's', 0x54: 't', 0x55: 'u', 0x56: 'v', 0x57: 'w', 
+        0x58: 'x', 0x59: 'y', 0x5A: 'z', 0x5B: '[', 
+        0x5C: '\uE01C' /* pound */, 0x5D: ']', 0x5E: '\uE01E' /* up arrow */, 0x5F: '\uE01F', /* left arrow */
+    }
 
-        this.machineNamed = {
-            'vic20': {
-                'stop': this.table[3],
-                'white': this.table[5],
-                'lock-case': this.table[8],
-                'unlock-case': this.table[9],
-                'return': this.table[13],
-                'lower-case': this.table[14],
-                'down': this.table[17],
-                'reverse-on': this.table[18],
-                'home': this.table[19],
-                'delete': this.table[20],
-                'red': this.table[28],
-                'right': this.table[29],
-                'green': this.table[30],
-                'blue': this.table[31],
-                'up-arrow': this.table[94],
-                'left-arrow': this.table[95],
-                'shift-*': this.table[96],
-                'shift-+': this.table[123],
-                'cbm--': this.table[124],
-                'shift--': this.table[125],
-                'pi': this.table[126],
-                'cbm-*': this.table[127],
-                'run': this.table[131],
-                'f1': this.table[133],
-                'f3': this.table[134],
-                'f5': this.table[135],
-                'f7': this.table[136],
-                'f2': this.table[137],
-                'f4': this.table[138],
-                'f6': this.table[139],
-                'f8': this.table[140],
-                'shift-return': this.table[141],
-                'upper-case': this.table[142],
-                'black': this.table[144],
-                'up': this.table[145],
-                'reverse-off': this.table[146],
-                'clear': this.table[147],
-                'insert': this.table[148],
-                'purple': this.table[156],
-                'left': this.table[157],
-                'yellow': this.table[158],
-                'cyan': this.table[159],
-                'shift-+': this.table[166],
-                'shift-£': this.table[169],
-                'shift-@': this.table[186],               
+    static commonCodeNames = {
+        0x03: 'stop',
+        0x0D: 'return',     
+        0x11: 'down',       
+        0x12: 'reverse-on',
+        0x13: 'home',       
+        0x14: 'delete',     
+        0x1D: 'right',      
+        0x20: 'space',      
+        0x5E: 'up-arrow',   
+        0x5F: 'left-arrow', 
+        0x7E: 'pi',         
+        0x83: 'run',        
+        0x8D: 'shift-return',
+        0x91: 'up',
+        0x92: 'reverse-off',
+        0x93: 'clear',
+        0x94: 'insert',     
+        0x9D: 'left'     
+    }
+
+    static generateCodeSequence(startCode, endCode, startPetscii) {
+        let petscii = startPetscii
+        let codes = {}
+        for (let code = startCode; code <= endCode; code++) {
+            codes[code] = String.fromCodePoint(petscii++)
+        }
+        return codes
+    }
+
+    static addCodeNames(codeNames, code, prefix, letters) {
+        for (const letter of letters) {
+            codeNames[code++] = prefix + letter
+        }        
+    }
+
+    static clearCodeNames(codeNames, codes, codeEnd) {
+        if (!Array.isArray(codes)) {
+            if (codeEnd) {
+                codes = Array.from({ length: (codeEnd - codes) + 1 }, (_, index) => codes + index)
+            } else {
+                codes = [ codes ]
             }
         }
-        let code = 32
-        for (const letter of ` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[£]`) {
-            this.machineNamed['vic20'][letter] = this.table[code++]
+        for (const code of codes) {
+            delete codeNames[code]
         }
-        code = 97
-        for (const letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') {
-            this.machineNamed['vic20'][`shift-${letter}`] = this.table[code++]
+    }
+
+    static tables = { }
+    static lookup = { }
+    static codeNames = { }
+    static nameLookup = { }
+    static machineMapping = {
+        'c64': { 'Ug': 'c64-Ug', 'lU': 'c64-lU' },
+        'c128': { 'Ug': 'c128-Ug', 'lU': 'c128-lU' },
+        'c128-80': { 'Ug': 'c128-Ug', 'lU': 'c128-lU' },
+        'c16': { 'Ug': 'ted-Ug', 'lU': 'ted-lU' },
+        'plus4': { 'Ug': 'ted-Ug', 'lU': 'ted-lU' },
+        'vic20': { 'Ug': 'vic20-Ug', 'lU': 'vic20-lU' },
+        'pet-g': { 'Ug': 'pet-Ug', 'lU': 'pet-lU' },
+        'pet-b': { 'lU': 'pet-lU', default: 'lU' },
+        'cbm2': { 'Ug': 'cbm2-Ug', 'lU': 'cbm2-lU', default: 'lU' },
+    }
+
+    static {
+        this.tables['c64-Ug'] = {
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE080),
+            ...this.coreTable_Sym,
+            ...this.coreTable_UC,
+            ...this.generateCodeSequence(0x60, 0x7F, 0xE040),
+            ...this.generateCodeSequence(0x80, 0x9F, 0xE0C0),
+            ...this.generateCodeSequence(0xA0, 0xBF, 0xE060),
+            ...this.generateCodeSequence(0xC0, 0xFF, 0xE040)
         }
-        code = 161
-        for (const letter of 'KIT@G+M£xNQDZSPAERWHJLYUOxFCXVB') {
-            if (letter === 'x') { continue }
-            this.machineNamed['vic20'][`cbm-${letter}`] = this.table[code++]
+        this.tables['c64-lU'] = {
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE180),
+            ...this.coreTable_Sym,
+            ...this.coreTable_lc,
+            ...this.generateCodeSequence(0x60, 0x7F, 0xE140),
+            ...this.generateCodeSequence(0x80, 0x9F, 0xE1C0),
+            ...this.generateCodeSequence(0xA0, 0xBF, 0xE160),
+            ...this.generateCodeSequence(0xC0, 0xFF, 0xE140)
         }
-        this.machineNamed['c64'] = {
-            ...this.machineNamed['vic20'],
-            'orange': this.table[129],
-            'brown': this.table[149],
-            'lt-red': this.table[150],
-            'dk-gray': this.table[151],
-            'med-gray': this.table[152],
-            'lt-green': this.table[153],
-            'lt-blue': this.table[154],
-            'lt-gray': this.table[155],
+        this.tables['c16-Ug'] = this.tables['c64-Ug']
+        this.tables['c16-lU'] = this.tables['c64-lU']
+        this.tables['plus4-Ug'] = this.tables['c64-Ug']
+        this.tables['plus4-lU'] = this.tables['c64-lU']
+        this.tables['c128-Ug'] = {
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE280),
+            ...this.coreTable_Sym,
+            ...this.coreTable_UC,
+            ...this.generateCodeSequence(0x60, 0x7F, 0xE240),
+            ...this.generateCodeSequence(0x80, 0x9F, 0xE2C0),
+            ...this.generateCodeSequence(0xA0, 0xBF, 0xE260),
+            ...this.generateCodeSequence(0xC0, 0xFF, 0xE240)
+        }
+        this.tables['c128-lU'] = {
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE380),
+            ...this.coreTable_Sym,
+            ...this.generateCodeSequence(0x40, 0x5F, 0xE300),
+            ...this.generateCodeSequence(0x60, 0x7F, 0xE340),
+            ...this.generateCodeSequence(0x80, 0x9F, 0xE3C0),
+            ...this.generateCodeSequence(0xA0, 0xBF, 0xE360),
+            ...this.generateCodeSequence(0xC0, 0xFF, 0xE340)
+        }
+        this.tables['c128-80-Ug'] = this.tables['c128-Ug']
+        this.tables['c128-80-lU'] = this.tables['c128-lU']
+        this.tables['pet-g-Ug'] = {
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE280), // stealing control charas from VIC-20 set
+            ...this.coreTable_Sym,
+            ...this.coreTable_UC,
+            ...this.generateCodeSequence(0x60, 0x7F, 0xE040),
+            ...this.generateCodeSequence(0x80, 0x9F, 0xE2C0), // from VIC-20 set
+            ...this.generateCodeSequence(0xA0, 0xBF, 0xE060),
+            ...this.generateCodeSequence(0xC0, 0xFF, 0xE040)
+        }
+        this.tables['pet-g-lU'] = {
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE280), // VIC-20
+            ...this.coreTable_Sym,
+            ...this.coreTable_lc,
+            ...this.generateCodeSequence(0x60, 0x7F, 0xE0C0),
+            ...this.generateCodeSequence(0x80, 0x9F, 0xE2C0), // VIC-20
+            ...this.generateCodeSequence(0xA0, 0xBF, 0xE0E0),
+            ...this.generateCodeSequence(0xC0, 0xFF, 0xE0C0)
+        }
+        this.tables['pet-b-lU'] = this.tables['pet-g-lU']
+        this.tables['vic20-Ug'] = {
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE280),
+            ...this.generateCodeSequence(0x20, 0x3F, 0xE220),
+            ...this.generateCodeSequence(0x40, 0x5F, 0xE200),
+            ...this.generateCodeSequence(0x60, 0x7F, 0xE240),
+            ...this.generateCodeSequence(0x80, 0x9F, 0xE2C0),
+            ...this.generateCodeSequence(0xA0, 0xBF, 0xE260),
+            ...this.generateCodeSequence(0xC0, 0xFF, 0xE240)
+        }
+        this.tables['vic20-lU'] = {
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE380),
+            ...this.generateCodeSequence(0x20, 0x3F, 0xE320),
+            ...this.generateCodeSequence(0x40, 0x5F, 0xE300),
+            ...this.generateCodeSequence(0x60, 0x7F, 0xE340),
+            ...this.generateCodeSequence(0x80, 0x9F, 0xE3C0),
+            ...this.generateCodeSequence(0xA0, 0xBF, 0xE360),
+            ...this.generateCodeSequence(0xC0, 0xFF, 0xE340)
+        }
+        this.tables['cbm2-lU'] = {
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE280), // stealing control charas from VIC-20 set
+            ...this.generateCodeSequence(0x20, 0x3F, 0xE820),
+            ...this.generateCodeSequence(0x40, 0x5F, 0xE800),
+            ...this.generateCodeSequence(0x60, 0x7F, 0xE840),
+            ...this.generateCodeSequence(0x80, 0x9F, 0xE2C0), // from VIC-20 set
+            ...this.generateCodeSequence(0xA0, 0xBF, 0xE860),
+            ...this.generateCodeSequence(0xC0, 0xFF, 0xE840)
+        }
+        this.tables['cbm2-Ug'] = {
+            ...this.generateCodeSequence(0x00, 0x1F, 0xE280), // stealing control charas from VIC-20 set
+            ...this.generateCodeSequence(0x20, 0x3F, 0xE8A0),
+            ...this.generateCodeSequence(0x40, 0x5F, 0xE880),
+            ...this.generateCodeSequence(0x60, 0x7F, 0xE8C0),
+            ...this.generateCodeSequence(0x80, 0x9F, 0xE2C0), // from VIC-20 set
+            ...this.generateCodeSequence(0xA0, 0xBF, 0xE8E0),
+            ...this.generateCodeSequence(0xC0, 0xFF, 0xE8C0)
         }
 
-        this.machineNamed['c128'] = { 
-            ...this.machineNamed['c64'],
-            'underline-on': this.table[2],
-            'bell': this.table[7],
-            'tab': this.table[9],
-            'linefeed': this.table[10],
-            'lock-case': this.table[11],
-            'unlock-case': this.table[12],
-            'flash-on': this.table[15],
-            'toggle-tab': this.table[24],
-            'esc': this.table[27],
-            'dk-purple': this.table[0x81],
-            'underline-off': this.table[0x82],
-            'flash-off': this.table[0x8f],
-            'dk-yellow': this.table[0x95],
-            'dk-cyan': this.table[0x97],
+        for (const table in this.tables) {
+            this.lookup[table] = Object.fromEntries( Object.entries(this.tables[table]).map(([k,v]) => [v,parseInt(k)]))
         }
 
-        this.machineNamed['ted'] = {
-            ...this.machineNamed['c64'],
-            'flash-on': this.table[0x82],
-            'flash-off': this.table[0x84],
-            'yellow-green': this.table[0x96],
-            'pink': this.table[0x97],
-            'blue-green': this.table[0x98],
-            'lt-blue': this.table[0x99],
-            'dk-blue': this.table[0x9a],
-            'lt-green': this.table[0x9b],
-            'lt-red': null,
-            'dk-gray': null,
-            'med-gray': null,
-            'lt-gray': null,
+        let coreCodeNames = { }
+        this.addCodeNames(coreCodeNames, 0x00, 'ctrl-', [ ...'@ABCDEFGHIJKLMNOPQRSTUVWXYZ[', 'backslash', ']', 'up-arrow', 'left-arrow' ])
+        this.addCodeNames(coreCodeNames, 0x80, 'shift-ctrl-', [ ...'@ABCDEFGHIJKLMNOPQRSTUVWXYZ[', 'backslash', ']', 'up-arrow', 'left-arrow' ])
+        coreCodeNames[0x9E] = 'ctrl-pi' // implied shift
+        this.addCodeNames(coreCodeNames, 0x20, '', [ ...` !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[`, 'backslash', ']', 'up-arrow', 'left-arrow' ])
+        this.addCodeNames(coreCodeNames, 0x60, 'shift-', '@ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+        coreCodeNames = { ...coreCodeNames, ...this.commonCodeNames }
+
+        let lowerCodeNames = { ...coreCodeNames }
+        this.addCodeNames(lowerCodeNames, 0x41, '', 'abcdefghijklmnopqrstuvwxyz')
+        this.addCodeNames(lowerCodeNames, 0x61, '', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+
+        // pet graphics
+        this.codeNames['pet-Ug'] = { ...coreCodeNames, ...this.commonCodeNames }
+        this.addCodeNames(this.codeNames['pet-Ug'], 0x7B, 'shift-', [ '[', 'backslash', ']', 'up-arrow', 'left-arrow' ])
+        this.codeNames['pet-Ug'][0x7E] = 'pi'
+        this.addCodeNames(this.codeNames['pet-Ug'], 0xA0, 'shift-', ` !"#$%&'()*+,-./0123456789:;<=>?`)
+        this.codeNames['pet-lU'] = { ...this.codeNames['pet-Ug'], ...lowerCodeNames }
+
+        // pet business
+        this.codeNames['pet-b-lU'] = { 
+            ...this.codeNames['pet-lU'],
+            0x07: 'bell',
+            0x09: 'tab',
+            0x0F: 'window-top-left',
+            0x15: 'insert-line',
+            0x16: 'delete-to-eol',
+            0x19: 'scroll-up',
+            0x1B: 'esc',
+            0x89: 'set-tab',
+            0x8F: 'window-bottom-right',
+            0x95: 'delete-line',
+            0x96: 'delete-to-sol',
+            0x99: 'scroll-down',
+        }
+        this.clearCodeNames(this.codeNames['pet-b-lU'], 0x60)
+        this.clearCodeNames(this.codeNames['pet-b-lU'], 0x7B, 0x7F)
+        this.clearCodeNames(this.codeNames['pet-b-lU'], 0xA0, 0xBF)
+
+        // cbm2
+        this.codeNames['cbm2-Ug'] = {
+            ...this.codeNames['pet-Ug'],
+            0x04: 'ce',
+            0x07: 'bell',
+            0x09: 'tab',
+            0x0E: 'lower-case',
+            0x0F: 'window-top-left',
+            0x1B: 'esc',
+            0x84: 'shift-ce',
+            0x84: 'shift-tab',
+            0x8E: 'upper-case',
+            0x8F: 'window-bottom-right',
+        }
+        this.addCodeNames(this.codeNames['cbm2-Ug'], 0x60, 'graph-', 'VABCDEFGHIJK[,MOPQRSTULWXYZ')
+        this.addCodeNames(this.codeNames['cbm2-Ug'], 0xA1, 'ctrl-', 
+            [ ...`12345"6'=`, 'num--', 'num-+', '0', 'num-0', 'num-2', 'num-/', 'num-1', 'num-4', 'num-5', 
+              'num-6', 'num-7', 'num-8', 'num-9', 'num-?', 'ce', 'num-.', ']8-', 'num-.', '7', '9' ]
+        )
+        this.codeNames['cbm2-Ug'] = {
+            ...this.codeNames['cbm2-Ug'],
+            0x6D: 'ctrl-,',
+            0x7B: 'ctrl-num-3',
+            0x7C: 'ctrl-;',
+            0x7D: 'graph-N',
+            0x7E: 'pi',
+            0x7F: 'ctrl-left-arrow'
+        }
+        this.codeNames['cbm2-lU'] = {
+            ...this.codeNames['cbm2-Ug'],
+            ...lowerCodeNames
         }
 
-        this.named = this.machineNamed['c128'] // for now
+        // vic20
+        this.codeNames['vic20-Ug'] = {
+            ...coreCodeNames,
+            0x05: 'white',
+            0x0E: 'lower-case',
+            0x1C: 'red',
+            0x1E: 'green',
+            0x1F: 'blue',
+            0x85: 'f1', 0x86: 'f3', 0x87: 'f5', 0x88: 'f7', 0x89: 'f2', 0x8A: 'f4', 0x8B: 'f6', 0x8C: 'f8',
+            0x8E: 'upper-case',
+            0x90: 'black',
+            0x9C: 'purple',
+            0x9E: 'yellow',
+            0x9F: 'cyan',
+        }
+        this.addCodeNames(this.codeNames['vic20-Ug'], 0xA1, 'cbm-', [ ...'KIT@G+M', 'gb-pound', ...'xNQDZSPAERWHJLYUOxFCXVB' ])
+        this.codeNames['vic20-Ug'] = {
+            ...this.codeNames['vic20-Ug'],
+            0x5C: 'gb-pound',
+            0x7B: 'shift-+',
+            0x7C: 'cbm--',
+            0x7D: 'shift--',
+            0x7E: 'pi',
+            0x7F: 'cbm-*',
+            0xBA: 'shift-@',
+            0xA9: 'shift-gb-pound',
+        }
+        this.codeNames['vic20-lU'] = {
+            ...this.codeNames['vic20-Ug'],
+            ...lowerCodeNames
+        }
+
+        // c64
+        this.codeNames['c64-Ug'] = {
+            ...this.codeNames['vic20-Ug'],
+            0x08: 'lock-case',
+            0x09: 'unlock-case',
+            0x81: 'orange',
+            0x95: 'brown',
+            0x96: 'light-red',
+            0x97: 'dark-gray',
+            0x98: 'medium-gray',
+            0x99: 'light-green',
+            0x9A: 'light-blue',
+            0x9B: 'light-gray'
+        }
+        this.codeNames['c64-lU'] = {
+            ...this.codeNames['c64-Ug'],
+            ...lowerCodeNames
+        }
+
+        // c128 (uses VIC-II colors)
+        this.codeNames['c128-Ug'] = {
+            ...this.codeNames['c64-Ug'],
+            0x02: 'uline-on',
+            0x07: 'bell',
+            0x09: 'tab',
+            0x0A: 'linefeed',
+            0x0B: 'lock-case',
+            0x0C: 'unlock-case',
+            0x0F: 'flash-on',
+            0x18: 'toggle-tab',
+            0x1B: 'esc',
+            0x82: 'uline-off',
+            0x8F: 'flash-off',           
+        }
+        this.clearCodeNames(this.codeNames['c128-Ug'], 0x08)
+        this.codeNames['c128-lU'] = {
+            ...this.codeNames['c128-Ug'],
+            ...lowerCodeNames
+        }
+
+        // c16/plus4
+        this.codeNames['ted-Ug'] = {
+            ...this.codeNames['c64-Ug'],
+            0x82: 'flash-on',
+            0x84: 'flash-off',
+            0x96: 'yellow-green',
+            0x97: 'pink',
+            0x98: 'blue-green',
+            0x99: 'light-blue',
+            0x9A: 'dark-blue',
+            0x9B: 'light-green',
+        }
+        this.codeNames['ted-lU'] = {
+            ...this.codeNames['ted-Ug'],
+            ...lowerCodeNames
+        }
+
+        for (const codeKey in this.codeNames) {
+            this.nameLookup[codeKey] = Object.fromEntries( Object.entries(this.codeNames[codeKey]).map(([k,v]) => [v,parseInt(k)]) )
+        }
+    }
+
+    constructor() {
+        this.machine = null
+        this.charSet = null
+
+        this.charSets = null
+        this.table = {}
+        this.lookup = {}
+        this.codes = {}
+        this.nameLookup = {}
+
+        this.rerenderHandlers = []
+    }
+
+    registerRerenderHandler(handler) {
+        this.rerenderHandlers.push(handler)
+    }
+
+    setMachine(machine, charSet) {
+        this.machine = machine.name
+        this.charSets = Petscii.machineMapping[this.machine]
+        this.setCharSet(charSet ?? 'default')
+    }
+
+    setCharSet(charSet = 'default') {
+        if (charSet === 'default') { charSet = this.charSets.default || 'Ug' }
+        if (!(charSet in this.charSets)) { charSet = this.charSets.default ?? 'Ug' }
+        this.charSet = charSet
+
+        this.setKey = `${this.machine}-${charSet}`
+
+        this.rerenderHandlers.forEach((h) => h.preFontChange ? h.preFontChange() : 0)
+
+        this.table = Petscii.tables[this.setKey]
+        this.lookup = Petscii.lookup[this.setKey]
+        this.codes = Petscii.codeNames[this.setKey]
+        this.nameLookup = Petscii.nameLookup[this.setKey]
+
+        this.rerenderHandlers.forEach((h) => h.postFontChange ? h.postFontChange() : 0)
+    }
+
+    availableCharSets() {
+        let cs = Object.keys(this.charSets)
+        if ('default' in cs) { delete cs.default }
+        return cs
+    }
+
+    stringToPetscii(str, alwaysArray = false) {
+        let petscii = []
+        for (const char of str) { 
+            let petsciiByte = this.lookup[char]
+            if (!petsciiByte && char === '\n') { petsciiByte = 0x0D } // CR if necessary
+            if (petsciiByte) { petscii.push(this.lookup[char]) }
+            // NOTE: this will remove all non-petscii characters
+        }
+        // return a single value if given a char
+        if (!alwaysArray && str.length === 1 && petscii.length === 1) { petscii = petscii[0] }
+        return petscii
+    }
+
+    stringToPetsciiString(str) {
+        let petsciiStr = ''
+        let raw = false
+        for (const char of str) { 
+            if (char === '\n') { 
+                petsciiStr += '\n' 
+                raw = false
+            } else if (char === '`') {
+                petsciiStr += '`'
+                raw = true
+            } else {
+                const petsciiByte = this.lookup[char]
+                if (petsciiByte <= 0) {
+                    petsciiStr += raw ? char : `{${char.codePointAt(0).toString(0).padStart(2, '0')}}`
+                } else {
+                    petsciiStr += String.fromCodePoint(petsciiByte)
+                }
+            }
+        }
+        return petsciiStr
+    }
+
+    petsciiBytesToString(petscii) {
+        let str = ''
+        if (!Array.isArray(petscii)) { petscii = [ petscii ] }
+        for (const byte of petscii) { str += this.table[byte] ?? `{\\u${byte.toString(16)}}` }
+        return str
+    }
+
+    petsciiStringToString(petsciiStr) {
+        let str = ''
+        let raw = false
+        let inBraces = null
+        for (const petsciiChar of petsciiStr) {
+            if (petsciiChar === '\n') {
+                str += '\n'
+                raw = false
+            } else if (petsciiChar === '`') {
+                str += '`'
+                raw = true
+            } else if (petsciiChar === '{') {
+                inBraces = ' '
+            } else if (petsciiChar === '}') {
+                str += String.fromCodePoint(parseInt(inBraces.trim(), 16))
+                inBraces = null
+            } else if (inBraces) {
+                inBraces += petsciiChar
+            } else {
+                let char = this.table[petsciiChar.codePointAt(0)]
+                if (char == null) {
+                    str += raw ? char : `{${petsciiChar.codePointAt(0).toString(16).padStart(2, '0')}}`
+                } else {
+                    str += char
+                }
+            }
+        }
+        return str
     }
 }
+
+window.addEventListener('load', () => {
+    window.petscii = new Petscii()
+})
