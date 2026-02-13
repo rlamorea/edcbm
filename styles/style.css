@@ -3,7 +3,8 @@
 @font-face { font-family: cbmthin-22; src: url(../fonts/PetMe2X.ttf); }
 @font-face { font-family: cbmthin-40; src: url(../fonts/PetMe.ttf); }
 @font-face { font-family: cbmthin-80; src: url(../fonts/PetMe2Y.ttf); }
-@font-face { font-family: mono-code; src: url(../fonts/0xProtoNFM-Regular.ttf); size-adjust: 120%; }
+@font-face { font-family: monocode-thick; src: url(../fonts/0xProtoNFM-Regular-thick.ttf); size-adjust: 120%; }
+@font-face { font-family: monocode-thin; src: url(../fonts/0xProtoNFM-Regular-thin.ttf); size-adjust: 120%; }
 
 :root {
     --menu-border: #444444; /* this is background for the main menu */

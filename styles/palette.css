@@ -71,7 +71,8 @@
 #paletteeditor .grid .elem option[value=cbmthin-40] { font-family: cbmthin-40; }
 #paletteeditor .grid .elem option[value=cbmthin-80] { font-family: cbmthin-80; }
 #paletteeditor .grid .elem option[value=cbmthin-22] { font-family: cbmthin-22; }
-#paletteeditor .grid .elem option[value=mono-code] { font-family: mono-code; }
+#paletteeditor .grid .elem option[value=monocode-thick] { font-family: monocode-thick; }
+#paletteeditor .grid .elem option[value=monocode-thin] { font-family: monocode-thin; }
 
 #paletteeditor .grid .elem select:has(option[value=cbmthick-40]:checked) { font-family: cbmthick-40; }
 #paletteeditor .grid .elem select:has(option[value=cbmthick-80]:checked) { font-family: cbmthick-80; }
@@ -83,7 +84,8 @@
     overflow: hidden;   
     width: calc(100% - 14em);
 }
-#paletteeditor .grid .elem select:has(option[value=mono-code]:checked) { font-family: mono-code; }
+#paletteeditor .grid .elem select:has(option[value=monocode-thick]:checked) { font-family: monocode-thick; }
+#paletteeditor .grid .elem select:has(option[value=monocode-thin]:checked) { font-family: monocode-thin; }
 
 #paletteeditor .grid .elem input[type=color]  {
     margin: 0;

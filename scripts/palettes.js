@@ -47,7 +47,7 @@ class Palette {
         if (!this.editorFont.endsWith('-40')) {
             menuFont = menuFont.replace(/\-(22|80)$/, '-40')
         }
-        if (menuFont === 'mono code') { menuFont = 'cbmthick-40' }
+        if (menuFont.startsWith('monocode')) { menuFont = 'cbmthick-40' }
 
         this.cssRoot = {
             '--menu-border': border,
@@ -121,8 +121,10 @@ class Palette {
 }
 
 const PaletteDefinitions = {
-    'dark': new Palette('dark', '#222222', '#dddddd', { editorBase: 'vs-dark', font: 'mono-code', menuFont: 'cbmthick-40' }),
-    'lite' : new Palette('lite', '#dddddd', '#333333', { font: 'mono-code', menuFont: 'mono-code', menuFont: 'cbmthick-40', '--menu-foreground': '#dddddd' }),
+    'dark-thick': new Palette('dark', '#222222', '#dddddd', { editorBase: 'vs-dark', font: 'monocode-thick', menuFont: 'cbmthick-40' }),
+    'lite-thick' : new Palette('lite', '#dddddd', '#333333', { font: 'monocode-thick', menuFont: 'cbmthick-40', '--menu-foreground': '#dddddd' }),
+    'dark-thin': new Palette('dark', '#222222', '#dddddd', { editorBase: 'vs-dark', font: 'monocode-thin', menuFont: 'cbmthin-40' }),
+    'lite-thin' : new Palette('lite', '#dddddd', '#333333', { font: 'monocode-thin', menuFont: 'cbmthin-40', '--menu-foreground': '#dddddd' }),
     'c128' : new Palette('c128', '#777777', '#cdffac', { '--menu-border': '#cdffac', '--menu-foreground': '#777777' }),
     'c128-80' : new Palette('c128-80', '#000000', '#00ffff', { '--menu-border': '#444444', editorBase: 'vs-dark', font: 'cbmthick-80', menuFont: 'cbmthick-40' }),
     'c64' : new Palette('c64', '#4555d6', '#8e9aff', { '--menu-border': '#8e9aff', '--menu-foreground': '#4555d6' }),
@@ -408,6 +410,10 @@ class PaletteMenu {
         if (palette === 'cbm') {
             if (this.machine === null) { return }
             paletteDef = PaletteDefinitions[this.machine.palette || this.machine.name]
+        } else if (palette === 'dark' || palette === 'lite') {
+            if (this.machine === null) { return }
+            const paletteVariant = (this.machine.name.startsWith('pet') || this.machine.name === 'cbm2') ? '-thin' : '-thick'
+            paletteDef = PaletteDefinitions[`${palette}${paletteVariant}`]
         } else if (palette === 'custom') {
             if (this.customPalette === null) { return }
             paletteDef = this.customPalette.paletteDef
@@ -432,9 +438,7 @@ class PaletteMenu {
         const paletteDef = PaletteDefinitions[palette]
         if (paletteDef === null) { return }
         this.machine = machine
-        if (this.palette === 'cbm') {
-            this.setPalette('cbm')
-        }
+        this.setPalette(this.palette)
     }
 
     showMenu() {
