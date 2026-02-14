@@ -22,9 +22,8 @@ const Machines = {
     'vic20' : {
         name: 'vic20',
         language: 'v2',
-        fontOffset: 0x0200,
         startAddress: 0x1001, // NOTE: could be 0x1201 if memory expansion in place
-        menuPetscii: 'vic20'
+        menuPetscii: 'vic20',
     },
     'plus4': {
         name: 'plus4',
@@ -61,7 +60,7 @@ const Machines = {
         palette: 'pet',
         language: 'v4+',
         startAddress: 0x0003, // bank ram01
-        menuPetscii: 'pet-g'
+        menuPetscii: 'pet-g',
     }
 }
 
@@ -132,12 +131,13 @@ class Controls {
         document.body.className = machine
         this.machineName.textContent = this.machine.display || machine
         window.petscii.setMachine(this.machine)
+        window.petscii.enableHandlers = true
         window.keymap.setMachine(this.machine)
+        window.tokenizer.setMachine(this.machine)
         window.palettes.setMachine(this.machine)
         window.fileControls.setMachine(machine)
-        window.editor.setMachine(this.machine)
         window.virtualKeyboard.setMachine(this.machine)
-        window.tokenizer.setMachine(this.machine)
+        window.editor.setMachine(this.machine)
         
         window.blocker.hide()
     }

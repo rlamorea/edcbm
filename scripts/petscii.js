@@ -10,14 +10,14 @@ class Petscii {
         0x48: 'H', 0x49: 'I', 0x4A: 'J', 0x4B: 'K', 0x4C: 'L', 0x4D: 'M', 0x4E: 'N', 0x4F: 'O', 
         0x50: 'P', 0x51: 'Q', 0x52: 'R', 0x53: 'S', 0x54: 'T', 0x55: 'U', 0x56: 'V', 0x57: 'W', 
         0x58: 'X', 0x59: 'Y', 0x5A: 'Z', 0x5B: '[', 
-        0x5C: '\uE01C' /* pound */, 0x5D: ']', 0x5E: '\uE01E' /* up arrow */, 0x5F: '\uE01F', /* left arrow */
+        0x5C: '\uE01C' /* pound or backslash */, 0x5D: ']', 0x5E: '\uE01E' /* up arrow */, 0x5F: '\uE01F', /* left arrow */
     }
     static coreTable_lc = {
         0x40: '@', 0x41: 'a', 0x42: 'b', 0x43: 'c', 0x44: 'd', 0x45: 'e', 0x46: 'f', 0x47: 'g',
         0x48: 'h', 0x49: 'i', 0x4A: 'j', 0x4B: 'k', 0x4C: 'l', 0x4D: 'm', 0x4E: 'n', 0x4F: 'o', 
         0x50: 'p', 0x51: 'q', 0x52: 'r', 0x53: 's', 0x54: 't', 0x55: 'u', 0x56: 'v', 0x57: 'w', 
         0x58: 'x', 0x59: 'y', 0x5A: 'z', 0x5B: '[', 
-        0x5C: '\uE01C' /* pound */, 0x5D: ']', 0x5E: '\uE01E' /* up arrow */, 0x5F: '\uE01F', /* left arrow */
+        0x5C: '\uE01C' /* pound or backslash */, 0x5D: ']', 0x5E: '\uE01E' /* up arrow */, 0x5F: '\uE01F', /* left arrow */
     }
 
     static commonCodeNames = {
@@ -104,10 +104,6 @@ class Petscii {
             ...this.generateCodeSequence(0xA0, 0xBF, 0xE160),
             ...this.generateCodeSequence(0xC0, 0xFF, 0xE140)
         }
-        this.tables['c16-Ug'] = this.tables['c64-Ug']
-        this.tables['c16-lU'] = this.tables['c64-lU']
-        this.tables['plus4-Ug'] = this.tables['c64-Ug']
-        this.tables['plus4-lU'] = this.tables['c64-lU']
         this.tables['c128-Ug'] = {
             ...this.generateCodeSequence(0x00, 0x1F, 0xE280),
             ...this.coreTable_Sym,
@@ -120,7 +116,7 @@ class Petscii {
         this.tables['c128-lU'] = {
             ...this.generateCodeSequence(0x00, 0x1F, 0xE380),
             ...this.coreTable_Sym,
-            ...this.generateCodeSequence(0x40, 0x5F, 0xE300),
+            ...this.coretable_lc,
             ...this.generateCodeSequence(0x60, 0x7F, 0xE340),
             ...this.generateCodeSequence(0x80, 0x9F, 0xE3C0),
             ...this.generateCodeSequence(0xA0, 0xBF, 0xE360),
@@ -128,6 +124,10 @@ class Petscii {
         }
         this.tables['c128-80-Ug'] = this.tables['c128-Ug']
         this.tables['c128-80-lU'] = this.tables['c128-lU']
+        this.tables['c16-Ug'] = this.tables['c128-Ug']
+        this.tables['c16-lU'] = this.tables['c128-lU']
+        this.tables['plus4-Ug'] = this.tables['c128-Ug']
+        this.tables['plus4-lU'] = this.tables['c128-lU']
         this.tables['pet-g-Ug'] = {
             ...this.generateCodeSequence(0x00, 0x1F, 0xE280), // stealing control charas from VIC-20 set
             ...this.coreTable_Sym,
@@ -149,8 +149,9 @@ class Petscii {
         this.tables['pet-b-lU'] = this.tables['pet-g-lU']
         this.tables['vic20-Ug'] = {
             ...this.generateCodeSequence(0x00, 0x1F, 0xE280),
-            ...this.generateCodeSequence(0x20, 0x3F, 0xE220),
-            ...this.generateCodeSequence(0x40, 0x5F, 0xE200),
+            ...this.coreTable_Sym, // can use base PET font for these
+            ...this.coreTable_UC,
+            0x5C: '\uE21C',
             ...this.generateCodeSequence(0x60, 0x7F, 0xE240),
             ...this.generateCodeSequence(0x80, 0x9F, 0xE2C0),
             ...this.generateCodeSequence(0xA0, 0xBF, 0xE260),
@@ -158,8 +159,9 @@ class Petscii {
         }
         this.tables['vic20-lU'] = {
             ...this.generateCodeSequence(0x00, 0x1F, 0xE380),
-            ...this.generateCodeSequence(0x20, 0x3F, 0xE320),
-            ...this.generateCodeSequence(0x40, 0x5F, 0xE300),
+            ...this.coreTable_Sym, // can use base PET font for these
+            ...this.coreTable_lc,
+            0x5C: '\uE21C',
             ...this.generateCodeSequence(0x60, 0x7F, 0xE340),
             ...this.generateCodeSequence(0x80, 0x9F, 0xE3C0),
             ...this.generateCodeSequence(0xA0, 0xBF, 0xE360),
@@ -167,8 +169,9 @@ class Petscii {
         }
         this.tables['cbm2-lU'] = {
             ...this.generateCodeSequence(0x00, 0x1F, 0xE280), // stealing control charas from VIC-20 set
-            ...this.generateCodeSequence(0x20, 0x3F, 0xE820),
-            ...this.generateCodeSequence(0x40, 0x5F, 0xE800),
+            ...this.coreTable_Sym, // can use base PET font for these
+            ...this.coreTable_lc,
+            0x5C: '\uE81C',
             ...this.generateCodeSequence(0x60, 0x7F, 0xE840),
             ...this.generateCodeSequence(0x80, 0x9F, 0xE2C0), // from VIC-20 set
             ...this.generateCodeSequence(0xA0, 0xBF, 0xE860),
@@ -176,8 +179,9 @@ class Petscii {
         }
         this.tables['cbm2-Ug'] = {
             ...this.generateCodeSequence(0x00, 0x1F, 0xE280), // stealing control charas from VIC-20 set
-            ...this.generateCodeSequence(0x20, 0x3F, 0xE8A0),
-            ...this.generateCodeSequence(0x40, 0x5F, 0xE880),
+            ...this.coreTable_Sym, // can use base PET font for these
+            ...this.coreTable_UC,
+            0x5C: '\uE81C',
             ...this.generateCodeSequence(0x60, 0x7F, 0xE8C0),
             ...this.generateCodeSequence(0x80, 0x9F, 0xE2C0), // from VIC-20 set
             ...this.generateCodeSequence(0xA0, 0xBF, 0xE8E0),
@@ -365,6 +369,7 @@ class Petscii {
         this.nameLookup = {}
 
         this.rerenderHandlers = []
+        this.enableHandlers = true
     }
 
     registerRerenderHandler(handler) {
@@ -384,14 +389,18 @@ class Petscii {
 
         this.setKey = `${this.machine}-${charSet}`
 
-        this.rerenderHandlers.forEach((h) => h.preFontChange ? h.preFontChange() : 0)
+        if (this.enableHandlers) {
+            this.rerenderHandlers.forEach((h) => h.preFontChange ? h.preFontChange() : 0)
+        }
 
         this.table = Petscii.tables[this.setKey]
         this.lookup = Petscii.lookup[this.setKey]
         this.codes = Petscii.codeNames[this.setKey]
         this.nameLookup = Petscii.nameLookup[this.setKey]
 
-        this.rerenderHandlers.forEach((h) => h.postFontChange ? h.postFontChange() : 0)
+        if (this.enableHandlers){
+            this.rerenderHandlers.forEach((h) => h.postFontChange ? h.postFontChange() : 0)
+        }
     }
 
     availableCharSets() {

@@ -1,4 +1,4 @@
-@font-face { font-family: cbmthick-40; src: url(../fonts/PetMe128.ttf); font-variant-ligatures: none; }
+@font-face { font-family: cbmthick-40; src: url(../fonts/PetMe64.ttf); font-variant-ligatures: none; }
 @font-face { font-family: cbmthick-80; src: url(../fonts/PetMe1282Y.ttf); }
 @font-face { font-family: cbmthin-22; src: url(../fonts/PetMe2X.ttf); }
 @font-face { font-family: cbmthin-40; src: url(../fonts/PetMe.ttf); }
@@ -12,6 +12,7 @@
     --menu-foreground: #dddddd;
     --menu-foreground-strong: white;
     --menu-foreground-weak: #aaaaaa;
+    --menu-placeholder: #888888;
 
     --dialog-border: '#444444';
     --dialog-foreground: '#dddddd';
@@ -120,7 +121,7 @@ html, body {
 }
 #menu input[readonly] { color: var(--menu-foreground-weak); }
 #menu input::placeholder { 
-    color: rgb(from var(--menu-foreground-weak) calc(r * 1.3) calc(g * 1.3) calc(b * 1.3));
+    color: var(--menu-placeholder);
     font-style: italic; 
 }
 
