@@ -3,6 +3,7 @@ class Palette {
     static BRIGHTNESS_RED = 0.299
     static BRIGHTNESS_GREEN = 0.587
     static BRIGHTNESS_BLUE = 0.114
+    static BRIGHTNESS_MIDDLE = 128
     static CSS_ROOT_ID = 'edcbm-palette'
 
     static rgb(c) {
@@ -40,21 +41,22 @@ class Palette {
 
     constructor(name, background, foreground, options = {}) {
         this.name = name
-        const border = options['--menu-border'] || Palette.colorStrength(background, 5, 'weaker')
-        const menufg = options['--menu-foreground'] || foreground
+        const border = options['--menu-border'] || Palette.colorStrength(background, 4, 'weaker')
+        const menufg = options['--menu-foreground'] || Palette.colorStrength(border, 6, 'weaker') // foreground
         this.editorFont = options.font || 'cbmthick-40'
         let menuFont = options.menuFont || options.font || 'cbmthick-40'
         if (!this.editorFont.endsWith('-40')) {
             menuFont = menuFont.replace(/\-(22|80)$/, '-40')
         }
-        if (menuFont === 'mono code') { menuFont = 'cbmthick-40' }
+        if (menuFont.startsWith('monocode')) { menuFont = 'cbmthick-40' }
 
         this.cssRoot = {
             '--menu-border': border,
-            '--menu-border-strong': options['--menu-border-strong'] || Palette.colorStrength(border, 5),
+            '--menu-border-strong': options['--menu-border-strong'] || Palette.colorStrength(border, 5, 'stronger'),
             '--menu-foreground': menufg,
             '--menu-foreground-strong': options['--menu-foreground-strong'] || Palette.colorStrength(menufg, 4),
             '--menu-foreground-weak': options['--menu-foreground-weak'] || Palette.colorStrength(menufg, 2, 'weaker'),
+            '--menu-placeholder': options['--menu-placeholder'] || Palette.colorStrength(menufg, 5, 'weaker'),
             '--dialog-border': border,
             '--dialog-foreground': foreground,
             '--dialog-background': background,
@@ -121,15 +123,17 @@ class Palette {
 }
 
 const PaletteDefinitions = {
-    'dark': new Palette('dark', '#222222', '#dddddd', { editorBase: 'vs-dark', font: 'mono-code', menuFont: 'cbmthick-40' }),
-    'lite' : new Palette('lite', '#dddddd', '#333333', { font: 'mono-code', menuFont: 'mono-code', menuFont: 'cbmthick-40', '--menu-foreground': '#dddddd' }),
-    'c128' : new Palette('c128', '#777777', '#cdffac', { '--menu-border': '#cdffac', '--menu-foreground': '#777777' }),
-    'c128-80' : new Palette('c128-80', '#000000', '#00ffff', { '--menu-border': '#444444', editorBase: 'vs-dark', font: 'cbmthick-80', menuFont: 'cbmthick-40' }),
-    'c64' : new Palette('c64', '#4555d6', '#8e9aff', { '--menu-border': '#8e9aff', '--menu-foreground': '#4555d6' }),
-    'vic20' : new Palette('vic20', '#ffffff', '#5800FC', { '--menu-border': '#80ffff', '--menu-foreground': Palette.colorStrength('#E747E6', 2, 'weaker'), font: 'cbmthin-22', menuFont: 'cbmthin-40'}), // slightly darker menu color than text color
-    'ted' : new Palette('ted', '#ffffff', '#000000', { '--menu-border': '#ff9bd8', '--menu-foreground': '#202020' }), 
-    'pet-40' : new Palette('pet-40', '#000000', '#65D045', { '--menu-border': '#444444', editorBase: 'vs-dark', font: 'cbmthin-40' }),
-    'pet' : new Palette('pet', '#000000', '#65D045', { '--menu-border': '#444444', editorBase: 'vs-dark', font: 'cbmthin-80', menuFont: 'cbmthin-40' }),
+    'dark-thick': new Palette('dark', '#222222', '#dddddd', { editorBase: 'vs-dark', font: 'monocode-thick', menuFont: 'cbmthick-40' }),
+    'lite-thick' : new Palette('lite', '#f4f4f4', '#333333', { font: 'monocode-thick', menuFont: 'cbmthick-40' }),
+    'dark-thin': new Palette('dark', '#222222', '#dddddd', { editorBase: 'vs-dark', font: 'monocode-thin', menuFont: 'cbmthin-40' }),
+    'lite-thin' : new Palette('lite', '#dddddd', '#333333', { font: 'monocode-thin', menuFont: 'cbmthin-40' }),
+    'c128' : new Palette('c128', '#777777', '#cdffac', { '--menu-border': '#cdffac', '--menu-foreground': '#777777', operator: '#8fd1bb', string: '#a8d5e1', reserved: '#ee536a' }),
+    'c128-80' : new Palette('c128-80', '#000000', '#00ffff', { '--menu-border': '#444444', '--menu-foreground': '#00ffff', editorBase: 'vs-dark', font: 'cbmthick-80', menuFont: 'cbmthick-40', variable: '#03d3d3' }),
+    'c64' : new Palette('c64', '#4555d6', '#8e9aff', { '--menu-border': '#8e9aff', '--menu-foreground': '#4555d6', string: '#9985ff', operator: '#8fc9db', comment: '#958fbc' }),
+    'vic20' : new Palette('vic20', '#ffffff', '#5800FC', { '--menu-border': '#80ffff', font: 'cbmthin-22', menuFont: 'cbmthin-40', string: '#408cfd', number: '#257e74', operator: '#30bb83', comment: '#ac9ec7' }), // slightly darker menu color than text color
+    'ted' : new Palette('ted', '#ffffff', '#000000', { '--menu-border': '#ff9bd8', '--menu-foreground': '#202020', variable: '#606060', string: '#0000a0', number: '#007800', operator: '#05888a' }), 
+    'pet-40' : new Palette('pet-40', '#000000', '#65D045', { '--menu-border': '#444444', '--menu-foreground': '#65D045', editorBase: 'vs-dark', font: 'cbmthin-40', variable: '#499933', string: '#4c7cdc', number: '#61b392', operator: '#4fadc4', comment: '#72836d' }),
+    'pet' : new Palette('pet', '#000000', '#65D045', { '--menu-border': '#444444', '--menu-foreground': '#65D045', editorBase: 'vs-dark', font: 'cbmthin-80', menuFont: 'cbmthin-40', variable: '#499933', string: '#4c7cdc', number: '#61b392', operator: '#4fadc4', comment: '#72836d' }),
 }
 
 const Palettes = [
@@ -408,6 +412,10 @@ class PaletteMenu {
         if (palette === 'cbm') {
             if (this.machine === null) { return }
             paletteDef = PaletteDefinitions[this.machine.palette || this.machine.name]
+        } else if (palette === 'dark' || palette === 'lite') {
+            if (this.machine === null) { return }
+            const paletteVariant = (this.machine.name.startsWith('pet') || this.machine.name === 'cbm2') ? '-thin' : '-thick'
+            paletteDef = PaletteDefinitions[`${palette}${paletteVariant}`]
         } else if (palette === 'custom') {
             if (this.customPalette === null) { return }
             paletteDef = this.customPalette.paletteDef
@@ -432,9 +440,7 @@ class PaletteMenu {
         const paletteDef = PaletteDefinitions[palette]
         if (paletteDef === null) { return }
         this.machine = machine
-        if (this.palette === 'cbm') {
-            this.setPalette('cbm')
-        }
+        this.setPalette(this.palette)
     }
 
     showMenu() {

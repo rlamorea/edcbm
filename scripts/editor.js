@@ -196,9 +196,9 @@ class Editor {
     }
 
     setTheme(name, font) {
-        monaco.editor.setTheme(`${name}theme`)
         this.editor.updateOptions({ fontFamily: font || 'cbmthick-40' })
-        setTimeout(() => { monaco.editor.remeasureFonts() }, 25)
+        monaco.editor.setTheme(`${name}theme`)
+        setTimeout(() => { monaco.editor.remeasureFonts() }, 50) // bumping up to see if hiccups stop happening
     }
 
     enableEditor(enable = true) {
