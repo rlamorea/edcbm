@@ -1,4 +1,4 @@
-/* Disc Catalog */
+/* Disk Catalog */
 
 #catalog {
     z-index: 20;
@@ -30,7 +30,7 @@
     white-space: pre;  
     cursor: pointer;
 }
-#catalog h2 span, #disc ul li:hover {
+#catalog h2 span, #disk ul li:hover {
     color: var(--dialog-background);
     background: var(--dialog-foreground);
 }

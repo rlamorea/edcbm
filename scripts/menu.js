@@ -123,6 +123,8 @@ class Controls {
                 window.welcome.show()
             } else {
                 this.setMachine(machineName)
+                window.fileControls.init()
+                window.editor.init()
             }
             return
         }
@@ -134,7 +136,7 @@ class Controls {
             li.classList.toggle('disabled', li.dataset.machine === machine)
         })
         this.machine = Machines[machine]
-        window.localStorage.setItem('machineName', machine.name)
+        window.localStorage.setItem('machineName', machine)
         // TODO: maybe set this up as a handler approach, but probably good enough for now
         document.body.className = machine
         this.machineName.textContent = this.machine.display || machine

@@ -1,6 +1,7 @@
 class Welcome {
     constructor() {
         this.dialog = null
+        this.selectedMachine = null
     }
 
     init() {
@@ -57,10 +58,20 @@ class Welcome {
         }
         const machine = machElement.dataset.machine
         window.menu.setMachine(machine)
+        this.selectMachine = machine
     }
 
     takeAction(event) {
         this.dialog.close()
+        if (!this.selectedMachine) {
+            let selectedMach = this.dialog.querySelector(`.w-machine-list li.selected`)
+            if (!selectedMach.classList.contains('w-mach')) {
+                selectedMach = selectedMach.querySelector('.w-mach')
+            }
+            this.selectedMachine = selectedMach.dataset.machine
+            window.menu.setMachine(this.selectedMachine) // to make sure 
+        }
+        window.editor.init()
         const action = event.target.dataset.action
         if (action === 'new-prg') {
             this.showHelper(window.fileControls.fileOptions.input, 'w-file-name-help')
@@ -72,9 +83,9 @@ class Welcome {
             this.showHelper(window.fileControls.fileOptions.drop, 'w-menu-help', -10, 12)
             this.showHelper(window.fileControls.fileOptions.selections['load-prg'], 'w-menu-item-help', -15, 10, 'EDCBM')
         } else if (action === 'load-disk') {
-            window.fileControls.discOptions.toggleMenu()
-            this.showHelper(window.fileControls.discOptions.drop, 'w-menu-help', -10, 12)
-            this.showHelper(window.fileControls.discOptions.selections['load-d64'], 'w-menu-item-help', -15, 10, 'D64')
+            window.fileControls.diskOptions.toggleMenu()
+            this.showHelper(window.fileControls.diskOptions.drop, 'w-menu-help', -10, 12)
+            this.showHelper(window.fileControls.diskOptions.selections['load-d64'], 'w-menu-item-help', -15, 10, 'D64')
         }
     }
 
