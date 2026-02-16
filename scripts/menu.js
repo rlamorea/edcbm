@@ -88,7 +88,7 @@ class MenuButton {
 
 class Controls {
     constructor() {
-        this.machine = Machines[DEFAULT_MACHINE]
+        this.machine = null
 
         this.machineName = document.getElementById('machine')
         this.machineDrop = document.getElementById('machine-drop')
@@ -114,10 +114,16 @@ class Controls {
     waitToLoad() {
         const ready = (window.editor != null && window.palettes != null && window.fileControls != null && 
                        window.virtualKeyboard != null && window.tokenizer != null && window.petscii != null &&
-                       window.keymap != null)
+                       window.keymap != null && window.welcome != null)
 
         if (ready) {
-            this.setMachine(DEFAULT_MACHINE)
+            const machineName = window.localStorage.getItem('machineName')
+            if (machineName == null || !(machineName in Machines)) {
+                this.setMachine(DEFAULT_MACHINE)
+                window.welcome.show()
+            } else {
+                this.setMachine(machineName)
+            }
             return
         }
         setTimeout(() => { this.waitToLoad() }, 100)
@@ -128,6 +134,8 @@ class Controls {
             li.classList.toggle('disabled', li.dataset.machine === machine)
         })
         this.machine = Machines[machine]
+        window.localStorage.setItem('machineName', machine.name)
+        // TODO: maybe set this up as a handler approach, but probably good enough for now
         document.body.className = machine
         this.machineName.textContent = this.machine.display || machine
         window.petscii.setMachine(this.machine)
@@ -152,6 +160,6 @@ class Controls {
 }
 
 window.addEventListener('load', () => { 
-    new Controls()
+    window.menu = new Controls()
     document.querySelectorAll('.menu-button').forEach((b) => { new MenuButton(b) })
 })

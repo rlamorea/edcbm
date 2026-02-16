@@ -70,7 +70,7 @@ class KeyboardWindow {
         }
         const kbName = machine.kb ?? machine.name
         if (!(kbName in this.loadedKeyboards)) {
-            const keyboardFile = `/scripts/keyboards/${kbName}.html`
+            const keyboardFile = `/templates/keyboards/${kbName}.html`
             const linkElement = document.createElement('link')
             linkElement.href = `/styles/keyboards/${kbName}.css?x=${Math.floor(Math.random()*10000)}`
             linkElement.type = 'text/css'

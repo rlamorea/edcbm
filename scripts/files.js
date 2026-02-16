@@ -21,15 +21,15 @@ class NameMenu {
         this.input.addEventListener('keydown', (e) => { this.nameKey(e) })
 
         this.selections = {}
-        this.menu.querySelectorAll('li').forEach((e) => {
-            const l = e.querySelector('label')
-            const name = (l ? l.textContent : e.textContent).toLowerCase().replaceAll(' ', '-')
-            this.selections[name] = e
-            e.dataset.name = name
+        this.menu.querySelectorAll('li').forEach((el) => {
+            const l = el.querySelector('label')
+            const name = (l ? l.textContent : el.textContent).toLowerCase().replaceAll(' ', '-')
+            this.selections[name] = el
+            el.dataset.name = name
             if (l) {
-                e.querySelector('input').addEventListener('change', (e) => this.selectionFile(e))
+                el.querySelector('input').addEventListener('change', (e) => this.selectionFile(e))
             } else {
-                e.addEventListener('click', (e) => this.selectionMade(e))
+                el.addEventListener('click', (e) => this.selectionMade(e))
             }
         })
 
