@@ -48,7 +48,7 @@ class Welcome {
             }
         }
 
-        this.keyListener = document.addEventListener('keydown', (e) => { this.keyPressed(e) })
+        window.menu.setKeyHandler((e) => { this.keyPressed(e) })
         this.dialog.showModal()
     }
 
@@ -59,6 +59,11 @@ class Welcome {
     }
 
     keyPressed(event) {
+        if (event.key === 'Escape') {
+            event.preventDefault()
+            event.stopPropagation()
+            return
+        }
         if (event.key !== 'Enter' && event.key !== ' ') { return }
         if (this.focusedMachineLi) {
             event.preventDefault()
@@ -91,7 +96,7 @@ class Welcome {
     }
 
     takeAction(event) {
-        document.removeEventListener('keydown', this.keyListener)
+        window.menu.setKeyHandler()
         this.dialog.close()
         if (!this.selectedMachine) {
             let selectedMach = this.dialog.querySelector(`.w-machine-list li.selected`)

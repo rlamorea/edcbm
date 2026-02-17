@@ -118,6 +118,7 @@ class Editor {
 
         this.bufferedProgram = null
 
+        this.enabled = false
         this.enableEditor(false)
     }
 
@@ -229,6 +230,7 @@ class Editor {
     enableEditor(enable = true) {
         this.container.classList.toggle('read-only-mode', !enable)
         this.editor.updateOptions({ readOnly: !enable })
+        this.enabled = enable
         if (enable) { 
             this.editor.setPosition({ lineNumber: 1, column: 1 })
             setTimeout(() => this.editor.focus(), 100) // delay focus until extraneous keypresses settle out and are ignored

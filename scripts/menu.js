@@ -109,9 +109,14 @@ class Controls {
 
         document.getElementById('clean').addEventListener('click', () => this.cleanCode())
 
+        this.title = document.querySelector('#menu h1')
         this.about = document.getElementById('about')
-        document.querySelector('#menu h1').addEventListener('click', () => { this.about.showModal() })
+        this.title.addEventListener('click', () => { this.showAbout() })
         this.about.querySelectorAll('button').forEach(b => b.addEventListener('click', (e) => { this.aboutAction(e) }))
+        this.about.addEventListener('close', () => { this.menuFocused = false })
+
+        this.currentKeyHandler = null
+        this.menuFocused = false
 
         this.waitToLoad()
     }
@@ -123,6 +128,8 @@ class Controls {
 
         if (ready) {
             const machineName = window.localStorage.getItem('machineName')
+            this.keyHandler = document.addEventListener('keydown', (e) => { this.keyPressed(e) })
+
             let showWelcome = (machineName == null || !(machineName in Machines))
             if (!showWelcome) {
                 const progName = window.localStorage.getItem('programName')
@@ -171,11 +178,52 @@ class Controls {
         window.editor.cleanProgram()
     }
 
+    showAbout() {
+        this.menuFocused = 'about'
+        this.about.showModal()
+    }
+
     aboutAction(event) {
         const action = event.target.dataset.action
         this.about.close()
         if (action === 'welcome') {
             window.welcome.show()
+        }
+    }
+
+    setKeyHandler(handler = null) {
+        this.currentKeyHandler = handler
+    }
+
+    keyPressed(event) {
+        if (this.currentKeyHandler) {
+            this.currentKeyHandler(event)
+            return
+        }
+        // activate menu starting with title/about
+        if (event.key === 'Escape') {
+            event.preventDefault()
+            event.stopPropagation()
+            if (this.menuFocused === 'about') { 
+                this.about.close() 
+                return
+            }
+            this.menuFocused = !this.menuFocused
+            if (this.menuFocused) {
+                this.title.focus()
+            } else if (window.editor && window.editor.initialized) {
+                this.title.blur()
+                window.editor.enableEditor()
+            }
+        }
+        if (!this.menuFocused) { return }
+        if (event.key === 'Enter') {
+            const activeElement = document.activeElement
+            if (activeElement.tagName === 'H1') {
+                this.menuFocused = false
+                this.title.blur()
+                activeElement.click()
+            }
         }
     }
 }
