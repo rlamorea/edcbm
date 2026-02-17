@@ -60,6 +60,7 @@ class Editor {
     }
 
     constructor() {
+        this.initialized = false
         this.setUpMonaco()
         this.container = document.getElementById('container')
         this.editor = monaco.editor.create(this.container, {
@@ -99,7 +100,7 @@ class Editor {
         })
         this.newCursorLocation = null
         this.editor.onDidFocusEditorWidget(() => { this.restoreCursor() })
-        this.editor.onDidBlurEditorWidget(() => { this.newCursorLocation = this.editor.getPosition() })
+        this.editor.onDidBlurEditorWidget(() => { this.loseEditorFocus() })
         this.editor.onDidChangeModelContent((event) => { this.checkInsertions(event) })
 
         this.lineDecorations = []
@@ -120,15 +121,39 @@ class Editor {
         this.enableEditor(false)
     }
 
+    init() {
+        const editorText = window.localStorage.getItem('currentProgram')
+        if (editorText) {
+            this.editor.setValue(editorText)
+        }
+        const cursorPos = window.localStorage.getItem('currentCursor')
+        if (cursorPos) {
+            this.newCursorLocation = JSON.parse(cursorPos)
+            this.editor.setPosition(this.newCursorLocation)
+        }
+        this.initialized = true
+    }
+
     preFontChange() {
         this.newCursorLocation = this.editor.getPosition()
         this.bufferedProgram = this.getProgram()
     }
 
     postFontChange() {
+        // temporarily disable init to ensure resetting the program doesn't accidentially clear stored program
+        const init = this.initialized
+        this.initialized = false
         this.setProgram(this.bufferedProgram)
+        this.initialized = init
+        
         this.editor.setPosition(this.newCursorLocation)
         this.bufferedProgram = null
+    }
+
+    loseEditorFocus() {
+        this.newCursorLocation = this.editor.getPosition()
+        window.localStorage.setItem('currentProgram', this.editor.getValue())
+        window.localStorage.setItem('currentCursor', JSON.stringify(this.newCursorLocation))
     }
 
     restoreCursor() {
@@ -214,6 +239,9 @@ class Editor {
     setProgram(program) {
         program = this.parseNotationsHeader(program)
         this.editor.setValue(window.petscii.petsciiStringToString(program))
+        if (this.initialized) {
+            window.localStorage.setItem('currentProgram', this.editor.getValue())
+        }
         this.parseLines()
         this.notateLines()
     }

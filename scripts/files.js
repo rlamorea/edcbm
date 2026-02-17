@@ -21,15 +21,15 @@ class NameMenu {
         this.input.addEventListener('keydown', (e) => { this.nameKey(e) })
 
         this.selections = {}
-        this.menu.querySelectorAll('li').forEach((e) => {
-            const l = e.querySelector('label')
-            const name = (l ? l.textContent : e.textContent).toLowerCase().replaceAll(' ', '-')
-            this.selections[name] = e
-            e.dataset.name = name
+        this.menu.querySelectorAll('li').forEach((el) => {
+            const l = el.querySelector('label')
+            const name = (l ? l.textContent : el.textContent).toLowerCase().replaceAll(' ', '-')
+            this.selections[name] = el
+            el.dataset.name = name
             if (l) {
-                e.querySelector('input').addEventListener('change', (e) => this.selectionFile(e))
+                el.querySelector('input').addEventListener('change', (e) => this.selectionFile(e))
             } else {
-                e.addEventListener('click', (e) => this.selectionMade(e))
+                el.addEventListener('click', (e) => this.selectionMade(e))
             }
         })
 
@@ -45,6 +45,7 @@ class NameMenu {
     }
 
     postFontChange() {
+        this.input.classList.toggle('f-lc', window.petscii.charSet === 'lU')
         if ((this.inputPetsciiBytes || '') === '') { return }
         this.input.value = window.petscii.petsciiBytesToString(this.inputPetsciiBytes)
     }
@@ -203,32 +204,46 @@ class FileControls {
             'new' : (e) => { this.newFile(e) },
             'rename': (e) => { this.renameFile(e) },
             'load-prg': (e, f, s) => { this.loadProgramFile(e, f, s) },
-            'load-from-disc': (e) => { this.loadFromDisc(e) },
+            'load-from-disk': (e) => { this.loadFromDisk(e) },
             'save-prg': (e) => { this.saveProgramFile(e) },
-            'save-to-disc': (e) => { this.saveToDisc(e) },
+            'save-to-disk': (e) => { this.saveToDisk(e) },
             'namechange': (n) => { this.fileNameChanged(n) }
         })
 
-        this.disc = null
+        this.disk = null
         this.catalogRendered = false
-        this.discOptions = new NameMenu('dname', this, {
-            'new': (e) => { this.newDisc(e) },
-            'rename': (e) => { this.renameDisc(e) },
-            'catalog': (e) => { this.discCatalog(e) },
-            'load-d64': (e, f, s) => { this.loadDisc(e, f, s) },
-            'save-d64': (e) => { this.saveDisc(e) },
-            'namechange': (n) => { this.discNameChanged(n) }
+        this.diskOptions = new NameMenu('dname', this, {
+            'new': (e) => { this.newDisk(e) },
+            'rename': (e) => { this.renameDisk(e) },
+            'catalog': (e) => { this.diskCatalog(e) },
+            'load-d64': (e, f, s) => { this.loadDisk(e, f, s) },
+            'save-d64': (e) => { this.saveDisk(e) },
+            'namechange': (n) => { this.diskNameChanged(n) }
         })
 
         this.catalog = document.getElementById('catalog')
         this.catalog.style.display = 'none'
         this.catalogLoaded = false
         this.catalogRendered = false
-        this.catalog.querySelector('ul').addEventListener('click', (e) => { this.discFileSelected(e) })
+        this.catalog.querySelector('ul').addEventListener('click', (e) => { this.diskFileSelected(e) })
 
         window.petscii.registerRerenderHandler(this)
 
         this.namingAction = ''
+    }
+
+    init() {
+        const programName = window.localStorage.getItem('programName')
+        if (programName) {
+            this.fileOptions.setName(programName)
+        }
+        const currentDisk = window.localStorage.getItem('currentDisk')
+        if (currentDisk) {
+            const diskBytes = Uint8Array.fromBase64(currentDisk)
+            this.currentDisk = new D64(diskBytes)
+            this.diskOptions.setName(this.currentDisk.diskName)
+            this.diskOptions.selectionsEnable()
+        }
     }
 
     preFontChange() {
@@ -284,20 +299,21 @@ class FileControls {
             }
             window.editor.setProgram(content)
             window.editor.enableEditor()
-            const fname = this.cleanFilename(file.name, ['EPRG'])
+            const fname = this.cleanFilename(file.name, ['EDCBM'])
             this.fileOptions.setName(fname)
+            window.localStorage.setItem('programName', fname)
         }
         reader.readAsText(file)
     }
 
-    loadFromDisc(e) {
-        this.discCatalog()
+    loadFromDisk(e) {
+        this.diskCatalog()
     }
 
     saveProgramFile(e) {
         let fileName = this.fileOptions.name().trim()
         if (fileName === '') { return }
-        fileName += '.EPRG'
+        fileName += '.EDCBM'
         const content = "`` SA:" + this.startAddress.toString() + '\n' + window.editor.getProgram()
         const blob = new Blob([content], { type: 'text/plain' })
         const link = document.createElement('a')
@@ -309,49 +325,52 @@ class FileControls {
         URL.revokeObjectURL(link.href)
     }
 
-    saveToDisc(e) {
-        if (!this.currentDisc) { return }
+    saveToDisk(e) {
+        if (!this.currentDisk) { return }
         let fileName = this.fileOptions.name().trim()
         if (fileName === '') { return }
         const bytes = window.editor.getProgramBytes(this.startAddress)
         if (bytes.length === 0) { return }
-        this.currentDisc.writeFileData(fileName, bytes)
+        this.currentDisk.writeFileData(fileName, bytes)
+        window.localStorage.setItem('currentDisk', this.currentDisk.diskBytes().toBase64())
         this.catalogRendered = false
     }
 
     fileNameChanged(name) {
         const hasName = name.length > 0
-        const disabled = hasName ? [ ] : [ 'rename', 'save-prg', 'save-to-disc' ]
+        const disabled = hasName ? [ ] : [ 'rename', 'save-prg', 'save-to-disk' ]
         this.fileOptions.selectionsEnable(disabled)
         if (this.namingAction === 'new') { window.editor.setProgram('') }
+        window.localStorage.setItem('programName', name)
         window.editor.enableEditor()
     }
 
-    newDisc(e) {
-        this.discOptions.editName()
-        if (this.currentDisc) { delete this.currentDisc }
-        this.currentDisc = new D64()
+    newDisk(e) {
+        this.diskOptions.editName()
+        if (this.currentDisk) { delete this.currentDisk }
+        this.currentDisk = new D64()
+        window.localStorage.setItem('currentDisk', this.currentDisk.diskBytes().toBase64())
         this.catalogRendered = false
-        this.discOptions.selectionsEnable()
+        this.diskOptions.selectionsEnable()
     }
 
-    renameDisc(e) {
-        this.discOptions.editName()
+    renameDisk(e) {
+        this.diskOptions.editName()
     }
 
-    discCatalog(e) {
-        if (!this.currentDisc) { return }
+    diskCatalog(e) {
+        if (!this.currentDisk) { return }
 
         window.blocker.show(this.catalog)
-        if (this.catalogRendered && this.currentDisc.catalogLoaded) { return }
+        if (this.catalogRendered && this.currentDisk.catalogLoaded) { return }
 
         const dnameEl = this.catalog.querySelector('h2 span')
-        let dname = window.petscii.petsciiStringToString(this.currentDisc.discName).padEnd(16) + ' '
-        dname += window.petscii.petsciiStringToString(this.currentDisc.discId).padEnd(2) + ' '
-        dname += window.petscii.petsciiStringToString(this.currentDisc.discDOS).padEnd(2)
+        let dname = window.petscii.petsciiStringToString(this.currentDisk.diskName).padEnd(16) + ' '
+        dname += window.petscii.petsciiStringToString(this.currentDisk.diskId).padEnd(2) + ' '
+        dname += window.petscii.petsciiStringToString(this.currentDisk.diskDOS).padEnd(2)
         dnameEl.textContent = dname
 
-        const catalog = this.currentDisc.getCatalog()
+        const catalog = this.currentDisk.getCatalog()
         const catalogEl = this.catalog.querySelector('ul')
         catalogEl.innerHTML = ''
         for (let index = 0; index < catalog.length; index++) {
@@ -367,37 +386,39 @@ class FileControls {
         this.catalogRendered = true
     }
 
-    async loadDisc(e, file, selection) {
-        if (this.currentDisc) { delete this.currentDisc }
-        this.currentDisc = new D64(file)
+    async loadDisk(e, file, selection) {
+        if (this.currentDisk) { delete this.currentDisk }
+        this.currentDisk = new D64(file)
+        window.localStorage.setItem('currentDisk', this.currentDisk.diskBytes().toBase64())
         this.catalogRendered = false
-        await this.currentDisc.discLoaded()
-        const dname = this.currentDisc.discName
+        await this.currentDisk.diskLoaded()
+        const dname = this.currentDisk.diskName
 
-        this.discOptions.setName(dname)
-        this.discOptions.selectionsEnable()
-        this.discCatalog()
+        this.diskOptions.setName(dname)
+        this.diskOptions.selectionsEnable()
+        this.diskCatalog()
     }
 
-    saveDisc(e) {
-        if (!this.currentDisc) { return }
-        let discName = this.discOptions.name().trim()
-        if (discName === '') { return }
-        discName += '.d64'
-        const content = this.currentDisc.discBytes()
+    saveDisk(e) {
+        if (!this.currentDisk) { return }
+        let diskName = this.diskOptions.name().trim()
+        if (diskName === '') { return }
+        diskName += '.d64'
+        const content = this.currentDisk.diskBytes()
         const blob = new Blob([content], { type: 'application/octetstream' })
         const link = document.createElement('a')
         link.href = URL.createObjectURL(blob)
-        link.download = discName
+        link.download = diskName
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
         URL.revokeObjectURL(link.href)
     }
 
-    discNameChanged(name) {
-        if (!this.currentDisc) { return }
-        this.currentDisc.nameDisc(name)
+    diskNameChanged(name) {
+        if (!this.currentDisk) { return }
+        this.currentDisk.nameDisk(name)
+        window.localStorage.setItem('currentDisk', this.currentDisk.diskBytes().toBase64())
         this.catalogRendered = false
     }
 
@@ -407,12 +428,12 @@ class FileControls {
         return hi * 256 + lo
     }
 
-    discFileSelected(e) {
+    diskFileSelected(e) {
         const catalogIndex = e.target.dataset.catalogIndex
         if (catalogIndex === null || catalogIndex === undefined) { return }
-        const fileInfo = this.currentDisc.getFileInfo(catalogIndex)
+        const fileInfo = this.currentDisk.getFileInfo(catalogIndex)
         if (fileInfo === null || fileInfo.fileType !== 'PRG') { return }
-        const fileData = this.currentDisc.getFileData(catalogIndex)
+        const fileData = this.currentDisk.getFileData(catalogIndex)
 
         this.fileOptions.setName(fileInfo.name)
 

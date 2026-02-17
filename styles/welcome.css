@@ -1,0 +1,152 @@
+#welcome {
+    width: 75vw;
+    max-height: 85vh;
+    font-family: monospace;
+    border: solid 6px var(--dialog-border);
+    background: var(--dialog-background);
+    color: var(--dialog-foreground);
+    font-size: 14pt;
+}
+
+#welcome h1 i {
+    font-family: var(--menu-font);  
+    font-style: normal;
+    font-size: 40pt;
+}
+
+#welcome h2 {
+    font-style: normal;
+    font-size: 14pt;
+    margin-top: 0.5em;
+}
+
+#welcome ul {
+    list-style: none;
+    padding-left: 0;
+    text-align: center;
+}
+
+#welcome .w-machine-list li {
+    display: inline-block;
+    position: relative;
+    width: 7vw;
+    margin: 0.5em 0.25vw;
+    vertical-align: top;
+    cursor: pointer;
+}
+#welcome .w-machine-list .w-mach {
+    border: solid 1px;
+    border-color: var(--dialog-border);
+    background: var(--dialog-background);
+    font-size: 12pt;
+    min-height: 11vw;
+    opacity: 0.40;
+}
+#welcome .w-machine-list li.w-mach.selected, #welcome .w-machine-list li.selected .w-mach {
+    border-color: var(--dialog-foreground) !important;
+    opacity: 1;
+    cursor: default;
+}
+#welcome .w-machine-list li.w-mach:hover, #welcome .w-machine-list li:hover .w-mach.primary {
+    opacity: 0.8;
+}
+#welcome .w-mach p {
+    margin: 0;
+    padding: 0;
+    font-size: 7pt;
+}
+#welcome .w-machine-list li div {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    border-color: var(--dialog-border) !important;
+}
+#welcome .w-machine-list li:has(div)::before {
+    content: " ";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 11vw;
+    background: var(--dialog-background);
+    z-index: 4;
+    opacity: 1;
+}
+#welcome .w-machine-list li div.primary {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+}
+
+#welcome ul.w-actions li {
+    display: inline-block;
+    width: 12vw;
+    margin: 0.5em 3vw;
+    vertical-align: top;
+    font-size: 10pt;
+}
+#welcome ul.w-actions li button {
+    box-shadow: none;
+    display: inline-block;
+    margin-bottom: 1em;
+    width: 100%;
+    padding: 0.5em;
+    border-radius: 10px;
+    border: solid 1px var(--dialog-background);
+    background: var(--dialog-foreground);
+    color: var(--dialog-background);
+    font-size: 16pt;
+    height: 3em;
+    cursor: pointer;
+    opacity: 0.8;
+    font-family: var(--menu-font);
+}
+#welcome ul.w-actions li button:hover {
+    border-color: var(--dialog-foreground);
+    opacity: 1;
+}
+
+.w-helper {
+    position: fixed;
+    z-index: 10;
+}
+.w-helper p {
+  --a: 60deg;
+  --h: 1em;
+
+  --p: 10%;
+  --r: 0.5em;
+  --b: 1px;
+  --c1: goldenrod;
+  --c2: black;
+
+  font-family: monospace;
+  font-size: 11pt;
+  text-align: justify;
+  color: goldenrod;
+
+  margin: 0;
+  padding: 0.5em 1em;
+  border-radius: min(var(--r),var(--p) - var(--h)*tan(var(--a)/2)) min(var(--r),100% - var(--p) - var(--h)*tan(var(--a)/2)) var(--r) var(--r)/var(--r);
+  clip-path: polygon(0 0,0 100%,100% 100%,100% 0,min(100%,var(--p) + var(--h)*tan(var(--a)/2)) 0, var(--p) calc(-1*var(--h)), max(0%  ,var(--p) - var(--h)*tan(var(--a)/2)) 0);
+  background: var(--c1);
+  border-image: conic-gradient(var(--c1) 0 0) fill 0/0 max(0%,100% - var(--p) - var(--h)*tan(var(--a)/2)) var(--r) max(0%,var(--p) - var(--h)*tan(var(--a)/2))/var(--h) 0 0 0;
+  position: relative;
+}
+.w-helper p:before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  padding: var(--b);
+  border-radius: inherit;
+  clip-path: polygon(0 0,0 100%,100% 100%,100% 0,min(100% - var(--b),var(--p) + var(--h)*tan(var(--a)/2) - var(--b)*tan(45deg - var(--a)/4)) var(--b),var(--p) calc(var(--b)/sin(var(--a)/2) - var(--h)), max(var(--b),var(--p) - var(--h)*tan(var(--a)/2) + var(--b)*tan(45deg - var(--a)/4)) var(--b));
+  background: var(--c2) content-box;
+  border-image: conic-gradient(var(--c2) 0 0) fill 0/0 max(var(--b),100% - var(--p) - var(--h)*tan(var(--a)/2)) var(--r) max(var(--b),var(--p) - var(--h)*tan(var(--a)/2))/var(--h) 0 0 0;
+}

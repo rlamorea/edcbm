@@ -25,9 +25,9 @@
       <li>NEW</li>
       <li class="disabled">RENAME</li>
       <li><label for="loadprg">LOAD PRG</label><input id="loadprg" type="file"/></li>
-      <li>LOAD FROM DISC</li>
+      <li>LOAD FROM DISK</li>
       <li class="disabled">SAVE PRG</li>
-      <li class="disabled">SAVE TO DISC</li>
+      <li class="disabled">SAVE TO DISK</li>
     </ul>
     ON DISK
     <input inert id="dname" type="text" readonly maxlength="16" placeholder="D64 NAME"/><span class="drop" id="dnamedrop" tabindex="0"><svg fill="#fff" width="18px" height="18px" viewBox="0 0 0.72 0.72" xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" transform="matrix(1,-1.2246467991473532e-16,-1.2246467991473532e-16,-1,0,0)"><path d="m0.657 0.579 -0.27 -0.468 -0.009 -0.009c-0.015 -0.009 -0.033 -0.006 -0.042 0.009l-0.27 0.468c-0.006 0.003 -0.006 0.009 -0.006 0.015 0 0.018 0.012 0.03 0.03 0.03h0.54c0.006 0 0.009 0 0.015 -0.003 0.015 -0.009 0.018 -0.027 0.012 -0.042"></path></svg></span>
@@ -203,30 +203,30 @@
     </div>
   </div>
 
-  <dialog id="welcome"> <!-- for later -->
-    <h2>Welcome to EDCBM</h2>
-    <p>The Ultimate In-Browser IDE for Commodore 8-bit computers</p>
-    <div class="machines">
-      <div class="c64">
-      <div class="c128">
-      </div>
-      <div class="vic20">
-      </div>
-      <br/>
-      <div class="c16">
-      </div>
-      <div class="plus4"></div>
-      <br/>
-      <div class="pet-g"></div>
-      <div class="pet-b"></div>
-      <div class="cbm2"></div>
+  <dialog id="about" closedby="any">
+    <h1>
+      <img class="c64" src="/assets/c64.svg">
+      <img class="c128" src="/assets/c128.svg">
+      <img class="c128-80" src="/assets/c128-80.svg">
+      <img class="c16" src="/assets/c16.svg">
+      <img class="plus4" src="/assets/plus4.svg">
+      <img class="vic20" src="/assets/vic20.svg">
+      <img class="pet-g" src="/assets/pet-g.svg">
+      <img class="pet-b" src="/assets/pet-b.svg">
+      <img class="cbm2" src="/assets/cbm2.svg">
+      EDCBM<p>Version: 0.5</p>
+    </h1>
+    <h2>by: Rick Lamoreaux</h2>
+    <div class="links">
+      <a href="https://github.com/rlamorea/edcbm" target="_blank"><img src="/assets/github.svg" alt="github"/></a>
+      <a href="https://bsky.app/profile/ricksayshelloworld.bsky.social" target="_blank"><img src="/assets/bluesky.svg" alt="bluesky"/></a>
+      <a href="https://www.facebook.com/groups/921383470027137" target="_blank"><img src="/assets/fb.svg" alt="facebook"/></a>
+      <a href="https://ricksayshello.world/" target="_blank"><img src="/assets/blog.svg" alt="Rick Says Hello World Blog"/></a>
     </div>
-    <p>To Get Started:</p>
-    <ul>
-      <li><a class="w-start">Start a NEW Program</a></li>
-      <li><a class="w-load">LOAD a Program Directly</a></li>
-      <li><a class="w-disk">LOAD a D64 Disk and Pick a Program from the CATALOG</a></li>
-    </ul>   
+    <div class="actions">
+      <button data-action="welcome">WELCOME PAGE</button>
+      <button data-action="close">CLOSE</button>
+    </div>
   </dialog>
 
   <script type="text/javascript" src="/scripts/menu.js"></script>
@@ -241,6 +241,7 @@
   <script type="text/javascript" src="/scripts/checker.js"></script>
   <script type="text/javascript" src="/scripts/asm.js"></script>
   <script type="text/javascript" src="/scripts/keyboard.js"></script>
+  <script type="text/javascript" src="/scripts/welcome.js"></script>
 </body>
 </html>
 

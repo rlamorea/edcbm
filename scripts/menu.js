@@ -88,7 +88,7 @@ class MenuButton {
 
 class Controls {
     constructor() {
-        this.machine = Machines[DEFAULT_MACHINE]
+        this.machine = null
 
         this.machineName = document.getElementById('machine')
         this.machineDrop = document.getElementById('machine-drop')
@@ -108,16 +108,34 @@ class Controls {
         this.machineMenu.style.display = 'none'
 
         document.getElementById('clean').addEventListener('click', () => this.cleanCode())
+
+        this.about = document.getElementById('about')
+        document.querySelector('#menu h1').addEventListener('click', () => { this.about.showModal() })
+        this.about.querySelectorAll('button').forEach(b => b.addEventListener('click', (e) => { this.aboutAction(e) }))
+
         this.waitToLoad()
     }
 
     waitToLoad() {
         const ready = (window.editor != null && window.palettes != null && window.fileControls != null && 
                        window.virtualKeyboard != null && window.tokenizer != null && window.petscii != null &&
-                       window.keymap != null)
+                       window.keymap != null && window.welcome != null)
 
         if (ready) {
-            this.setMachine(DEFAULT_MACHINE)
+            const machineName = window.localStorage.getItem('machineName')
+            let showWelcome = (machineName == null || !(machineName in Machines))
+            if (!showWelcome) {
+                const progName = window.localStorage.getItem('programName')
+                showWelcome = (progName == null || progName === '')
+            }
+            if (showWelcome) {
+                this.setMachine(machineName || DEFAULT_MACHINE)
+                window.welcome.show()
+            } else {
+                this.setMachine(machineName)
+                window.fileControls.init()
+                window.editor.init()
+            }
             return
         }
         setTimeout(() => { this.waitToLoad() }, 100)
@@ -128,6 +146,8 @@ class Controls {
             li.classList.toggle('disabled', li.dataset.machine === machine)
         })
         this.machine = Machines[machine]
+        window.localStorage.setItem('machineName', machine)
+        // TODO: maybe set this up as a handler approach, but probably good enough for now
         document.body.className = machine
         this.machineName.textContent = this.machine.display || machine
         window.petscii.setMachine(this.machine)
@@ -139,6 +159,7 @@ class Controls {
         window.virtualKeyboard.setMachine(this.machine)
         window.editor.setMachine(this.machine)
         
+        this.about.className = machine
         window.blocker.hide()
     }
 
@@ -149,9 +170,17 @@ class Controls {
     cleanCode() {
         window.editor.cleanProgram()
     }
+
+    aboutAction(event) {
+        const action = event.target.dataset.action
+        this.about.close()
+        if (action === 'welcome') {
+            window.welcome.show()
+        }
+    }
 }
 
 window.addEventListener('load', () => { 
-    new Controls()
+    window.menu = new Controls()
     document.querySelectorAll('.menu-button').forEach((b) => { new MenuButton(b) })
 })

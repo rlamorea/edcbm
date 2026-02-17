@@ -5,16 +5,16 @@
 // http://unusedino.de/ec64/technical/formats/d64.html
 
 class D64 {
-    static discSize = 174848
+    static diskSize = 174848
     static maxTrack = 35
     static fileInterleave = 10
     static catalogInterleave = 3
     static trackSectors = [
         0, 
-        21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21,
-        19, 19, 19, 19, 19, 19, 19,
-        18, 18, 18, 18, 18, 18,
-        17, 17, 17, 17, 17
+        21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, // 1-17
+        19, 19, 19, 19, 19, 19, 19, // 18-24
+        18, 18, 18, 18, 18, 18, // 25-30
+        17, 17, 17, 17, 17 // 31-35
     ]
     static trackOffsets = [
         0, 
@@ -26,7 +26,7 @@ class D64 {
     ]
     static DOSType = [ 50, 65 ] // "2A"
     static fileTypes = ['DEL', 'SEQ', 'PRG', 'USR', 'REL']
-    static maxBlocks = 664 // discSize * 256 - 19 (track 18 sectors)
+    static maxBlocks = 664 // diskSize * 256 - 19 (track 18 sectors)
     static idCharacters = [
         // 32, 33, 35, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, // symbols 
         48, 49, 50, 51, 52, 53, 54, 55, 56, 57, // numbers
@@ -35,13 +35,13 @@ class D64 {
         // 91, 92, 93, // even more symbols
     ]
 
-    constructor(file) {
-        this.discImageArray = []
+    constructor(fileOrBytes) {
+        this.diskImageArray = []
 
         this.resolve = null
         this.reject = null
 
-        this.discName = null
+        this.diskName = null
         this.diskId = null
         this.diskDOS = null
         this.catalog = []
@@ -55,12 +55,18 @@ class D64 {
             this.reject = reject
         })
 
-        if (file) {
+        if (fileOrBytes instanceof Uint8Array) {
+            this.diskImageArray = fileOrBytes
+            this.parseBAMData()
+            this.getCatalog()
+            this.loaded = true
+            this.resolve(true)
+        } else if (fileOrBytes) { // file case
             const reader = new FileReader();
             reader.onload = () => {
                 this.loaded = true
                 try {
-                    this.discImageArray = new Uint8Array(reader.result);
+                    this.diskImageArray = new Uint8Array(reader.result);
                     this.parseBAMData();
                     this.getCatalog();
 
@@ -84,16 +90,16 @@ class D64 {
         }
     }
 
-    async discLoaded() {
+    async diskLoaded() {
         return this.loadingPromise
     }
 
-    discBytes() {
-        return this.discImageArray
+    diskBytes() {
+        return this.diskImageArray
     }
 
-    readName(discPointer, length, skipFiller = true) {
-        const nameBytes = this.discImageArray.slice(discPointer, discPointer + length)
+    readName(diskPointer, length, skipFiller = true) {
+        const nameBytes = this.diskImageArray.slice(diskPointer, diskPointer + length)
         let name = ''
         for (let i = 0; i < length; i++) {
             const byte = nameBytes[i]
@@ -103,10 +109,10 @@ class D64 {
         return name
     }
 
-    writeName(name, discPointer, length) {
+    writeName(name, diskPointer, length) {
         for (let i = 0; i < length; i++) {
             const byte = (i < name.length) ? (name.codePointAt(i) || 160) : 160
-            this.discImageArray[discPointer++] = byte
+            this.diskImageArray[diskPointer++] = byte
         }
     }
 
@@ -116,7 +122,7 @@ class D64 {
         let sectorsFree = 0
         let sectorIdx = 0
         for (let byte = 1; byte <= 3; byte++) {
-            let curMap = this.discImageArray[offset + byte]
+            let curMap = this.diskImageArray[offset + byte]
             for (let bit = 0; bit < 8; bit++) {
                 let newBit = (curMap & (2**bit)) > 0 ? 1 : 0
                 if (sectorIdx === sector) {
@@ -132,9 +138,9 @@ class D64 {
                     curMap = curMap & (~(2**bit) & 0xFF)
                 }
             }
-            this.discImageArray[offset + byte] = curMap
+            this.diskImageArray[offset + byte] = curMap
         }
-        this.discImageArray[offset] = sectorsFree
+        this.diskImageArray[offset] = sectorsFree
     }
 
     dumpBAM() {
@@ -143,10 +149,10 @@ class D64 {
         console.log('Track Free   .1...5....0....5....0xxx')
         for (let track = 1; track <= 35; track++) {
             const offset = D64.trackOffsets[18] + 0x04 * track
-            const sectorsFree = this.discImageArray[offset]
-            let sectorMap = this.discImageArray[offset + 1].toString(2).padStart(8,'0').split('').reverse().join('')
-            sectorMap += this.discImageArray[offset + 2].toString(2).padStart(8,'0').split('').reverse().join('')
-            sectorMap += this.discImageArray[offset + 3].toString(2).padStart(8,'0').split('').reverse().join('')
+            const sectorsFree = this.diskImageArray[offset]
+            let sectorMap = this.diskImageArray[offset + 1].toString(2).padStart(8,'0').split('').reverse().join('')
+            sectorMap += this.diskImageArray[offset + 2].toString(2).padStart(8,'0').split('').reverse().join('')
+            sectorMap += this.diskImageArray[offset + 3].toString(2).padStart(8,'0').split('').reverse().join('')
             console.log(`${track.toString().padEnd(6, ' ')}${sectorsFree.toString().padEnd(7)}${sectorMap}`);
         }
         console.log('(done)')
@@ -154,10 +160,10 @@ class D64 {
 
     getSector(track, sector) {
         const startAddr = D64.trackOffsets[track] + (sector * 256)
-        const data = this.discImageArray.slice(startAddr + 2, startAddr + 256)
+        const data = this.diskImageArray.slice(startAddr + 2, startAddr + 256)
         return {
-            nextTrack: this.discImageArray[startAddr],
-            nextSector: this.discImageArray[startAddr + 1],
+            nextTrack: this.diskImageArray[startAddr],
+            nextSector: this.diskImageArray[startAddr + 1],
             data: data
         }
     }
@@ -170,19 +176,19 @@ class D64 {
             data = fullData
         }
         if (nextTrack > 0) {
-            this.discImageArray[writeAddr++] = nextTrack
-            this.discImageArray[writeAddr++] = nextSector
+            this.diskImageArray[writeAddr++] = nextTrack
+            this.diskImageArray[writeAddr++] = nextSector
         } else {
             writeAddr += 2
         }
-        this.discImageArray.set(data, writeAddr)
+        this.diskImageArray.set(data, writeAddr)
         this.setBAM(track, sector)
     }
 
     updateNextSector(track, sector, nextTrack, nextSector) {
         let writeAddr = D64.trackOffsets[track] + (sector * 256)
-        this.discImageArray[writeAddr++] = nextTrack
-        this.discImageArray[writeAddr++] = nextSector
+        this.diskImageArray[writeAddr++] = nextTrack
+        this.diskImageArray[writeAddr++] = nextSector
     }
 
     // NOTE: we're doing a hard erase, wiping the sector data as well as BAM
@@ -204,7 +210,7 @@ class D64 {
             sectorsTried[currentSector] = true
             const byteOffset = Math.floor(currentSector / 8)
             const bitmask = 2**(currentSector - 8*byteOffset)
-            const byte = this.discImageArray[offset + byteOffset + 1]
+            const byte = this.diskImageArray[offset + byteOffset + 1]
             if (byte & bitmask) {
                 return { track: currentTrack, sector: currentSector }
             }
@@ -214,7 +220,7 @@ class D64 {
         currentTrack += 1
         if (currentTrack === 18) { currentTrack += 1 } // skip catalog track
         if (currentTrack === originalTrack) {
-            throw new Error('Out of disc space')
+            throw new Error('Out of disk space')
         }
         return this.getNextOpenSector(currentTrack, 0, interleave, originalTrack)
     }
@@ -225,22 +231,22 @@ class D64 {
         const offset = D64.trackOffsets[18] + 256 * sector
         let fileOffset = offset
         for (let entry = 0; entry < 8; entry++) {
-            const fty = this.discImageArray[fileOffset + 2] & 0x07
-            const fs = this.discImageArray[fileOffset + 28] + 256 * this.discImageArray[fileOffset + 29]
+            const fty = this.diskImageArray[fileOffset + 2] & 0x07
+            const fs = this.diskImageArray[fileOffset + 28] + 256 * this.diskImageArray[fileOffset + 29]
             if (fs === 0 || (overwriteDel && fty === 0)) {
                 fileOffset += 2 // skip next track/sector (or ignored) first two bytes
                 let ft = D64.fileTypes.indexOf(fileType)
                 if (ft <= 0) { ft = 0x02 } // assume PRG
-                this.discImageArray[fileOffset++] = ft | 0x80
-                this.discImageArray[fileOffset++] = firstTrack
-                this.discImageArray[fileOffset++] = firstSector
+                this.diskImageArray[fileOffset++] = ft | 0x80
+                this.diskImageArray[fileOffset++] = firstTrack
+                this.diskImageArray[fileOffset++] = firstSector
                 this.writeName(fileName, fileOffset, 16)
                 fileOffset += 16
-                for (let o = 19; o < 28; o++) { this.discImageArray[fileOffset++] = 0 }
+                for (let o = 19; o < 28; o++) { this.diskImageArray[fileOffset++] = 0 }
                 const fsh = Math.floor(sectorsUsed / 256)
                 const fsl = sectorsUsed - 256 * fsh
-                this.discImageArray[fileOffset++] = fsl
-                this.discImageArray[fileOffset++] = fsh
+                this.diskImageArray[fileOffset++] = fsl
+                this.diskImageArray[fileOffset++] = fsh
                 this.catalogLoaded = false
                 this.catalog = []
                 if (sector === 1 && entry === 0) {
@@ -250,13 +256,13 @@ class D64 {
             }
             fileOffset += 32
         }
-        let track = this.discImageArray[offset]
-        sector = this.discImageArray[offset + 1]
+        let track = this.diskImageArray[offset]
+        sector = this.diskImageArray[offset + 1]
         if (track === 0) {
             ;({ track, sector } = this.getNextOpenSector(18, sector, D64.catalogInterleave))
             if (track === 18 && sector > 0) {
-                this.discImageArray[offset] = track
-                this.discImageArray[offset + 1] = sector
+                this.diskImageArray[offset] = track
+                this.diskImageArray[offset + 1] = sector
                 this.clearSector(track, sector)
                 this.setBAM(track, sector)
             }
@@ -273,49 +279,49 @@ class D64 {
     }
 
     parseBAMData() {
-        let discPointer = D64.trackOffsets[18]
+        let diskPointer = D64.trackOffsets[18]
         // get disk name
-        this.discName = this.readName(discPointer + 0x90, 16)
+        this.diskName = this.readName(diskPointer + 0x90, 16)
         // get disk id
-        this.discId = this.readName(discPointer + 0xA2, 2, false)
+        this.diskId = this.readName(diskPointer + 0xA2, 2, false)
         // get DOS
-        this.discDOS = this.readName(discPointer + 0xA5, 2, false)
+        this.diskDOS = this.readName(diskPointer + 0xA5, 2, false)
 
         this.dumpBAM()
     }
 
-    nameDisc(name) {
-        const discPointer = D64.trackOffsets[18] + 0x90
-        this.writeName(name, discPointer, 16)
-        this.discName = this.readName(discPointer, 16)
+    nameDisk(name) {
+        const diskPointer = D64.trackOffsets[18] + 0x90
+        this.writeName(name, diskPointer, 16)
+        this.diskName = this.readName(diskPointer, 16)
     }
 
     getCatalog(sector = 1, track = 18, fileIndex = 0, nextSector = 0, nextTrack = 0) {
         if (this.catalogLoaded) {
             return this.catalog
         }
-        let discPointer = D64.trackOffsets[track] + 256 * sector + 32 * fileIndex
+        let diskPointer = D64.trackOffsets[track] + 256 * sector + 32 * fileIndex
         if (track === 0) {
             this.catalogLoaded = true
             return this.catalog
         }
-        const nt = this.discImageArray[discPointer++]
-        const ns = this.discImageArray[discPointer++]       
+        const nt = this.diskImageArray[diskPointer++]
+        const ns = this.diskImageArray[diskPointer++]       
         if (fileIndex === 0) {
             nextTrack = nt
             nextSector = ns
         } else if (fileIndex === 8) {
             return this.getCatalog(nextSector, nextTrack)
         }
-        const st = this.discImageArray[discPointer++]
+        const st = this.diskImageArray[diskPointer++]
         const fileType = D64.fileTypes[st & 0x07]
         if ((st & 0x80) && fileType === 'PRG') {
-            const fft = this.discImageArray[discPointer++]
-            const ffs = this.discImageArray[discPointer++]
-            const name = this.readName(discPointer, 16)
-            discPointer += 16 + 9 // 16 for file name, 9 for skippable data
-            let fb = this.discImageArray[discPointer++]
-            fb = fb + 256 * this.discImageArray[discPointer++]
+            const fft = this.diskImageArray[diskPointer++]
+            const ffs = this.diskImageArray[diskPointer++]
+            const name = this.readName(diskPointer, 16)
+            diskPointer += 16 + 9 // 16 for file name, 9 for skippable data
+            let fb = this.diskImageArray[diskPointer++]
+            fb = fb + 256 * this.diskImageArray[diskPointer++]
             this.blocksRemaining -= fb
             
             this.catalog.push({ 
@@ -367,55 +373,55 @@ class D64 {
         return data
     }
 
-    formatD64(discName = '') {
+    formatD64(diskName = '') {
         if (this.loaded) {
-            throw new Error('Cannot reformat a disc!')
+            throw new Error('Cannot reformat a disk!')
         }
-        this.discName = discName || ''
-        delete this.discImageArray
-        this.discImageArray = new Uint8Array(D64.discSize)
+        this.diskName = diskName || ''
+        delete this.diskImageArray
+        this.diskImageArray = new Uint8Array(D64.diskSize)
         this.blocksRemaining = D64.maxBlocks
 
         // create BAM
-        let discPointer = D64.trackOffsets[18]
+        let diskPointer = D64.trackOffsets[18]
         
-        this.discImageArray[discPointer++] = 18 // pointer to directory start (track 18/sector 1)
-        this.discImageArray[discPointer++] = 1
-        this.discImageArray[discPointer++] = 0x41 // DOS version (default)
-        discPointer++ // unused
+        this.diskImageArray[diskPointer++] = 18 // pointer to directory start (track 18/sector 1)
+        this.diskImageArray[diskPointer++] = 1
+        this.diskImageArray[diskPointer++] = 0x41 // DOS version (default)
+        diskPointer++ // unused
         for (let track = 1; track <= D64.maxTrack; track++) {
-            this.discImageArray[discPointer++] = D64.trackSectors[track] - ((track === 18) ? 1 : 0)
-            this.discImageArray[discPointer++] = (track === 18) ? 0xFE : 0xFF
-            this.discImageArray[discPointer++] = 0xFF
-            this.discImageArray[discPointer++] = (2**(D64.trackSectors[track] - 16) - 1)
+            this.diskImageArray[diskPointer++] = D64.trackSectors[track] - ((track === 18) ? 1 : 0)
+            this.diskImageArray[diskPointer++] = (track === 18) ? 0xFE : 0xFF
+            this.diskImageArray[diskPointer++] = 0xFF
+            this.diskImageArray[diskPointer++] = (2**(D64.trackSectors[track] - 16) - 1)
         }
-        this.writeName(discName, discPointer, 16)
-        discPointer += 16
-        this.discImageArray[discPointer++] = 0xA0 // padding
-        this.discImageArray[discPointer++] = 0xA0
+        this.writeName(diskName, diskPointer, 16)
+        diskPointer += 16
+        this.diskImageArray[diskPointer++] = 0xA0 // padding
+        this.diskImageArray[diskPointer++] = 0xA0
         const id1 = D64.idCharacters[Math.floor(Math.random() * D64.idCharacters.length)]
         const id2 = D64.idCharacters[Math.floor(Math.random() * D64.idCharacters.length)]
         const id = [ id1, id2 ]  // Disk ID
-        this.discImageArray[discPointer] = id[0]
-        this.discImageArray[discPointer+1] = id[1]
-        this.discId = this.readName(discPointer, 2, false)
-        discPointer += 2
-        this.discImageArray[discPointer++] = 0xA0 // padding
-        this.discImageArray[discPointer] = D64.DOSType[0] // DOS type
-        this.discImageArray[discPointer+1] = D64.DOSType[1]
-        this.discDOS = this.readName(discPointer, 2, false)
-        discPointer += 2
-        this.discImageArray[discPointer++] = 0xA0 // padding
-        this.discImageArray[discPointer++] = 0xA0
-        this.discImageArray[discPointer++] = 0xA0
-        this.discImageArray[discPointer++] = 0xA0
+        this.diskImageArray[diskPointer] = id[0]
+        this.diskImageArray[diskPointer+1] = id[1]
+        this.diskId = this.readName(diskPointer, 2, false)
+        diskPointer += 2
+        this.diskImageArray[diskPointer++] = 0xA0 // padding
+        this.diskImageArray[diskPointer] = D64.DOSType[0] // DOS type
+        this.diskImageArray[diskPointer+1] = D64.DOSType[1]
+        this.diskDOS = this.readName(diskPointer, 2, false)
+        diskPointer += 2
+        this.diskImageArray[diskPointer++] = 0xA0 // padding
+        this.diskImageArray[diskPointer++] = 0xA0
+        this.diskImageArray[diskPointer++] = 0xA0
+        this.diskImageArray[diskPointer++] = 0xA0
         // rest is blank
         this.dumpBAM()
     }
 
     writeFileData(fileName, fileBytes) {
         if (!this.loaded) {
-            throw new Error('Cannot write to unloaded disc')
+            throw new Error('Cannot write to unloaded disk')
         }
         // determine if fileName is new or existing
         this.getCatalog()
@@ -454,7 +460,7 @@ class D64 {
 
     overwriteFileData(catalogIndex, fileBytes) {
         if (!this.loaded) {
-            throw new Error('Cannot write to unloaded disc')
+            throw new Error('Cannot write to unloaded disk')
         }
         const fileInfo = this.getFileInfo(catalogIndex)
         console.log(`Overwriting file ${fileInfo.name}`)
@@ -506,8 +512,8 @@ class D64 {
         let offset = D64.trackOffsets[fileInfo.catalogTrack] + 256 * fileInfo.catalogSector + 32 * fileInfo.catalogIndex + 30
         const fsh = Math.floor(totalSectors / 256)
         const fsl = totalSectors - 256 * fsh
-        this.discImageArray[offset++] = fsl
-        this.discImageArray[offset++] = fsh
+        this.diskImageArray[offset++] = fsl
+        this.diskImageArray[offset++] = fsh
         console.log('(done - total sectors:',totalSectors,')')
         this.catalogLoaded = false
         this.catalog = []
