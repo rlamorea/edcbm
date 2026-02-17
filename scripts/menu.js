@@ -3,16 +3,19 @@ const DEFAULT_MACHINE = 'c64'
 const Machines = {
     'c64': {
         name: 'c64',
+        hotkey: 1,
         language: 'v2',
         startAddress: 0x801,
     },
     'c128' : {
         name: 'c128',
+        hotkey: 2,
         language: 'v7',
         startAddress: 0x1c01,
     },
     'c128-80' : {
         name: 'c128-80',
+        hotkey: 3,
         display: 'c128',
         menu: 'c128-80 columns',
         language: 'v7',
@@ -21,24 +24,28 @@ const Machines = {
     },
     'vic20' : {
         name: 'vic20',
+        hotkey: 0,
         language: 'v2',
         startAddress: 0x1001, // NOTE: could be 0x1201 if memory expansion in place
         menuPetscii: 'vic20',
     },
     'plus4': {
         name: 'plus4',
+        hotkey: 4,
         palette: 'ted',
         language: 'v3.5',
         startAddress: 0x1001,
     },
     'c16': {
         name: 'c16',
+        hotkey: 1,
         palette: 'ted',
         language: 'v3.5',
         startAddress: 0x1001,
     },
     'pet-g': {
         name: 'pet-g',
+        hotkey: 4,
         display: 'pet',
         menu: 'pet-graphics',
         palette: 'pet-40',
@@ -48,6 +55,7 @@ const Machines = {
     },
     'pet-b': {
         name: 'pet-b',
+        hotkey: 0,
         display: 'pet',
         palette: 'pet',
         menu: 'pet-business',
@@ -57,6 +65,7 @@ const Machines = {
     },
     'cbm2': {
         name: 'cbm2',
+        hotkey: 0,
         palette: 'pet',
         language: 'v4+',
         startAddress: 0x0003, // bank ram01
@@ -96,10 +105,22 @@ class Controls {
         this.machineDrop.addEventListener('click', () => { this.showMenu() })
         this.machineDrop.addEventListener('focus', () => { this.showMenu() })
 
+        this.machineMenuHotkeys = {}
         this.machineMenu = document.getElementById('machinemenu')
         for (let key in Machines) {
             const li = document.createElement('li')
-            li.textContent = Machines[key].menu || key
+            let menuText = Machines[key].menu || key
+            let menuHtml = ''
+            for (let idx = 0; idx < menuText.length; idx++) {
+                const char = menuText[idx]
+                if (idx === Machines[key].hotkey) {
+                    menuHtml += `<u>${char}</u>`
+                    this.machineMenuHotkeys[`Key${char.toUpperCase()}`] = key
+                } else {
+                    menuHtml += char
+                }
+            }
+            li.innerHTML = menuHtml
             li.dataset.machine = key
             if (key === DEFAULT_MACHINE) { li.classList.add('disabled') }
             li.addEventListener('click', () => this.setMachine(key))
@@ -172,7 +193,63 @@ class Controls {
 
     showMenu() {
         window.blocker.show(this.machineMenu)
-    } 
+        this.setKeyHandler((e) => { this.machineMenuKeypressed(e) })
+    }
+
+    hideMenu() {
+        this.machineMenu.querySelector('li.keyfocus')?.classList.remove('keyfocus')
+        this.setKeyHandler()
+        window.blocker.hide()
+    }
+
+    machineMenuKeypressed(event) {
+        let handled = true
+        if (event.code === 'Escape') {
+            this.hideMenu()
+            this.activateMenuBar(false)
+        } else if (event.code === 'ArrowDown' || event.code === 'ArrowUp') {
+            const lis = this.machineMenu.querySelectorAll('li:not(.disabled)')
+            let focusedLi = this.machineMenu.querySelector('li.keyfocus')
+            if (!focusedLi) {
+                focusedLi = event.code === 'ArrowDown' ? lis[0] : lis[lis.length - 1]
+            } else {
+                focusedLi.classList.remove('keyfocus')
+                let keepLooking = true
+                while (keepLooking) {
+                    keepLooking = false
+                    focusedLi = event.code === 'ArrowDown' ? focusedLi.nextElementSibling : focusedLi.previousElementSibling
+                    if (!focusedLi) {
+                        focusedLi = event.code === 'ArrowDown' ? lis[0] : lis[lis.length - 1]
+                    } else if (focusedLi.classList.contains('disabled')) {
+                        keepLooking = true
+                    }
+                }
+            }
+            focusedLi.classList.add('keyfocus')
+        } else if (event.code === 'Tab') {
+            this.hideMenu()
+            handled = false
+        } else if (event.code === 'Enter') {
+            const focusedLi = this.machineMenu.querySelector('li.keyfocus')
+            this.hideMenu()
+            if (focusedLi) {
+                this.activateMenuBar(false)
+                this.setMachine(focusedLi.dataset.machine)
+            } else {
+                handled = false // treat as TAB to next
+            }
+        } else if (event.code in this.machineMenuHotkeys) {
+            this.hideMenu()
+            this.activateMenuBar(false)
+            this.setMachine(this.machineMenuHotkeys[event.code])
+        } else {
+            handled = false
+        }
+        if (handled) {
+            event.preventDefault()
+            event.stopPropagation()
+        }
+    }
 
     cleanCode() {
         window.editor.cleanProgram()
@@ -186,6 +263,7 @@ class Controls {
     aboutAction(event) {
         const action = event.target.dataset.action
         this.about.close()
+        this.activateMenuBar(false)
         if (action === 'welcome') {
             window.welcome.show()
         }
@@ -195,35 +273,46 @@ class Controls {
         this.currentKeyHandler = handler
     }
 
+    activateMenuBar(activate = 'toggle', skipEditorEnable = false) {
+        this.menuFocused = (activate === 'toggle') ? !this.menuFocused : activate
+        if (this.menuFocused) {
+            this.title.focus()
+        } else if (!skipEditorEnable && window.editor && window.editor.initialized) {
+            document.activeElement.blur()
+            window.editor.enableEditor()
+        }
+    }
+
     keyPressed(event) {
         if (this.currentKeyHandler) {
             this.currentKeyHandler(event)
             return
         }
         // activate menu starting with title/about
-        if (event.key === 'Escape') {
+        if (event.code === 'Escape') {
             event.preventDefault()
             event.stopPropagation()
             if (this.menuFocused === 'about') { 
                 this.about.close() 
                 return
             }
-            this.menuFocused = !this.menuFocused
-            if (this.menuFocused) {
-                this.title.focus()
-            } else if (window.editor && window.editor.initialized) {
-                this.title.blur()
-                window.editor.enableEditor()
-            }
+            this.activateMenuBar()
         }
         if (!this.menuFocused) { return }
-        if (event.key === 'Enter') {
+        if (event.code === 'Enter') {
             const activeElement = document.activeElement
             if (activeElement.tagName === 'H1') {
                 this.menuFocused = false
-                this.title.blur()
+                event.preventDefault()
+                event.stopPropagation()
+                activeElement.blur()
                 activeElement.click()
             }
+        } else if (event.code === 'KeyM' && event.ctrlKey) {
+            this.activateMenuBar(true)
+            event.preventDefault()
+            event.stopPropagation()
+            this.showMenu()
         }
     }
 }

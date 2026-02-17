@@ -5,6 +5,9 @@ class Editor {
         brackets: [ [ '(', ')' ] ],
     }
 
+    // always combined with control
+    static menuHotkeys = [ 'KeyM' ]
+
     static languageRoot  = [
         [ /^\d+/, 'linenumber' ],
         // NOTE: known bug means look-behind doesn't work (see: https://github.com/microsoft/monaco-editor/issues/3441)
@@ -164,6 +167,7 @@ class Editor {
                 this.newCursorLocation = null
             }, 20)
         }
+        window.menu.activateMenuBar(false, true)
     }
 
     checkInsertions(event) {
@@ -313,7 +317,13 @@ class Editor {
             }])
             return
         }
-        if (petscii === Keymap.PASSTHROUGH) { return }
+        if (petscii === Keymap.PASSTHROUGH) { 
+            if (key.ctrlKey && Editor.menuHotkeys.includes(key.code)) {
+                window.menu.activateMenuBar(true)
+                window.menu.keyPressed(key)
+            }
+            return 
+        }
         key.preventDefault()
         key.stopPropagation()
         if (petscii === 0x00) { return }

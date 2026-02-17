@@ -178,6 +178,9 @@ html, body {
     background: var(--menu-foreground);
     color: var(--menu-border);
 }
+#menu ul li.keyfocus {
+    outline: var(--menu-foreground) auto 1px;
+}
 #menu ul li input[type=file] { display: none; }
 #menu ul li.disabled {
     opacity: 0.5;
