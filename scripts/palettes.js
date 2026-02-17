@@ -31,7 +31,7 @@ class Palette {
 
     static colorStrength(c, step, dir = 'stronger') {
         const { r, g, b } = Palette.rgb(c)
-        const br = Palette.BRIGHTNESS_RED * r + Palette.BRIGHTNESS_GREEN * r + Palette.BRIGHTNESS_BLUE * b
+        const br = Palette.BRIGHTNESS_RED * r + Palette.BRIGHTNESS_GREEN * g + Palette.BRIGHTNESS_BLUE * b
         let c2 = (br >= 128) ? [ '#ffffff', '#000000' ] : [ '#000000', '#ffffff' ]
         c2 = c2[dir === 'weaker' ? 1 : 0]
         return Palette.colorBlend(c, c2, step)

@@ -45,6 +45,7 @@ class NameMenu {
     }
 
     postFontChange() {
+        this.input.classList.toggle('f-lc', window.petscii.charSet === 'lU')
         if ((this.inputPetsciiBytes || '') === '') { return }
         this.input.value = window.petscii.petsciiBytesToString(this.inputPetsciiBytes)
     }

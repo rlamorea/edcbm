@@ -124,6 +124,7 @@ html, body {
     color: var(--menu-placeholder);
     font-style: italic; 
 }
+    #menu input.f-lc::placeholder { text-transform: lowercase; }
 
 #menu .drop {
     cursor: pointer;

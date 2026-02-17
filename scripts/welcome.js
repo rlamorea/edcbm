@@ -58,7 +58,7 @@ class Welcome {
         }
         const machine = machElement.dataset.machine
         window.menu.setMachine(machine)
-        this.selectMachine = machine
+        this.selectedMachine = machine
     }
 
     takeAction(event) {

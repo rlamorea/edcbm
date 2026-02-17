@@ -118,8 +118,13 @@ class Controls {
 
         if (ready) {
             const machineName = window.localStorage.getItem('machineName')
-            if (machineName == null || !(machineName in Machines)) {
-                this.setMachine(DEFAULT_MACHINE)
+            let showWelcome = (machineName == null || !(machineName in Machines))
+            if (!showWelcome) {
+                const progName = window.localStorage.getItem('programName')
+                showWelcome = (progName == null || progName === '')
+            }
+            if (showWelcome) {
+                this.setMachine(machineName || DEFAULT_MACHINE)
                 window.welcome.show()
             } else {
                 this.setMachine(machineName)
