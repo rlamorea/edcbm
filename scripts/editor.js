@@ -99,10 +99,6 @@ class Editor {
         this.maximumLineLength = 160
         this.editor.onKeyDown((key) => { this.keyDown(key) })
 
-        //this.editor.onDidChangeModelContent((e) => { this.modelChanged(e) })
-        this.editor.addCommand(monaco.KeyCode.Enter, (accessor) => {
-            this.processLine()
-        })
         this.newCursorLocation = null
         this.editor.onDidFocusEditorWidget(() => { this.restoreCursor() })
         this.editor.onDidBlurEditorWidget(() => { this.loseEditorFocus() })
@@ -300,6 +296,12 @@ class Editor {
     }
 
     keyDown(key) {
+        if (key.code === 'Enter') {
+            this.processLine(key.shiftKey)
+            key.preventDefault()
+            key.stopPropagation()
+            return
+        }
         const petscii = window.keymap.getPetsciiForKey(key)
         if (petscii === 0) {
             key.preventDefault()
@@ -432,23 +434,23 @@ class Editor {
         }
     }
 
-    processLine() {
+    processLine(forceProcess = false) {
         const model = this.editor.getModel()
         const position = this.editor.getPosition()
         const lineNumber = position.lineNumber
         const lines = this.editor.getValue().split('\n')
         let lineContent = lines[lineNumber - 1]
-        if (lineNumber < lines.length + 1 && position.column === 1) {
+        if (lineNumber < lines.length + 1 && position.column === 1 && !forceProcess) {
             this.editor.trigger('keyboard', 'type', { text: '\n' })
             // TODO shuffle decorations list for all lines below this one
             return
-        } else if (position.column - 1 < lineContent.length) {
+        } else if (position.column - 1 < lineContent.length && !forceProcess) {
             lineContent = lineContent.substring(0, position.column - 1)
             this.editor.trigger('keyboard', 'type', { text: '\n' })
-        } else if (lineNumber === lines.length) {
-            this.editor.trigger('keyboard', 'type', { text: '\n' })
-        } else {
+        } else if (forceProcess || position.column - 1 < lineContent.length) {
             this.editor.setPosition({ column: 1, lineNumber: lineNumber + 1 })
+        } else {
+            this.editor.trigger('keyboard', 'type', { text: '\n' })
         }
 
         const { byteArray, lineNumber: basicLine, variables, specialComment } = window.tokenizer.tokenizeLine(lineContent)
