@@ -23,21 +23,23 @@
       <ul id="machinemenu"></ul>
       <input inert id="fname" type="text" readonly maxlength="16" placeholder="PRG NAME"/><span class="drop" id="fnamedrop" tabindex="0"><svg fill="#fff" width="18px" height="18px" viewBox="0 0 0.72 0.72" xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" transform="matrix(1,-1.2246467991473532e-16,-1.2246467991473532e-16,-1,0,0)"><path d="m0.657 0.579 -0.27 -0.468 -0.009 -0.009c-0.015 -0.009 -0.033 -0.006 -0.042 0.009l-0.27 0.468c-0.006 0.003 -0.006 0.009 -0.006 0.015 0 0.018 0.012 0.03 0.03 0.03h0.54c0.006 0 0.009 0 0.015 -0.003 0.015 -0.009 0.018 -0.027 0.012 -0.042"></path></svg></span>
       <ul id="fnamemenu">
-        <li>NEW</li>
-        <li class="disabled">RENAME</li>
-        <li><label for="loadprg">LOAD PRG</label><input id="loadprg" type="file"/></li>
-        <li>LOAD FROM DISK</li>
-        <li class="disabled">SAVE PRG</li>
-        <li class="disabled">SAVE TO DISK</li>
+        <li hotkey="n">NEW</li>
+        <li hotkey="r" class="disabled">RENAME</li>
+        <li hotkey="l" class="disabled">LOAD EDCBM FILE</li>
+        <li hotkey="p"><label for="loadprg">LOAD PRG</label><input id="loadprg" type="file"/></li>
+        <li hotkey="d">LOAD FROM DISK</li>
+        <li hotkey="s" class="disabled">SAVE EDCBM FILE</li>
+        <li hotkey="a"class="disabled">SAVE PRG</li>
+        <li hotkey="v" class="disabled">SAVE TO DISK</li>
       </ul>
       ON DISK
       <input inert id="dname" type="text" readonly maxlength="16" placeholder="D64 NAME"/><span class="drop" id="dnamedrop" tabindex="0"><svg fill="#fff" width="18px" height="18px" viewBox="0 0 0.72 0.72" xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" transform="matrix(1,-1.2246467991473532e-16,-1.2246467991473532e-16,-1,0,0)"><path d="m0.657 0.579 -0.27 -0.468 -0.009 -0.009c-0.015 -0.009 -0.033 -0.006 -0.042 0.009l-0.27 0.468c-0.006 0.003 -0.006 0.009 -0.006 0.015 0 0.018 0.012 0.03 0.03 0.03h0.54c0.006 0 0.009 0 0.015 -0.003 0.015 -0.009 0.018 -0.027 0.012 -0.042"></path></svg></span>
       <ul id="dnamemenu">
-        <li>NEW</li>
-        <li class="disabled">RENAME</li>
-        <li class="disabled">CATALOG</li>
-        <li><label for="loadd64">LOAD D64</label><input id="loadd64" type="file"/></li>
-        <li class="disabled">SAVE D64</li>
+        <li hotkey="n">NEW</li>
+        <li hotkey="r" class="disabled">RENAME</li>
+        <li hotkey="c" class="disabled">CATALOG</li>
+        <li hotkey="l"><label for="loadd64">LOAD D64</label><input id="loadd64" type="file"/></li>
+        <li hotkey="s" class="disabled">SAVE D64</li>
       </ul> 
     </span>
     <span class="m-right">
@@ -46,8 +48,8 @@
           <svg width="18" height="18" viewBox="0 0 0.54 0.54" xmlns="http://www.w3.org/2000/svg"><path d="M.14.299.133.294a.02.02 0 0 0-.017 0 .02.02 0 0 0-.012.012.022.022 0 1 0 .041 0zM.304.247h.022a.022.022 0 0 0 0-.045H.304a.022.022 0 0 0 0 .045m-.09 0h.022a.022.022 0 0 0 0-.045H.214a.022.022 0 0 0 0 .045M.146.202H.124a.022.022 0 0 0 0 .045h.022a.022.022 0 0 0 0-.045M.45.112H.09A.07.07 0 0 0 .022.18v.18A.07.07 0 0 0 .09.428h.36A.07.07 0 0 0 .518.36V.18A.07.07 0 0 0 .45.112m.022.247A.02.02 0 0 1 .45.381H.09A.02.02 0 0 1 .068.359V.18A.02.02 0 0 1 .09.158h.36A.02.02 0 0 1 .472.18ZM.337.291H.202a.022.022 0 0 0 0 .045h.135a.022.022 0 0 0 0-.045m.079-.09H.394a.022.022 0 0 0 0 .045h.022a.022.022 0 0 0 0-.045m.016.097L.425.293a.02.02 0 0 0-.017 0L.401.298.396.305a.022.022 0 1 0 .043.009L.437.305z"/></svg>      
         </button>
         <button id="charset" class="Ug">
-          <svg class="lU" width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" d="M5 39V20a4 6 0 0 1 15 0v19M5 25h15"/><path d="M44.646 25.638c-.206-8.088-10.462-17.45-10.462-17.45s-10.626 9.701-10.43 17.45c.167 6.627 5.582 8.988 9.022 5.148L29.76 39.81h8.88l-3.017-9.031c3.486 3.744 9.195 1.578 9.023-5.141"/></svg>
-          <svg class="Ug" width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"><g transform="matrix(.8 0 0 1 4 0)"><circle cx="10" cy="30" r="8.5"/><path d="M18.5 23v12a5 5 0 0 0 2.5 4"/></g><path d="M27 39V20a4 6 0 0 1 15 0v19M27 25h15"/></svg>
+          <svg class="Ug" width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" d="M5 39V20a4 6 0 0 1 15 0v19M5 25h15"/><path d="M44.646 25.638c-.206-8.088-10.462-17.45-10.462-17.45s-10.626 9.701-10.43 17.45c.167 6.627 5.582 8.988 9.022 5.148L29.76 39.81h8.88l-3.017-9.031c3.486 3.744 9.195 1.578 9.023-5.141"/></svg>
+          <svg class="lU" width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"><g transform="matrix(.8 0 0 1 4 0)"><circle cx="10" cy="30" r="8.5"/><path d="M18.5 23v12a5 5 0 0 0 2.5 4"/></g><path d="M27 39V20a4 6 0 0 1 15 0v19M27 25h15"/></svg>
         </button>
         <button id="clean">
           <svg width="18" height="18" viewBox="0 0 0.72 0.72" xmlns="http://www.w3.org/2000/svg"><path d="M0.21 0.68h-0.06a0.02 0.02 0 0 1 -0.018 -0.029L0.251 0.42H0.12a0.02 0.02 0 0 1 -0.017 -0.031l0.214 -0.34a0.02 0.02 0 0 1 0.016 -0.009h0.269a0.02 0.02 0 0 1 0.015 0.034L0.436 0.28h0.108a0.02 0.02 0 0 1 0.015 0.033l-0.333 0.36a0.02 0.02 0 0 1 -0.015 0.007m-0.027 -0.04h0.018l0.295 -0.32h-0.105a0.02 0.02 0 0 1 -0.015 -0.034L0.558 0.08H0.344L0.155 0.38h0.129a0.02 0.02 0 0 1 0.018 0.029Z" class="clr-i-outline clr-i-outline-path-1"/><path fill="none" d="M0 0h0.72v0.72H0z"/></svg>      

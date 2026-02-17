@@ -6,7 +6,7 @@ class Editor {
     }
 
     // always combined with control
-    static menuHotkeys = [ 'KeyM' ]
+    static menuHotkeys = [ 'KeyM', 'KeyP' ]
 
     static languageRoot  = [
         [ /^\d+/, 'linenumber' ],

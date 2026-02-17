@@ -3,19 +3,19 @@ const DEFAULT_MACHINE = 'c64'
 const Machines = {
     'c64': {
         name: 'c64',
-        hotkey: 1,
+        hotkey: '6',
         language: 'v2',
         startAddress: 0x801,
     },
     'c128' : {
         name: 'c128',
-        hotkey: 2,
+        hotkey: '2',
         language: 'v7',
         startAddress: 0x1c01,
     },
     'c128-80' : {
         name: 'c128-80',
-        hotkey: 3,
+        hotkey: '8',
         display: 'c128',
         menu: 'c128-80 columns',
         language: 'v7',
@@ -24,28 +24,28 @@ const Machines = {
     },
     'vic20' : {
         name: 'vic20',
-        hotkey: 0,
+        hotkey: 'v',
         language: 'v2',
         startAddress: 0x1001, // NOTE: could be 0x1201 if memory expansion in place
         menuPetscii: 'vic20',
     },
     'plus4': {
         name: 'plus4',
-        hotkey: 4,
+        hotkey: '4',
         palette: 'ted',
         language: 'v3.5',
         startAddress: 0x1001,
     },
     'c16': {
         name: 'c16',
-        hotkey: 1,
+        hotkey: '1',
         palette: 'ted',
         language: 'v3.5',
         startAddress: 0x1001,
     },
     'pet-g': {
         name: 'pet-g',
-        hotkey: 4,
+        hotkey: 'g',
         display: 'pet',
         menu: 'pet-graphics',
         palette: 'pet-40',
@@ -55,7 +55,7 @@ const Machines = {
     },
     'pet-b': {
         name: 'pet-b',
-        hotkey: 0,
+        hotkey: 'p',
         display: 'pet',
         palette: 'pet',
         menu: 'pet-business',
@@ -65,7 +65,7 @@ const Machines = {
     },
     'cbm2': {
         name: 'cbm2',
-        hotkey: 0,
+        hotkey: 'c',
         palette: 'pet',
         language: 'v4+',
         startAddress: 0x0003, // bank ram01
@@ -73,24 +73,168 @@ const Machines = {
     }
 }
 
+class DropMenu {
+    constructor(menuContainer, options = {}) {
+        this.menu = menuContainer
+        this.isShowing = false
+        this.selectHandler = options.selectHandler
+        this.closeHandler = options.closeHandler
+        this.itemChangeHandler = options.itemChangeHandler
+        this.dropToggle = options.drop
+
+        if (this.dropToggle) {
+            this.dropToggle.addEventListener('click', () => { this.toggleMenu() })
+            this.dropToggle.addEventListener('focus', () => { this.toggleMenu(true) })
+        }
+        if (options.activationElements) {
+            options.activationElements.forEach(element => {
+                element.addEventListener('click', () => { this.toggleMenu() })
+            })
+        }
+
+        this.hotKeys = {}
+
+        // initialize menu items
+        let datasetNameKey = options.nameKey || 'name'
+        this.menu.querySelectorAll('li').forEach(li => {
+            const label = li.querySelector('label')
+            if (li.dataset.hotkey) {
+                const hotkey = li.dataset.hotkey
+                let textContainer = label || li
+                const itemText = textContainer.textContent
+                let itemHtml = ''
+                for (let i = 0; i < itemText.length; i++) {
+                    const char = itemText[i]
+                    if (char === hotkey) {
+                        itemHtml += `<u>${char}</u>`
+                    } else {
+                        itemHtml += char
+                    }
+                }
+                textContainer.innerHTML = itemHtml
+                this.hotKeys[`Key${hotkey.toUpperCase()}`] = li
+            }
+            const name = li.dataset[datasetNameKey]
+            if (!name) {
+                li.dataset[datasetNameKey] = (label ? label.textContent : li.textContent).toLowerCase().replaceAll(' ', '-')
+            }
+            if (label) {
+                li.querySelector('input').addEventListener('change', (e) => { this.itemChanged(e) })
+            } else {
+                li.addEventListener('click', (e) => { this.itemSelected(li, e) })
+            }
+        })
+
+        this.menu.style.display = 'none'
+    }
+
+    toggleMenu(show = 'toggle', fromBlocker = false) {
+        this.isShowing = (show === 'toggle') ? !this.isShowing : show
+        if (this.dropToggle) {
+            this.dropToggle.classList.toggle('active', this.isShowing)
+        }
+        if (fromBlocker) { return } // avoid infinite loop
+        if (this.isShowing) {
+            window.blocker.show(this.menu, 'block', () => { this.toggleMenu(false, true) })
+            window.menu.setKeyHandler((e) => { this.keyHandler(e) })
+        } else {
+            this.menu.querySelector('li.keyfocus')?.classList.remove('keyfocus')
+            window.blocker.hide()
+            window.menu.setKeyHandler()
+        }
+    }
+
+    keyHandler(event) {
+        let handled = true
+        if (event.code === 'Escape') {
+            this.closeMenu('escape')
+        } else if (event.code === 'Tab') {
+            this.closeMenu('tab')
+            handled = false // allow default tab behavior to move focus to next element
+        } else if (event.code === 'Enter') {
+            const focusedLi = this.menu.querySelector('li.keyfocus')
+            if (focusedLi) {
+                if (focusedLi.querySelector('input')) { 
+                    focusedLi.querySelector('label').click()
+                } else {
+                    this.itemSelected(focusedLi)
+                    this.closeMenu('enter')
+                }
+            } else {
+                this.closeMenu('esc')
+            }
+        } else if (event.code === 'ArrowDown' || event.code === 'ArrowUp') {
+            const lis = this.menu.querySelectorAll('li:not(.disabled)')
+            let focusedLi = this.menu.querySelector('li.keyfocus')
+            if (!focusedLi) {
+                focusedLi = event.code === 'ArrowDown' ? lis[0] : lis[lis.length - 1]
+            } else {
+                focusedLi.classList.remove('keyfocus')
+                let keepLooking = true
+                while (keepLooking) {
+                    keepLooking = false
+                    focusedLi = event.code === 'ArrowDown' ? focusedLi.nextElementSibling : focusedLi.previousElementSibling
+                    if (!focusedLi) {
+                        focusedLi = event.code === 'ArrowDown' ? lis[0] : lis[lis.length - 1]
+                    } else if (focusedLi.classList.contains('disabled')) {
+                        keepLooking = true
+                    }
+                }
+            }
+            focusedLi.classList.add('keyfocus')
+        } else if (event.code in this.hotKeys) {
+            this.closeMenu('hotkey')
+            this.itemSelected(this.hotKeys[event.code])
+        } else {
+            handled = false
+        }
+        if (handled) {
+            event.preventDefault()
+            event.stopPropagation()
+        }
+    }
+
+    itemSelected(li) {
+        this.toggleMenu(false)
+        if (li.classList.contains('disabled')) { return }
+        if (!this.selectHandler) { return }
+        this.selectHandler(li)
+    }
+
+    itemChanged(event) {
+        this.toggleMenu(false)
+        const li = event.target.closest('li')
+        if (li.classList.contains('disabled')) { return }
+        if (!this.itemChangeHandler) { return }
+        this.itemChangeHandler(li, event)
+    }
+
+    closeMenu(reason) {
+        if (this.isShowing) { this.toggleMenu(false); }
+        if (!this.closeHandler) { return }
+        this.closeHandler(reason)
+    }
+}
+
 class MenuButton {
-    constructor(button) {
+    constructor(button, options = {}) {
         this.showingMenu = false
-        this.menuWidth = document.getElementById('menu').offsetWidth
+        this.menuBarWidth = document.getElementById('menu').offsetWidth
         this.menuRight = null
 
         this.button = button
         button.addEventListener('click', () => { this.toggleMenu() })
 
         this.menu = document.getElementById(this.button.dataset.menu)
+        this.dropMenu = new DropMenu(this.menu, options)
     }
 
-    toggleMenu() {
-        this.showingMenu = !this.showingMenu
-        if (!this.showingMenu) { return }
+    toggleMenu(show = 'toggle') {
+        this.dropMenu.toggleMenu(show)
+        if (!this.dropMenu.isShowing) { return }
         const locRight = this.button.offsetLeft + this.button.offsetWidth
         if (this.menuRight === locRight) { return }
-        this.menuRight = this.menuWidth - locRight
+        this.menuRight = this.menuBarWidth - locRight
         this.menu.style.right = `${this.menuRight}px`
     }
 }
@@ -100,33 +244,24 @@ class Controls {
         this.machine = null
 
         this.machineName = document.getElementById('machine')
-        this.machineDrop = document.getElementById('machine-drop')
-        this.machineName.addEventListener('click', () => { this.showMenu() })
-        this.machineDrop.addEventListener('click', () => { this.showMenu() })
-        this.machineDrop.addEventListener('focus', () => { this.showMenu() })
 
         this.machineMenuHotkeys = {}
         this.machineMenu = document.getElementById('machinemenu')
         for (let key in Machines) {
             const li = document.createElement('li')
-            let menuText = Machines[key].menu || key
-            let menuHtml = ''
-            for (let idx = 0; idx < menuText.length; idx++) {
-                const char = menuText[idx]
-                if (idx === Machines[key].hotkey) {
-                    menuHtml += `<u>${char}</u>`
-                    this.machineMenuHotkeys[`Key${char.toUpperCase()}`] = key
-                } else {
-                    menuHtml += char
-                }
-            }
-            li.innerHTML = menuHtml
+            li.textContent = Machines[key].menu || key
+            li.dataset.hotkey = Machines[key].hotkey
             li.dataset.machine = key
             if (key === DEFAULT_MACHINE) { li.classList.add('disabled') }
             li.addEventListener('click', () => this.setMachine(key))
             this.machineMenu.appendChild(li)
         }
-        this.machineMenu.style.display = 'none'
+        this.machineDropMenu = new DropMenu(this.machineMenu, {
+            drop: document.getElementById('machine-drop'),
+            activationElements: [ this.machineName ],
+            selectHandler: (li) => { this.setMachine(li.dataset.machine) },
+            closeHandler: (reason) => { this.machineMenuClosed(reason) }
+        })
 
         document.getElementById('clean').addEventListener('click', () => this.cleanCode())
 
@@ -191,63 +326,9 @@ class Controls {
         window.blocker.hide()
     }
 
-    showMenu() {
-        window.blocker.show(this.machineMenu)
-        this.setKeyHandler((e) => { this.machineMenuKeypressed(e) })
-    }
-
-    hideMenu() {
-        this.machineMenu.querySelector('li.keyfocus')?.classList.remove('keyfocus')
-        this.setKeyHandler()
-        window.blocker.hide()
-    }
-
-    machineMenuKeypressed(event) {
-        let handled = true
-        if (event.code === 'Escape') {
-            this.hideMenu()
+    machineMenuClosed(reason) {
+        if (reason !== 'tab') {
             this.activateMenuBar(false)
-        } else if (event.code === 'ArrowDown' || event.code === 'ArrowUp') {
-            const lis = this.machineMenu.querySelectorAll('li:not(.disabled)')
-            let focusedLi = this.machineMenu.querySelector('li.keyfocus')
-            if (!focusedLi) {
-                focusedLi = event.code === 'ArrowDown' ? lis[0] : lis[lis.length - 1]
-            } else {
-                focusedLi.classList.remove('keyfocus')
-                let keepLooking = true
-                while (keepLooking) {
-                    keepLooking = false
-                    focusedLi = event.code === 'ArrowDown' ? focusedLi.nextElementSibling : focusedLi.previousElementSibling
-                    if (!focusedLi) {
-                        focusedLi = event.code === 'ArrowDown' ? lis[0] : lis[lis.length - 1]
-                    } else if (focusedLi.classList.contains('disabled')) {
-                        keepLooking = true
-                    }
-                }
-            }
-            focusedLi.classList.add('keyfocus')
-        } else if (event.code === 'Tab') {
-            this.hideMenu()
-            handled = false
-        } else if (event.code === 'Enter') {
-            const focusedLi = this.machineMenu.querySelector('li.keyfocus')
-            this.hideMenu()
-            if (focusedLi) {
-                this.activateMenuBar(false)
-                this.setMachine(focusedLi.dataset.machine)
-            } else {
-                handled = false // treat as TAB to next
-            }
-        } else if (event.code in this.machineMenuHotkeys) {
-            this.hideMenu()
-            this.activateMenuBar(false)
-            this.setMachine(this.machineMenuHotkeys[event.code])
-        } else {
-            handled = false
-        }
-        if (handled) {
-            event.preventDefault()
-            event.stopPropagation()
         }
     }
 
@@ -273,10 +354,11 @@ class Controls {
         this.currentKeyHandler = handler
     }
 
-    activateMenuBar(activate = 'toggle', skipEditorEnable = false) {
+    activateMenuBar(activate = 'toggle', skipEditorEnable = false, focusElement = null) {
         this.menuFocused = (activate === 'toggle') ? !this.menuFocused : activate
         if (this.menuFocused) {
-            this.title.focus()
+            const focusEl = focusElement || this.title
+            focusEl.focus()
         } else if (!skipEditorEnable && window.editor && window.editor.initialized) {
             document.activeElement.blur()
             window.editor.enableEditor()
@@ -301,7 +383,7 @@ class Controls {
         if (!this.menuFocused) { return }
         if (event.code === 'Enter') {
             const activeElement = document.activeElement
-            if (activeElement.tagName === 'H1') {
+            if (activeElement.tagName === 'H1' || activeElement.tagName === 'button') {
                 this.menuFocused = false
                 event.preventDefault()
                 event.stopPropagation()
@@ -309,10 +391,15 @@ class Controls {
                 activeElement.click()
             }
         } else if (event.code === 'KeyM' && event.ctrlKey) {
-            this.activateMenuBar(true)
+            this.activateMenuBar(true, null, this.machineDropMenu.dropToggle)
             event.preventDefault()
             event.stopPropagation()
-            this.showMenu()
+            this.machineDropMenu.toggleMenu(true)
+        } else if (event.code === 'KeyP' && event.ctrlKey) {
+            this.activateMenuBar(true, null, window.fileControls.fileOptions.drop)
+            event.preventDefault()
+            event.stopPropagation()
+            window.fileControls.fileOptions.dropMenu.toggleMenu(true)
         }
     }
 }
