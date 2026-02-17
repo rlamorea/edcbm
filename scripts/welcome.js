@@ -15,10 +15,18 @@ class Welcome {
             element.addEventListener('click', (e) => { this.selectMachine(e) }) 
         })
 
+        this.focusedMachineLi = null
+        this.dialog.querySelectorAll('.w-machine-list li').forEach(li => {
+            li.addEventListener('focus', (e) => { this.focusMachine(e) }) 
+            li.addEventListener('blur', (e) => { this.focusedMachineLi = null })
+        })
+
         this.dialog.querySelectorAll('.w-helper').forEach(helper => { 
             helper.style.display = 'none'
             document.body.insertAdjacentElement('afterbegin', helper) 
         })
+
+        this.keyListener = null
     }
 
     async show() {
@@ -39,7 +47,33 @@ class Welcome {
                 return
             }
         }
+
+        window.menu.setKeyHandler((e) => { this.keyPressed(e) })
         this.dialog.showModal()
+    }
+
+    focusMachine(event) {
+        this.focusedMachineLi = event.target.closest('li')
+        if (this.focusedMachineLi.classList.contains('w-mach')) { return }
+        this.focusedMachineLi.querySelector('.w-mach.primary').focus()
+    }
+
+    keyPressed(event) {
+        if (event.key === 'Escape') {
+            event.preventDefault()
+            event.stopPropagation()
+            return
+        }
+        if (event.key !== 'Enter' && event.key !== ' ') { return }
+        if (this.focusedMachineLi) {
+            event.preventDefault()
+            event.stopPropagation()
+            let mockEvent = { target: this.focusedMachineLi }
+            if (!this.focusedMachineLi.classList.contains('w-mach')) {
+                mockEvent.target = this.focusedMachineLi.querySelector('.w-mach.primary')
+            }
+            this.selectMachine(mockEvent)
+        }
     }
 
     selectMachine(event) {
@@ -62,6 +96,7 @@ class Welcome {
     }
 
     takeAction(event) {
+        window.menu.setKeyHandler()
         this.dialog.close()
         if (!this.selectedMachine) {
             let selectedMach = this.dialog.querySelector(`.w-machine-list li.selected`)

@@ -1,17 +1,10 @@
-function toPetscii(rawline) {
-    let petsciiline = new Uint8Array(rawline.length)
-    for (let i = 0; i < rawline.length; i++) {
-        petsciiline[i] = Petscii.lookup[rawline[i]]
-    }
-    return petsciiline
-}
-
 const algorithms = {
     cg_proofreader_oct83: { 
         name: "Compute!'s Gazette Automatic Proofreader v1 (Oct '83)",
         abbr: "cg1",
+        hotkey: 'g',
         algorithm: (rawline) => {
-            const petsciiline = toPetscii(rawline)
+            const petsciiline = window.petscii.stringToPetscii(rawline)
             let checksum = 0
             for (let i = 0; i < petsciiline.length; i++) {
                 const ch = petsciiline[i]
@@ -25,13 +18,14 @@ const algorithms = {
     cg_proofreader_feb86: {
         name: "Compute!'s Gazette Automatic Proofreader v2 (Feb '86)",
         abbr: "cg2",
+        hotkey: 'z',
         algorithm: (rawline) => {
             let inLineNo = true
             let lineNo = null
             let inQuotes = false
             let checksum = 0
             let index = 0
-            const petsciiline = toPetscii(rawline)
+            const petsciiline = window.petscii.stringToPetscii(rawline)
             for (let i = 0; i < petsciiline.length; i++) {
                 const ch = petsciiline[i]
                 if (inLineNo && ch >= 0x30 && ch <= 0x39) {
@@ -64,6 +58,7 @@ const algorithms = {
     run_typist_sep85: {
         name: "RUN Magazine Perfect Typist v1 (Sep '85)",
         abbr: 'run1',
+        hotkey: 'r',
         algorithm: (rawline) => {
             const { byteArray, lineNumber } = window.tokenizer.tokenizeLine(rawline)
             let index = 0
@@ -93,6 +88,7 @@ const algorithms = {
     run_typist_jan88: {
         name: "RUN Magazine Perfect Typist v2 (Jan '88)",
         abbr: 'run2',
+        hotkey: 'u',
         algorithm: (rawline) => {
             const { byteArray, lineNumber } = window.tokenizer.tokenizeLine(rawline)
             let index = 0
@@ -116,6 +112,7 @@ const algorithms = {
     ahoy_bugrepellent_apr84: {
         name: "Ahoy! Bug Repellent (Apr '84)",
         abbr: 'ahoy',
+        hotkey: 'a',
         algorithm: (rawline) => {
             const { byteArray, lineNumber } = window.tokenizer.tokenizeLine(rawline)
             let checksum = 0
@@ -146,15 +143,16 @@ class ChecksumMenu {
             const li = document.createElement('li')
             li.textContent = algorithms[algorithm].name
             li.dataset.checksum = algorithm
-            li.addEventListener('click', () => this.setAlgorithm(algorithm))
+            li.dataset.hotkey = algorithms[algorithm].hotkey
             this.menu.appendChild(li)
         }
-        this.menu.style.display = 'none'
-        this.setAlgorithm('checksum-none')
-    }
 
-    showMenu() {
-        window.blocker.show(this.menu)
+        this.dropMenu = new DropMenu(this.menu, {
+            drop: this.button,
+            selectHandler: (li) => { this.setAlgorithm(li.dataset.checksum) }
+        })
+
+        this.setAlgorithm('checksum-none')
     }
 
     setAlgorithm(algorithm) {
@@ -170,7 +168,7 @@ class ChecksumMenu {
 }
 
 window.addEventListener('load', () => { 
-    new ChecksumMenu()
+    window.checksumMenu = new ChecksumMenu()
 })
 
 // function testIt() {

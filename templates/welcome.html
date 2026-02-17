@@ -1,13 +1,13 @@
-<dialog id="welcome">
+<dialog id="welcome" tabindex="-1">
     <h1>Welcome to <i>EDCBM</i></h1>
     <h2>The Ultimate In-Browser IDE for Commodore 8-bit computers</h2>
     <p>Choose a machine:</p>
     <ul class="w-machine-list">
-        <li class="w-mach selected" data-machine="c64">
+        <li class="w-mach selected" data-machine="c64" tabindex="0">
             <img src="assets/c64.svg" alt="Commodore 64">
             Commodore 64
         </li>
-        <li>
+        <li tabindex="0">
             <div class="w-mach primary" data-machine="c128">
                 <img src="assets/c128.svg" alt="Commodore 128">
                 Commodore 128
@@ -18,37 +18,37 @@
                 <p>(80 Column Mode)</p>
             </div>
         </li>
-        <li class="w-mach" data-machine="vic20">
+        <li class="w-mach" data-machine="vic20" tabindex="0">
             <img src="assets/vic20.svg" alt="Commodore VIC-20">
             Commodore VIC-20
         </li>
-        <li class="w-mach" data-machine="c16">
+        <li class="w-mach" data-machine="c16" tabindex="0">
             <img src="assets/c16.svg" alt="Commodore 16">
             Commodore 16
         </li>
-        <li class="w-mach" data-machine="plus4">
+        <li class="w-mach" data-machine="plus4" tabindex="0">
             <img src="assets/plus4.svg" alt="Commodore Plus/4">
             Commodore Plus/4
         </li>
-        <li class="w-mach" data-machine="pet-g">
+        <li class="w-mach" data-machine="pet-g" tabindex="0">
             <img src="assets/pet-g.svg" alt="Commodore PET 2000/4000"/>
             Commodore PET 2/4000
         </li>
-        <li class="w-mach" data-machine="pet-b">
+        <li class="w-mach" data-machine="pet-b" tabindex="0">
             <img src="assets/pet-b.svg" alt="Commodore PET 8000"/>
             Commodore PET 8000
         </li>
-        <li class="w-mach" data-machine="cbm2">
+        <li class="w-mach" data-machine="cbm2" tabindex="0">
             <img src="assets/cbm2.svg" alt="Commodore CBM-II"/>
             Commodore CBM-II
         </li>
     </ul>    
     <p>Get Started:</p>
     <ul class="w-actions">
-      <li><button id="w-new-prg" data-action="new-prg">NEW</button><label for="w-new-prg">Create a New Program</label></li>
-      <li><button id="w-load-prg" data-action="load-prg">LOAD PRG</button><label for="w-load-prg">Load a PRG File</label></li>
-      <li><button id="w-load-edcbm" data-action="load-edcbm">LOAD EDCBM</button><label for="w-load-edcbm">Load an EDCBM Enhanced Program File</label></li>
-      <li><button id="w-load-disk" data-action="load-disk">LOAD D64</button><label for="w-load-disk">Load a D64 Disk and Pick a Program from the CATALOG</label></li>
+      <li><button id="w-new-prg" data-action="new-prg" tabindex="0">NEW</button><label for="w-new-prg">Create a New Program</label></li>
+      <li><button id="w-load-prg" data-action="load-prg" tabindex="0">LOAD PRG</button><label for="w-load-prg">Load a PRG File</label></li>
+      <li><button id="w-load-edcbm" data-action="load-edcbm" tabindex="0">LOAD EDCBM</button><label for="w-load-edcbm">Load an EDCBM Enhanced Program File</label></li>
+      <li><button id="w-load-disk" data-action="load-disk" tabindex="0">LOAD D64</button><label for="w-load-disk">Load a D64 Disk and Pick a Program from the CATALOG</label></li>
     </ul>
     <div id="w-file-name-help" class="w-helper"><p>Enter NEW file name here,<br/>then you can start editing.</p></div>
     <div id="w-menu-help" class="w-helper"><p>Click to expand menu</p></div>

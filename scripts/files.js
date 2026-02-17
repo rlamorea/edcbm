@@ -14,26 +14,19 @@ class NameMenu {
         this.drop = document.getElementById(this.id + 'drop')
         this.menu = document.getElementById(this.id + 'menu')
 
-        this.menu.style.display = 'none'
         this.input.readOnly = true
         this.input.inert = true
         this.input.addEventListener('blur', () => { this.nameChanged() })
         this.input.addEventListener('keydown', (e) => { this.nameKey(e) })
 
         this.selections = {}
-        this.menu.querySelectorAll('li').forEach((el) => {
-            const l = el.querySelector('label')
-            const name = (l ? l.textContent : el.textContent).toLowerCase().replaceAll(' ', '-')
-            this.selections[name] = el
-            el.dataset.name = name
-            if (l) {
-                el.querySelector('input').addEventListener('change', (e) => this.selectionFile(e))
-            } else {
-                el.addEventListener('click', (e) => this.selectionMade(e))
-            }
+        this.dropMenu = new DropMenu(this.menu, {
+            drop: this.drop,
+            selectHandler: (li) => { this.selectionMade(li) },
+            closeHandler: (reason) => { this.menuClosed(reason) },
+            changeHandler: (li, event) => { this.selectionFile(li, event) }
         })
 
-        this.drop.addEventListener('click', () => { this.toggleMenu() })
         window.petscii.registerRerenderHandler(this)
 
         this.inDiacritical = false
@@ -50,35 +43,20 @@ class NameMenu {
         this.input.value = window.petscii.petsciiBytesToString(this.inputPetsciiBytes)
     }
 
-    toggleMenu(fromBlocker) {
-        if (fromBlocker) {
-            this.drop.classList.remove('active')
-        } else {
-            this.drop.classList.toggle('active')
-        }
-        const isActive = this.drop.classList.contains('active')
-        if (isActive) {
-            window.blocker.show(this.menu, 'block', () => { this.toggleMenu(true) })
-        } else if (!fromBlocker) {
-            window.blocker.hide()
-        }
+    menuClosed(reason) {
+        this.drop.blur()
     }
 
-    selectionMade(e) {
-        this.toggleMenu()
-        if (e.target.classList.contains('disabled')) { return }
-        const handler = this.handlers[e.target.dataset.name]
-        if (handler) { handler(e) }
+    selectionMade(li) {
+        const handler = this.handlers[li.dataset.name]
+        if (handler) { handler(li) }
     }
 
-    selectionFile(e) {
-        this.toggleMenu()
-        const selection = e.target.closest('li')
-        if (selection.classList.contains('disabled')) { return }
-        if (e.target.files.length === 0) { return }
-        const file = e.target.files[0]
-        const handler = this.handlers[selection.dataset.name]
-        if (handler) { handler(e, file, selection)}
+    selectionFile(li, event) {
+        if (event.target.files.length === 0) { return }
+        const file = event.target.files[0]
+        const handler = this.handlers[li.dataset.name]
+        if (handler) { handler(event, file, li)}
     }
 
     selectionsEnable(disable = []) {
@@ -197,16 +175,16 @@ class FileControls {
     constructor() {
         this.blockShutdown = null
 
-        this.machine = 'c128'
+        this.machine = null
 
         this.file = null
         this.fileOptions = new NameMenu('fname', this, {
-            'new' : (e) => { this.newFile(e) },
-            'rename': (e) => { this.renameFile(e) },
-            'load-prg': (e, f, s) => { this.loadProgramFile(e, f, s) },
-            'load-from-disk': (e) => { this.loadFromDisk(e) },
-            'save-prg': (e) => { this.saveProgramFile(e) },
-            'save-to-disk': (e) => { this.saveToDisk(e) },
+            'new' : (li) => { this.newFile(li) },
+            'rename': (li) => { this.renameFile(li) },
+            'load-prg': (li, f, s) => { this.loadProgramFile(li, f, s) },
+            'load-from-disk': (li) => { this.loadFromDisk(li) },
+            'save-prg': (li) => { this.saveProgramFile(li) },
+            'save-to-disk': (li) => { this.saveToDisk(li) },
             'namechange': (n) => { this.fileNameChanged(n) }
         })
 
@@ -252,12 +230,11 @@ class FileControls {
 
     setMachine(machine) {
         this.machine = machine
-        this.startAddress = machine.startAddress
-
+        this.startAddress = Machines[machine].startAddress
     }
 
     newFile(e) {
-        this.startAddress = this.startAddress
+        this.startAddress = Machines[this.machine].startAddress
         this.namingAction = 'new'
         window.editor.enableEditor(false)
         this.fileOptions.editName()
@@ -295,7 +272,7 @@ class FileControls {
                 this.startAddress = parseInt(sa[1])
                 content = content.substring(content.indexOf('\n')).trim()
             } else {
-                this.startAddress = this.startAddress
+                this.startAddress = Machines[this.machine].startAddress
             }
             window.editor.setProgram(content)
             window.editor.enableEditor()
@@ -310,7 +287,7 @@ class FileControls {
         this.diskCatalog()
     }
 
-    saveProgramFile(e) {
+    saveProgramFile(li) {
         let fileName = this.fileOptions.name().trim()
         if (fileName === '') { return }
         fileName += '.EDCBM'
@@ -440,7 +417,7 @@ class FileControls {
         let fileIdx = 0
         this.startAddress = this.readWord(fileData, fileIdx)
         if (this.startAddress === 0) { 
-            this.startAddress = this.startAddress
+            this.startAddress = Machines[this.machine].startAddress
         }
         fileIdx += 2
         let program = ''

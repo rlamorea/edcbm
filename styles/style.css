@@ -66,6 +66,8 @@ html, body {
     line-height: 27px;
     width: 100%;
     z-index: 5;
+    display: flex;
+    justify-content: space-between;
 }
 #menu h1 {
     margin: 0;
@@ -79,6 +81,12 @@ html, body {
     cursor: pointer;
 }
 
+#menu .m-right {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0;
+    font-size: 0;
+}
 #menu svg { vertical-align: middle; }
 
 #menu button, #paletteeditor button {
@@ -87,7 +95,6 @@ html, body {
     min-height: 20px;
     margin: 3px 5px;
     padding: 0 5px;
-    float: right;
     border-radius: 6px;
     border: solid 1px var(--menu-foreground-strong);
     background: var(--button-background);
@@ -161,6 +168,7 @@ html, body {
     width: 17em;
     background: var(--menu-border);
     color: var(--menu-foreground);
+    font-size: 14px;
 }
 #menu ul li {
     list-style-type: none;
@@ -169,6 +177,9 @@ html, body {
 #menu ul li:hover {
     background: var(--menu-foreground);
     color: var(--menu-border);
+}
+#menu ul li.keyfocus {
+    outline: var(--menu-foreground) auto 1px;
 }
 #menu ul li input[type=file] { display: none; }
 #menu ul li.disabled {
@@ -186,16 +197,11 @@ html, body {
     width: 5em;
 }
 
-#menu #machinemenu { left: 5.6em; }
-#menu #fnamemenu { left: 14.5em; }
-#menu #dnamemenu { left: 41.25em; }
-
 #menu #palette svg { display: none; }
 #menu #palette.custom svg.custom { display: inline; }
 #menu #palette.dark svg.dark { display: inline; }
 #menu #palette.lite svg.lite { display: inline; }
 #menu #palette.cbm svg.cbm { display: inline; }
-#menu #palettemenu { left: unset; right: 0; }
 
 #menu #debug-actions { display: none; }
 
@@ -210,8 +216,6 @@ html, body {
 #menu #checksum.checksum-on svg.checksum-on { display: inline; }
 
 #menu #checksummenu {
-     left: unset; 
-     right: 23em; 
      width: 54em;
      text-align: right;
 }
@@ -302,19 +306,28 @@ html, body {
 
 #about .actions {
     margin: 1em 0 0 0;
-    text-align: right;
+    display: flex;
+    justify-content: space-between;
 }
 #about button {
     border: solid 1px var(--dialog-foreground);
     background: var(--dialog-foreground);
-    padding: 0.5em 1em;
+    padding: 0.15em 1em;
     margin: 0 2%;
     color: var(--dialog-background);
     font-family: monospace;
-    font-size: 14pt;
+    font-size: 12pt;
     border-radius: 0.5em;
     font-weight: bold;
     opacity: 0.8;
     cursor: pointer;
 }
 #about button:hover { opacity: 1; } 
+#about button.ol {
+    background: var(--dialog-background);
+    color: var(--dialog-foreground);    
+}
+#about button.ol:hover {
+    background: var(--dialog-foreground);
+    color: var(--dialog-background);
+}

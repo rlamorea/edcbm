@@ -8,6 +8,10 @@
     font-size: 14pt;
 }
 
+#welcome :focus-visible {
+    outline-color: var(--dialog-border) auto 2px !important;
+}
+
 #welcome h1 i {
     font-family: var(--menu-font);  
     font-style: normal;
@@ -49,6 +53,9 @@
 }
 #welcome .w-machine-list li.w-mach:hover, #welcome .w-machine-list li:hover .w-mach.primary {
     opacity: 0.8;
+}
+#welcome .w-machine-list li:focus-visible .w-mach.primary {
+    outline: var(--dialog-border) auto 2px;
 }
 #welcome .w-mach p {
     margin: 0;

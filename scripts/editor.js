@@ -5,6 +5,9 @@ class Editor {
         brackets: [ [ '(', ')' ] ],
     }
 
+    // always combined with control
+    static menuHotkeys = [ 'KeyM', 'KeyP', 'KeyD', 'KeyK', 'KeyL' ]
+
     static languageRoot  = [
         [ /^\d+/, 'linenumber' ],
         // NOTE: known bug means look-behind doesn't work (see: https://github.com/microsoft/monaco-editor/issues/3441)
@@ -69,6 +72,8 @@ class Editor {
             fontFamily: 'cbmthick-40',
             fontSize: 16,
             automaticLayout: true,
+            quickSuggestions: false,                // get rid of autocomplete for now
+            parameterHints: { enabled: false },
             lineNumbers: false,
             glyphMargin: false,
             folding: false,
@@ -94,10 +99,6 @@ class Editor {
         this.maximumLineLength = 160
         this.editor.onKeyDown((key) => { this.keyDown(key) })
 
-        //this.editor.onDidChangeModelContent((e) => { this.modelChanged(e) })
-        this.editor.addCommand(monaco.KeyCode.Enter, (accessor) => {
-            this.processLine()
-        })
         this.newCursorLocation = null
         this.editor.onDidFocusEditorWidget(() => { this.restoreCursor() })
         this.editor.onDidBlurEditorWidget(() => { this.loseEditorFocus() })
@@ -118,6 +119,7 @@ class Editor {
 
         this.bufferedProgram = null
 
+        this.enabled = false
         this.enableEditor(false)
     }
 
@@ -163,6 +165,7 @@ class Editor {
                 this.newCursorLocation = null
             }, 20)
         }
+        window.menu.activateMenuBar(false, true)
     }
 
     checkInsertions(event) {
@@ -229,6 +232,7 @@ class Editor {
     enableEditor(enable = true) {
         this.container.classList.toggle('read-only-mode', !enable)
         this.editor.updateOptions({ readOnly: !enable })
+        this.enabled = enable
         if (enable) { 
             this.editor.setPosition({ lineNumber: 1, column: 1 })
             setTimeout(() => this.editor.focus(), 100) // delay focus until extraneous keypresses settle out and are ignored
@@ -292,6 +296,12 @@ class Editor {
     }
 
     keyDown(key) {
+        if (key.code === 'Enter') {
+            this.processLine(key.shiftKey)
+            key.preventDefault()
+            key.stopPropagation()
+            return
+        }
         const petscii = window.keymap.getPetsciiForKey(key)
         if (petscii === 0) {
             key.preventDefault()
@@ -311,7 +321,13 @@ class Editor {
             }])
             return
         }
-        if (petscii === Keymap.PASSTHROUGH) { return }
+        if (petscii === Keymap.PASSTHROUGH) { 
+            if (key.ctrlKey && Editor.menuHotkeys.includes(key.code)) {
+                window.menu.activateMenuBar(true)
+                window.menu.keyPressed(key)
+            }
+            return 
+        }
         key.preventDefault()
         key.stopPropagation()
         if (petscii === 0x00) { return }
@@ -418,26 +434,35 @@ class Editor {
         }
     }
 
-    processLine() {
+    processLine(forceProcess = false) {
         const model = this.editor.getModel()
         const position = this.editor.getPosition()
         const lineNumber = position.lineNumber
         const lines = this.editor.getValue().split('\n')
         let lineContent = lines[lineNumber - 1]
-        if (lineNumber < lines.length + 1 && position.column === 1) {
+        if (lineNumber < lines.length + 1 && position.column === 1 && !forceProcess) {
             this.editor.trigger('keyboard', 'type', { text: '\n' })
             // TODO shuffle decorations list for all lines below this one
             return
-        } else if (position.column - 1 < lineContent.length) {
+        } else if (position.column - 1 < lineContent.length && !forceProcess) {
             lineContent = lineContent.substring(0, position.column - 1)
             this.editor.trigger('keyboard', 'type', { text: '\n' })
-        } else if (lineNumber === lines.length) {
-            this.editor.trigger('keyboard', 'type', { text: '\n' })
-        } else {
+        } else if (forceProcess || position.column - 1 < lineContent.length) {
             this.editor.setPosition({ column: 1, lineNumber: lineNumber + 1 })
+        } else {
+            this.editor.trigger('keyboard', 'type', { text: '\n' })
         }
 
         const { byteArray, lineNumber: basicLine, variables, specialComment } = window.tokenizer.tokenizeLine(lineContent)
+        if (basicLine == null) {
+            const newLineContent = "` " + lineContent
+            this.editor.executeEdits("", [{
+                range: new monaco.Range(lineNumber, 1, lineNumber, lineContent.length + 1),
+                text: newLineContent,
+                forceMoveMarkers: true
+            }])
+            return
+        }
         if (byteArray.length > 0) {
             this.variableReferences[basicLine] = variables
         }
