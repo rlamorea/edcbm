@@ -72,6 +72,8 @@ class Editor {
             fontFamily: 'cbmthick-40',
             fontSize: 16,
             automaticLayout: true,
+            quickSuggestions: false,                // get rid of autocomplete for now
+            parameterHints: { enabled: false },
             lineNumbers: false,
             glyphMargin: false,
             folding: false,
@@ -450,6 +452,15 @@ class Editor {
         }
 
         const { byteArray, lineNumber: basicLine, variables, specialComment } = window.tokenizer.tokenizeLine(lineContent)
+        if (basicLine == null) {
+            const newLineContent = "` " + lineContent
+            this.editor.executeEdits("", [{
+                range: new monaco.Range(lineNumber, 1, lineNumber, lineContent.length + 1),
+                text: newLineContent,
+                forceMoveMarkers: true
+            }])
+            return
+        }
         if (byteArray.length > 0) {
             this.variableReferences[basicLine] = variables
         }
