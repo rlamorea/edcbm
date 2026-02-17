@@ -50,6 +50,9 @@
 #welcome .w-machine-list li.w-mach:hover, #welcome .w-machine-list li:hover .w-mach.primary {
     opacity: 0.8;
 }
+#welcome .w-machine-list li:focus-visible .w-mach.primary {
+    outline: -webkit-focus-ring-color auto 1px;
+}
 #welcome .w-mach p {
     margin: 0;
     padding: 0;

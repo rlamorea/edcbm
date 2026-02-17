@@ -302,19 +302,28 @@ html, body {
 
 #about .actions {
     margin: 1em 0 0 0;
-    text-align: right;
+    display: flex;
+    justify-content: space-between;
 }
 #about button {
     border: solid 1px var(--dialog-foreground);
     background: var(--dialog-foreground);
-    padding: 0.5em 1em;
+    padding: 0.15em 1em;
     margin: 0 2%;
     color: var(--dialog-background);
     font-family: monospace;
-    font-size: 14pt;
+    font-size: 12pt;
     border-radius: 0.5em;
     font-weight: bold;
     opacity: 0.8;
     cursor: pointer;
 }
 #about button:hover { opacity: 1; } 
+#about button.ol {
+    background: var(--dialog-background);
+    color: var(--dialog-foreground);    
+}
+#about button.ol:hover {
+    background: var(--dialog-foreground);
+    color: var(--dialog-background);
+}
