@@ -66,6 +66,8 @@ html, body {
     line-height: 27px;
     width: 100%;
     z-index: 5;
+    display: flex;
+    justify-content: space-between;
 }
 #menu h1 {
     margin: 0;
@@ -79,6 +81,12 @@ html, body {
     cursor: pointer;
 }
 
+#menu .m-right {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0;
+    font-size: 0;
+}
 #menu svg { vertical-align: middle; }
 
 #menu button, #paletteeditor button {
@@ -87,7 +95,6 @@ html, body {
     min-height: 20px;
     margin: 3px 5px;
     padding: 0 5px;
-    float: right;
     border-radius: 6px;
     border: solid 1px var(--menu-foreground-strong);
     background: var(--button-background);
@@ -161,6 +168,7 @@ html, body {
     width: 17em;
     background: var(--menu-border);
     color: var(--menu-foreground);
+    font-size: 14px;
 }
 #menu ul li {
     list-style-type: none;
