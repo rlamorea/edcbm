@@ -74,6 +74,10 @@ html, body {
     font-size: 14px;
     display: inline-block;
 }
+#menu h1:hover {
+    color: var(--menu-foreground-strong);
+    cursor: pointer;
+}
 
 #menu svg { vertical-align: middle; }
 
@@ -238,3 +242,79 @@ html, body {
 #container.read-only-mode .monaco-editor .cursors-layer .cursor {
     display: none !important;
 }
+
+#about {
+    width: 30vw;
+    max-height: 60vh;
+    border: solid 4px var(--dialog-border);
+    background: var(--dialog-background);
+    color: var(--dialog-foreground);
+}
+#about h1 img { 
+    display: none; 
+    width: 90px;
+    height: 90px;
+    float: left;
+    margin-right: 10px;
+}
+#about.c64 h1 img.c64 { display: inline; }
+#about.c128 h1 img.c128 { display: inline; }
+#about.c128-80 h1 img.c128-80 { display: inline; }
+#about.vic20 h1 img.vic20 { display: inline; }
+#about.c16 h1 img.c16 { display: inline; }
+#about.plus4 h1 img.plus4 { display: inline; }
+#about.pet-g h1 img.pet-g { display: inline; }
+#about.pet-b h1 img.pet-b { display: inline; }
+#about.cbm2 h1 img.cbm2 { display: inline; }
+
+#about h1 {
+    margin-top: 0;
+    font-family: var(--menu-font);
+    font-size: 35px;
+}
+#about h1 p {
+    margin: 2px 0 0 0;
+    font-family: monospace;
+    font-size: 8pt;
+}
+#about h2 {
+    font-family: monospace;
+    font-size: 16px;
+    margin-top: 20px;
+}
+
+#about .links {
+    margin: 1em 0;
+    text-align: center;
+}
+#about .links a {
+    display: inline-block;
+    width: 10%;
+    margin: 0 2.5%;
+    opacity: 0.8;
+    cursor: pointer;
+}
+#about .links a:hover { opacity: 1; }
+#about .links a img {
+    width: 35px;
+    height: 35px;
+}
+
+#about .actions {
+    margin: 1em 0 0 0;
+    text-align: right;
+}
+#about button {
+    border: solid 1px var(--dialog-foreground);
+    background: var(--dialog-foreground);
+    padding: 0.5em 1em;
+    margin: 0 2%;
+    color: var(--dialog-background);
+    font-family: monospace;
+    font-size: 14pt;
+    border-radius: 0.5em;
+    font-weight: bold;
+    opacity: 0.8;
+    cursor: pointer;
+}
+#about button:hover { opacity: 1; } 

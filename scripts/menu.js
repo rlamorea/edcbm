@@ -108,6 +108,11 @@ class Controls {
         this.machineMenu.style.display = 'none'
 
         document.getElementById('clean').addEventListener('click', () => this.cleanCode())
+
+        this.about = document.getElementById('about')
+        document.querySelector('#menu h1').addEventListener('click', () => { this.about.showModal() })
+        this.about.querySelectorAll('button').forEach(b => b.addEventListener('click', (e) => { this.aboutAction(e) }))
+
         this.waitToLoad()
     }
 
@@ -154,6 +159,7 @@ class Controls {
         window.virtualKeyboard.setMachine(this.machine)
         window.editor.setMachine(this.machine)
         
+        this.about.className = machine
         window.blocker.hide()
     }
 
@@ -163,6 +169,14 @@ class Controls {
 
     cleanCode() {
         window.editor.cleanProgram()
+    }
+
+    aboutAction(event) {
+        const action = event.target.dataset.action
+        this.about.close()
+        if (action === 'welcome') {
+            window.welcome.show()
+        }
     }
 }
 
