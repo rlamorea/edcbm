@@ -197,16 +197,11 @@ html, body {
     width: 5em;
 }
 
-#menu #machinemenu { left: 5.6em; }
-#menu #fnamemenu { left: 14.5em; }
-#menu #dnamemenu { left: 41.25em; }
-
 #menu #palette svg { display: none; }
 #menu #palette.custom svg.custom { display: inline; }
 #menu #palette.dark svg.dark { display: inline; }
 #menu #palette.lite svg.lite { display: inline; }
 #menu #palette.cbm svg.cbm { display: inline; }
-#menu #palettemenu { left: unset; right: 0; }
 
 #menu #debug-actions { display: none; }
 
@@ -221,8 +216,6 @@ html, body {
 #menu #checksum.checksum-on svg.checksum-on { display: inline; }
 
 #menu #checksummenu {
-     left: unset; 
-     right: 23em; 
      width: 54em;
      text-align: right;
 }

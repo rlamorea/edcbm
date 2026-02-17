@@ -23,23 +23,23 @@
       <ul id="machinemenu"></ul>
       <input inert id="fname" type="text" readonly maxlength="16" placeholder="PRG NAME"/><span class="drop" id="fnamedrop" tabindex="0"><svg fill="#fff" width="18px" height="18px" viewBox="0 0 0.72 0.72" xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" transform="matrix(1,-1.2246467991473532e-16,-1.2246467991473532e-16,-1,0,0)"><path d="m0.657 0.579 -0.27 -0.468 -0.009 -0.009c-0.015 -0.009 -0.033 -0.006 -0.042 0.009l-0.27 0.468c-0.006 0.003 -0.006 0.009 -0.006 0.015 0 0.018 0.012 0.03 0.03 0.03h0.54c0.006 0 0.009 0 0.015 -0.003 0.015 -0.009 0.018 -0.027 0.012 -0.042"></path></svg></span>
       <ul id="fnamemenu">
-        <li hotkey="n">NEW</li>
-        <li hotkey="r" class="disabled">RENAME</li>
-        <li hotkey="l" class="disabled">LOAD EDCBM FILE</li>
-        <li hotkey="p"><label for="loadprg">LOAD PRG</label><input id="loadprg" type="file"/></li>
-        <li hotkey="d">LOAD FROM DISK</li>
-        <li hotkey="s" class="disabled">SAVE EDCBM FILE</li>
-        <li hotkey="a"class="disabled">SAVE PRG</li>
-        <li hotkey="v" class="disabled">SAVE TO DISK</li>
+        <li data-hotkey="n">NEW</li>
+        <li data-hotkey="r" class="disabled">RENAME</li>
+        <li data-hotkey="l" class="disabled">LOAD EDCBM FILE</li>
+        <li data-hotkey="p"><label for="loadprg">LOAD PRG</label><input id="loadprg" type="file"/></li>
+        <li data-hotkey="d">LOAD FROM DISK</li>
+        <li data-hotkey="s" class="disabled">SAVE EDCBM FILE</li>
+        <li data-hotkey="a"class="disabled">SAVE PRG</li>
+        <li data-hotkey="v" class="disabled">SAVE TO DISK</li>
       </ul>
       ON DISK
       <input inert id="dname" type="text" readonly maxlength="16" placeholder="D64 NAME"/><span class="drop" id="dnamedrop" tabindex="0"><svg fill="#fff" width="18px" height="18px" viewBox="0 0 0.72 0.72" xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" transform="matrix(1,-1.2246467991473532e-16,-1.2246467991473532e-16,-1,0,0)"><path d="m0.657 0.579 -0.27 -0.468 -0.009 -0.009c-0.015 -0.009 -0.033 -0.006 -0.042 0.009l-0.27 0.468c-0.006 0.003 -0.006 0.009 -0.006 0.015 0 0.018 0.012 0.03 0.03 0.03h0.54c0.006 0 0.009 0 0.015 -0.003 0.015 -0.009 0.018 -0.027 0.012 -0.042"></path></svg></span>
       <ul id="dnamemenu">
-        <li hotkey="n">NEW</li>
-        <li hotkey="r" class="disabled">RENAME</li>
-        <li hotkey="c" class="disabled">CATALOG</li>
-        <li hotkey="l"><label for="loadd64">LOAD D64</label><input id="loadd64" type="file"/></li>
-        <li hotkey="s" class="disabled">SAVE D64</li>
+        <li data-hotkey="n">NEW</li>
+        <li data-hotkey="r" class="disabled">RENAME</li>
+        <li data-hotkey="c" class="disabled">CATALOG</li>
+        <li data-hotkey="l"><label for="loadd64">LOAD D64</label><input id="loadd64" type="file"/></li>
+        <li data-hotkey="s" class="disabled">SAVE D64</li>
       </ul> 
     </span>
     <span class="m-right">
@@ -100,25 +100,25 @@
         <svg class="custom" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2" fill="#fff"/><path d="M16.984 8.781a.24.24 0 0 0-.227-.16h-3.38l-1.15-3.26a.24.24 0 0 0-.453 0l-1.152 3.26h-3.38a.24.24 0 0 0-.148.427l2.638 2.09-1.18 3.341a.24.24 0 0 0 .35.286L12 12.906l3.098 1.859a.24.24 0 0 0 .35-.286l-1.18-3.342 2.638-2.089a.24.24 0 0 0 .078-.267" stroke="#aa0" fill="#aa0" stroke-width="1.2"/></svg>
       </button>
       <ul id="palettemenu">
-        <li class="dark">
+        <li class="dark" data-hotkey="d">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="#000000" stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.333C4.333 1.333 1.333 4.333 1.333 8s3 6.667 6.667 6.667c0.617 0 1.099 -0.497 1.099 -1.125 0 -0.291 -0.12 -0.557 -0.291 -0.75 -0.193 -0.193 -0.292 -0.435 -0.292 -0.75a1.093 1.093 0 0 1 1.112 -1.112h1.331c2.034 0 3.703 -1.669 3.703 -3.703C14.643 4.008 11.641 1.333 8 1.333"/><g stroke="#ffffff" fill="#ffffff"><path cx="13.5" cy="6.5" r=".5" d="M9.333 4.333A0.333 0.333 0 0 1 9 4.667A0.333 0.333 0 0 1 8.667 4.333A0.333 0.333 0 0 1 9.333 4.333z"/><path cx="17.5" cy="10.5" r=".5" d="M12 7A0.333 0.333 0 0 1 11.667 7.333A0.333 0.333 0 0 1 11.333 7A0.333 0.333 0 0 1 12 7z"/><path cx="8.5" cy="7.5" r=".5" d="M6 5A0.333 0.333 0 0 1 5.667 5.333A0.333 0.333 0 0 1 5.333 5A0.333 0.333 0 0 1 6 5z"/><path cx="6.5" cy="12.5" r=".5" d="M4.667 8.333A0.333 0.333 0 0 1 4.333 8.667A0.333 0.333 0 0 1 4 8.333A0.333 0.333 0 0 1 4.667 8.333z"/></g></svg>
           dark
         </li>
-        <li class="lite">
+        <li class="lite" data-hotkey="l">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.333c-3.667 0-6.667 3-6.667 6.667s3 6.667 6.667 6.667c.617 0 1.099-.497 1.099-1.125 0-.291-.12-.557-.291-.75-.193-.193-.292-.435-.292-.75a1.093 1.093 0 0 1 1.112-1.112h1.331a3.717 3.717 0 0 0 3.703-3.703C14.643 4.008 11.641 1.333 8 1.333" fill="#fff"/><path d="M9.333 4.333A.333.333 0 0 1 9 4.667a.333.333 0 0 1-.333-.334.333.333 0 0 1 .666 0M12 7a.333.333 0 0 1-.333.333.333.333 0 0 1-.334-.333A.333.333 0 0 1 12 7M6 5a.333.333 0 0 1-.333.333A.333.333 0 0 1 5.333 5 .333.333 0 0 1 6 5M4.667 8.333a.333.333 0 0 1-.334.334A.333.333 0 0 1 4 8.333a.333.333 0 0 1 .667 0"/></svg>
           lite
         </li>
-        <li class="cbm">
+        <li class="cbm" data-hotkey="f">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2" fill="#fff"/><path d="M10.5 6a5 5 0 0 0 0 10" stroke-linecap="square" stroke-width="4" stroke="#025"/><path d="M13.1 8H17l-1.5 2.15h-2.4Z" stroke-linecap="square" stroke-linejoin="miter" stroke="#025" fill="#025"/><path d="M13.1 13.9H17l-1.5-2.15h-2.4Z" stroke-linecap="square" stroke-linejoin="miter" stroke="red" fill="red"/></svg>
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="3 3 16 16" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 6a5 5 0 0 0 0 10" stroke-linecap="square" stroke-width="4" stroke="#025"/><path d="M13.1 8H17l-1.5 2.15h-2.4Z" stroke-linecap="square" stroke-linejoin="miter" stroke="#025" fill="#025"/><path d="M13.1 13.9H17l-1.5-2.15h-2.4Z" stroke-linecap="square" stroke-linejoin="miter" stroke="red" fill="red"/></svg>
           default
         </li>
-        <li class="custom disabled">
+        <li class="custom disabled" data-hotkey="u">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2" fill="#fff"/><path d="M16.984 8.781a.24.24 0 0 0-.227-.16h-3.38l-1.15-3.26a.24.24 0 0 0-.453 0l-1.152 3.26h-3.38a.24.24 0 0 0-.148.427l2.638 2.09-1.18 3.341a.24.24 0 0 0 .35.286L12 12.906l3.098 1.859a.24.24 0 0 0 .35-.286l-1.18-3.342 2.638-2.089a.24.24 0 0 0 .078-.267" stroke="#aa0" fill="#aa0" stroke-width="1.2"/></svg>
           custom
         </li>
         <li><hr/></li>
-        <li class="edit">
+        <li class="edit" data-hotkey="e">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.333c-3.667 0-6.667 3-6.667 6.667s3 6.667 6.667 6.667c.617 0 1.099-.497 1.099-1.125 0-.291-.12-.557-.291-.75-.193-.193-.292-.435-.292-.75a1.093 1.093 0 0 1 1.112-1.112h1.331a3.717 3.717 0 0 0 3.703-3.703C14.643 4.008 11.641 1.333 8 1.333" fill="#fff"/><path d="M10 1.5q4 2 4.3 3.7Z" stroke="#fff" fill="#fff" stroke-width="1.5"/><path d="M12.147.647a.5.5 0 0 1 .706 0l2 2a.5.5 0 0 1 0 .707l-6.5 6.5A.5.5 0 0 1 8 10H6a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 .147-.353l5-5zM11 3.207l-4.5 4.5V9h1.293l4.5-4.5zm2 .586L13.793 3 12.5 1.707l-.793.793z" fill="#0D0D0D" stroke-width=".25"/></svg>
           edit custom
         </li>

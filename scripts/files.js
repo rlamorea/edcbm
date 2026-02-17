@@ -45,9 +45,6 @@ class NameMenu {
 
     menuClosed(reason) {
         this.drop.blur()
-        if (reason === 'esc') {
-            window.menu.activateMenuBar(false)
-        }
     }
 
     selectionMade(li) {

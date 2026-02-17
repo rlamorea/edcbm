@@ -370,14 +370,17 @@ class PaletteMenu {
 
         this.menuButton = document.getElementById('palette')
         this.menu = document.getElementById('palettemenu')
-        this.menuButton.addEventListener('click', () => { this.showMenu() })
         this.palettes = []
         this.menu.querySelectorAll('li').forEach(li => {
             const paletteName = li.className.split(' ')[0]
             if (paletteName === '') { return }
             li.dataset.palette = paletteName
             this.palettes.push(paletteName)
-            li.addEventListener('click', () => { this.paletteSelected(li) })
+        })
+
+        this.dropMenu = new DropMenu(this.menu, {
+            drop: this.menuButton,
+            selectHandler: (li) => { this.paletteSelected(li) }
         })
 
         const customEntry = this.menu.querySelector('li.custom')
@@ -399,9 +402,7 @@ class PaletteMenu {
             this.customPalette = null
         }
 
-        this.menu.style.display = 'none'
         this.setPalette(this.palette)
-
         this.paletteEditor = new PaletteEditor(this)
     }
 

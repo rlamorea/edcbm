@@ -74,12 +74,40 @@ const Machines = {
 }
 
 class DropMenu {
+    static setHotKeyText(menu) {
+        let hotKeys = {}
+        menu.querySelectorAll('li').forEach(li => {
+            const label = li.querySelector('label')
+            const hotkey = li.dataset.hotkey
+            if (hotkey) {
+                let textContainer = label || li
+                const itemText = textContainer.textContent
+                let itemHtml = ''
+                for (let i = 0; i < itemText.length; i++) {
+                    const char = itemText[i]
+                    if (char.toUpperCase() === hotkey.toUpperCase()) {
+                        itemHtml += `<u>${char}</u>`
+                    } else {
+                        itemHtml += char
+                    }
+                }
+                textContainer.innerHTML = itemHtml
+                hotKeys[`Key${hotkey.toUpperCase()}`] = li
+            }
+        })
+        return hotKeys
+    }
+
     constructor(menuContainer, options = {}) {
+        this.menuBarWidth = document.getElementById('menu').offsetWidth
+        this.menuLeft = null
+
         this.menu = menuContainer
         this.isShowing = false
         this.selectHandler = options.selectHandler
         this.closeHandler = options.closeHandler
         this.itemChangeHandler = options.itemChangeHandler
+        this.keepBarFocused = options.keepBarFocused
         this.dropToggle = options.drop
 
         if (this.dropToggle) {
@@ -98,22 +126,6 @@ class DropMenu {
         let datasetNameKey = options.nameKey || 'name'
         this.menu.querySelectorAll('li').forEach(li => {
             const label = li.querySelector('label')
-            if (li.dataset.hotkey) {
-                const hotkey = li.dataset.hotkey
-                let textContainer = label || li
-                const itemText = textContainer.textContent
-                let itemHtml = ''
-                for (let i = 0; i < itemText.length; i++) {
-                    const char = itemText[i]
-                    if (char === hotkey) {
-                        itemHtml += `<u>${char}</u>`
-                    } else {
-                        itemHtml += char
-                    }
-                }
-                textContainer.innerHTML = itemHtml
-                this.hotKeys[`Key${hotkey.toUpperCase()}`] = li
-            }
             const name = li.dataset[datasetNameKey]
             if (!name) {
                 li.dataset[datasetNameKey] = (label ? label.textContent : li.textContent).toLowerCase().replaceAll(' ', '-')
@@ -124,6 +136,7 @@ class DropMenu {
                 li.addEventListener('click', (e) => { this.itemSelected(li, e) })
             }
         })
+        this.hotKeys = DropMenu.setHotKeyText(this.menu)
 
         this.menu.style.display = 'none'
     }
@@ -136,6 +149,15 @@ class DropMenu {
         if (fromBlocker) { return } // avoid infinite loop
         if (this.isShowing) {
             window.blocker.show(this.menu, 'block', () => { this.toggleMenu(false, true) })
+            if (this.dropToggle) {
+                const locLeft = this.dropToggle.offsetLeft + this.dropToggle.offsetWidth - this.menu.offsetWidth
+                if (this.menuLeft !== locLeft) {
+                    this.menuLeft = locLeft
+                    this.menuLeft = Math.max(this.menuLeft, 0)
+                    this.menuLeft = Math.min(this.menuLeft, this.menuBarWidth - this.menu.offsetWidth)
+                    this.menu.style.left = `${this.menuLeft}px`
+                }
+            }
             window.menu.setKeyHandler((e) => { this.keyHandler(e) })
         } else {
             this.menu.querySelector('li.keyfocus')?.classList.remove('keyfocus')
@@ -211,31 +233,11 @@ class DropMenu {
 
     closeMenu(reason) {
         if (this.isShowing) { this.toggleMenu(false); }
+        if (reason !== 'tab' && !this.keepBarFocused) {
+            window.menu.activateMenuBar(false)
+        }
         if (!this.closeHandler) { return }
         this.closeHandler(reason)
-    }
-}
-
-class MenuButton {
-    constructor(button, options = {}) {
-        this.showingMenu = false
-        this.menuBarWidth = document.getElementById('menu').offsetWidth
-        this.menuRight = null
-
-        this.button = button
-        button.addEventListener('click', () => { this.toggleMenu() })
-
-        this.menu = document.getElementById(this.button.dataset.menu)
-        this.dropMenu = new DropMenu(this.menu, options)
-    }
-
-    toggleMenu(show = 'toggle') {
-        this.dropMenu.toggleMenu(show)
-        if (!this.dropMenu.isShowing) { return }
-        const locRight = this.button.offsetLeft + this.button.offsetWidth
-        if (this.menuRight === locRight) { return }
-        this.menuRight = this.menuBarWidth - locRight
-        this.menu.style.right = `${this.menuRight}px`
     }
 }
 
@@ -259,8 +261,7 @@ class Controls {
         this.machineDropMenu = new DropMenu(this.machineMenu, {
             drop: document.getElementById('machine-drop'),
             activationElements: [ this.machineName ],
-            selectHandler: (li) => { this.setMachine(li.dataset.machine) },
-            closeHandler: (reason) => { this.machineMenuClosed(reason) }
+            selectHandler: (li) => { this.setMachine(li.dataset.machine) }
         })
 
         document.getElementById('clean').addEventListener('click', () => this.cleanCode())
@@ -326,12 +327,6 @@ class Controls {
         window.blocker.hide()
     }
 
-    machineMenuClosed(reason) {
-        if (reason !== 'tab') {
-            this.activateMenuBar(false)
-        }
-    }
-
     cleanCode() {
         window.editor.cleanProgram()
     }
@@ -365,6 +360,12 @@ class Controls {
         }
     }
 
+    handleHotkey(event, newFocus) {
+        event.preventDefault()
+        event.stopPropagation()
+        if (newFocus) { this.activateMenuBar(true, false, newFocus) }
+    }
+
     keyPressed(event) {
         if (this.currentKeyHandler) {
             this.currentKeyHandler(event)
@@ -385,26 +386,31 @@ class Controls {
             const activeElement = document.activeElement
             if (activeElement.tagName === 'H1' || activeElement.tagName === 'button') {
                 this.menuFocused = false
-                event.preventDefault()
-                event.stopPropagation()
+                this.handleHotkey(event, activeElement)
                 activeElement.blur()
                 activeElement.click()
             }
         } else if (event.code === 'KeyM' && event.ctrlKey) {
-            this.activateMenuBar(true, null, this.machineDropMenu.dropToggle)
-            event.preventDefault()
-            event.stopPropagation()
+            this.handleHotkey(event, thisthis.machineDropMenu.dropToggle)
             this.machineDropMenu.toggleMenu(true)
         } else if (event.code === 'KeyP' && event.ctrlKey) {
-            this.activateMenuBar(true, null, window.fileControls.fileOptions.drop)
-            event.preventDefault()
-            event.stopPropagation()
+            this.handleHotkey(event, window.fileControls.fileOptions.drop)
             window.fileControls.fileOptions.dropMenu.toggleMenu(true)
+        } else if (event.code === 'KeyD' && event.ctrlKey) {
+            this.handleHotkey(event, window.fileControls.diskOptions.drop)
+            window.fileControls.diskOptions.dropMenu.toggleMenu(true)
+        } else if (event.code === 'KeyL' && event.ctrlKey) {
+            this.handleHotkey(event)
+            this.activateMenuBar(false)
+            window.virtualKeyboard.charsetButton.click()
+        } else if (event.code === 'KeyK' && event.ctrlKey) {
+            this.handleHotkey(event)
+            this.activateMenuBar(false)
+            window.virtualKeyboard.toggleKeyboard()
         }
     }
 }
 
 window.addEventListener('load', () => { 
     window.menu = new Controls()
-    document.querySelectorAll('.menu-button').forEach((b) => { new MenuButton(b) })
 })
