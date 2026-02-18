@@ -181,9 +181,11 @@ class FileControls {
         this.fileOptions = new NameMenu('fname', this, {
             'new' : (li) => { this.newFile(li) },
             'rename': (li) => { this.renameFile(li) },
-            'load-prg': (li, f, s) => { this.loadProgramFile(li, f, s) },
+            'load-edcbm-file': (li, f, s) => { this.loadEdcbmFile(li, f, s) },
+            'load-prg': (li, f, s) => { this.loadPrgFile(li, f, s) },
             'load-from-disk': (li) => { this.loadFromDisk(li) },
-            'save-prg': (li) => { this.saveProgramFile(li) },
+            'save-edcbm-file': (li) => { this.saveEdcbmFile(li) },
+            'save-prg': (li) => { this.savePrgFile(li) },
             'save-to-disk': (li) => { this.saveToDisk(li) },
             'namechange': (n) => { this.fileNameChanged(n) }
         })
@@ -263,7 +265,7 @@ class FileControls {
         return name.toUpperCase()
     }
 
-    loadProgramFile(e, file, selection) {
+    loadEdcbmFile(e, file, selection) {
         const reader = new FileReader()
         reader.onload = () => {
             let content = reader.result
@@ -283,19 +285,48 @@ class FileControls {
         reader.readAsText(file)
     }
 
+    loadPrgFile(e, file, selection) {
+        const reader = new FileReader()
+        reader.onload = () => {
+            const fname = this.cleanFilename(file.name, ['PRG'])
+            this.fileOptions.setName(fname)
+            window.localStorage.setItem('programName', fname)
+
+            const data = new Uint8Array(reader.result)
+            // NOTE: we are going to assume BASIC and use machine default start address
+            //const startAddress = data[0] + (data[1] << 8)
+            this.loadFileBytes(data)
+        }
+        reader.readAsArrayBuffer(file)
+    }
+
     loadFromDisk(e) {
         this.diskCatalog()
     }
 
-    saveProgramFile(li) {
+    saveEdcbmFile(li) {
         let fileName = this.fileOptions.name().trim()
         if (fileName === '') { return }
         fileName += '.EDCBM'
         const content = "`` SA:" + this.startAddress.toString() + '\n' + window.editor.getProgram()
         const blob = new Blob([content], { type: 'text/plain' })
+        this.saveBlobFile(blob, fileName)
+    }
+
+    savePrgFile(li) {
+        let fileName = this.fileOptions.name().trim()
+        if (fileName === '') { return }
+        fileName += '.PRG'
+        const bytes = window.editor.getProgramBytes(this.startAddress)
+        if (bytes.length === 0) { return }
+        const blob = new Blob([bytes], { type: 'application/octetstream' })
+        this.saveBlobFile(blob, fileName)
+    }
+
+    saveBlobFile(blob, fileName) {
         const link = document.createElement('a')
         link.href = URL.createObjectURL(blob)
-        link.download = fileName
+        link.download = fileName.toLowerCase()
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -414,6 +445,10 @@ class FileControls {
 
         this.fileOptions.setName(fileInfo.name)
 
+        this.loadFileBytes(fileData)
+    }
+
+    loadFileBytes(fileData) {
         let fileIdx = 0
         this.startAddress = this.readWord(fileData, fileIdx)
         if (this.startAddress === 0) { 

@@ -106,7 +106,7 @@ class DropMenu {
         this.isShowing = false
         this.selectHandler = options.selectHandler
         this.closeHandler = options.closeHandler
-        this.itemChangeHandler = options.itemChangeHandler
+        this.itemChangeHandler = options.changeHandler
         this.keepBarFocused = options.keepBarFocused
         this.dropToggle = options.drop
 
