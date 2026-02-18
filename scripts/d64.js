@@ -82,7 +82,7 @@ class D64 {
                 this.error = result.error
                 this.reject(this.error)
             }
-            reader.readAsArrayBuffer(file)
+            reader.readAsArrayBuffer(fileOrBytes)
         } else {
             this.formatD64('')
             this.loaded = true

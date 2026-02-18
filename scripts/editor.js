@@ -250,6 +250,14 @@ class Editor {
         this.notateLines()
     }
 
+    setProgramBytes(bytes) {
+        this.editor.setValue(window.petscii.petsciiBytesToString(bytes))
+        if (this.initialized) {
+            window.localStorage.setItem('currentProgram', this.editor.getValue())
+        }
+        this.parseLines()
+    }
+
     setHelpText(text) {
         this.editor.setValue(text)
     }
@@ -311,7 +319,7 @@ class Editor {
         const model = this.editor.getModel()
         const position = this.editor.getPosition()
         const lineValue = model.getLineContent(position.lineNumber)
-        if (lineValue.length >= this.maximumLineLength - 1) {
+        if (lineValue.length >= this.maximumLineLength) {
             key.preventDefault()
             key.stopPropagation()
             const trimmedLineValue = lineValue.substring(0, this.maximumLineLength - 1)
@@ -454,7 +462,7 @@ class Editor {
         }
 
         const { byteArray, lineNumber: basicLine, variables, specialComment } = window.tokenizer.tokenizeLine(lineContent)
-        if (basicLine == null) {
+        if (basicLine == null && !lineContent.trim().startsWith("`")) {
             const newLineContent = "` " + lineContent
             this.editor.executeEdits("", [{
                 range: new monaco.Range(lineNumber, 1, lineNumber, lineContent.length + 1),
