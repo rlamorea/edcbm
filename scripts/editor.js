@@ -319,7 +319,7 @@ class Editor {
         const model = this.editor.getModel()
         const position = this.editor.getPosition()
         const lineValue = model.getLineContent(position.lineNumber)
-        if (lineValue.length >= this.maximumLineLength - 1) {
+        if (lineValue.length >= this.maximumLineLength) {
             key.preventDefault()
             key.stopPropagation()
             const trimmedLineValue = lineValue.substring(0, this.maximumLineLength - 1)

@@ -397,9 +397,9 @@ class FileControls {
     async loadDisk(e, file, selection) {
         if (this.currentDisk) { delete this.currentDisk }
         this.currentDisk = new D64(file)
-        window.localStorage.setItem('currentDisk', this.currentDisk.diskBytes().toBase64())
         this.catalogRendered = false
         await this.currentDisk.diskLoaded()
+        window.localStorage.setItem('currentDisk', this.currentDisk.diskBytes().toBase64())
         const dname = this.currentDisk.diskName
 
         this.diskOptions.setName(dname)
