@@ -116,7 +116,7 @@ class Petscii {
         this.tables['c128-lU'] = {
             ...this.generateCodeSequence(0x00, 0x1F, 0xE380),
             ...this.coreTable_Sym,
-            ...this.coretable_lc,
+            ...this.coreTable_lc,
             ...this.generateCodeSequence(0x60, 0x7F, 0xE340),
             ...this.generateCodeSequence(0x80, 0x9F, 0xE3C0),
             ...this.generateCodeSequence(0xA0, 0xBF, 0xE360),
