@@ -434,6 +434,11 @@ class Petscii {
                 raw = true
             } else {
                 const petsciiByte = this.lookup[char]
+                if (isNaN(petsciiByte)) {
+                    console.log(`NaN char "${char}"`)
+                    if (char.length > 0) { console.log('code is', char.codePointAt(0)) }
+                    continue
+                }
                 if (petsciiByte <= 0) {
                     petsciiStr += raw ? char : `{${char.codePointAt(0).toString(0).padStart(2, '0')}}`
                 } else {

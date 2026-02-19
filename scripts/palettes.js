@@ -151,6 +151,8 @@ class PaletteEditor {
         this.paletteEditor = document.getElementById('paletteeditor')
         this.paletteEditor.style.display = 'none'
 
+        this.paletteEditor.querySelector('.close').addEventListener('click', () => { window.blocker.hide() })
+
         this.saveButton = this.paletteEditor.querySelector('button.action')
         this.saveButton.addEventListener('click', () => { this.savePalette() })
 

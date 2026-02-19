@@ -240,9 +240,10 @@ class Editor {
         document.getElementById('edit-actions').style.display = enable ? 'inline' : 'none'
     }
 
-    setProgram(program) {
+    setProgram(program, machineReady = false) {
         program = this.parseNotationsHeader(program)
-        this.editor.setValue(window.petscii.petsciiStringToString(program))
+        if (!machineReady) { program = window.petscii.petsciiStringToString(program) }
+        this.editor.setValue(program)
         if (this.initialized) {
             window.localStorage.setItem('currentProgram', this.editor.getValue())
         }
