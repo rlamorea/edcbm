@@ -236,8 +236,29 @@ class Tokenizer {
     }
 
     static lineNumberTokens = {
-        'v2': [ 'GOTO', 'GO TO', 'GOSUB', 'THEN' ],
-        'v4+': [ 'RESTORE', 'RESUME' ],
+        'v2': [ 'GOTO', 'GO TO', 'GOSUB' ],
+        'v4+': [ 'RESTORE', 'TRAP', 'RESUME' ],
+    }
+    static additionalTokenizing = {
+        'v7': [
+            {   
+                rootInsertLocation: 4,
+                rootInsert: [ /collision/, 'keyword', '@collision' ],
+                tokenizerInsert: {
+                    collision: [
+                        [ /:/, 'keyword', '@pop' ],
+                        [ /^ *\d+/, 'linenumber', '@pop' ],
+                        [ /\d+/, 'number' ],
+                        [ /,/, 'keyword', '@collineno' ],
+                    ],
+                    collineno: [
+                        [ /:/, 'keyword', '@pop' ],
+                        [ /^ *\d+/, 'linenumber', '@pop' ],
+                        [ /\d+/, 'linenumber' ]
+                    ]
+                }
+            }
+        ]
     }
     static keywordPetscii = {
         ...Petscii.coreTable_Sym,

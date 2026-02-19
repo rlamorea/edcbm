@@ -8,11 +8,11 @@ class Editor {
     // always combined with control
     static menuHotkeys = [ 'KeyM', 'KeyP', 'KeyD', 'KeyK', 'KeyL' ]
 
-    static languageRoot  = [
+    static languageTokenizerRoot = [
         [ /^\d+/, 'linenumber' ],
-        // NOTE: known bug means look-behind doesn't work (see: https://github.com/microsoft/monaco-editor/issues/3441)
-        [ /(?<=go *(to|sub) *)\d+/, 'linenumber' ],
-        [ /(?<=then *)\d+/, 'linenumber' ],
+        // insert line-no-follows commands here
+        [ /then/, 'keyword', '@then' ],
+        [ /data/, 'keyword', '@data' ],
         [ /(`|rem).*/, 'comment' ],
         [ new RegExp('(\\+|\\-|\\/|\\*|\uE01E|\\<|\\=|\\>|AND|OR|NOT)'), 'operator' ],
         // we will insert keywords here
@@ -25,9 +25,41 @@ class Editor {
         // we will insert reserved variables here
         [ /[+-]?\d*\.?\d+(e?[+-]?\d+)?/, 'number' ],
         [ /\uE05E/, 'number' ], // pi
-        [ /".*?("|$)/, 'string' ],
+        [ /"/, 'string', '@string' ],
         [ /[\(\)]/, 'paren' ],
     ]
+    static languageTokenizerCommon = {
+        string: [
+            [ /"/, 'string', '@pop' ],
+            [ /^ *\d+/, 'linenumber', '@pop' ],
+            [ /[^"]+/, 'string' ]
+        ],
+        goto: [
+            [ /:/, '', '@pop' ],
+            [ /^ *\d+/, 'linenumber', '@pop' ],
+            [ /\d+/, 'linenumber' ],
+        ],
+        then: [
+            [ /:/, '', '@pop' ], 
+            [ /^ *\d+/, 'linenumber', '@pop' ],
+            [ /[a-z][a-z0-9]*[$%]?/, { 
+                cases: {
+                    '@keywords' : 'keyword',
+                    '@default': 'variable'
+                },
+                next: '@pop' 
+            } ],
+            [ /\d+/, 'linenumber' ]
+        ],
+        data: [
+            [ /"/, 'string', '@string' ],
+            [ /,/, 'keyword' ],
+            [ /^ *\d+/, 'linenumber', '@pop' ],
+            [ /:/, 'keyword', '@pop' ],
+            [ /\d+/, 'number' ],
+            [ /[^,:"]+/, 'string' ]
+        ]
+    }
 
     static headerStart = '`` EPRG HEADER START'
     static headerEnd = '`` EPRG HEADER END'
@@ -39,14 +71,26 @@ class Editor {
             this.language[version] = {
                 keywords: Tokenizer.keywords[version],
                 ignoreCase: true,
-                tokenizer: { root: [] }
-            }
-            for (const def of this.languageRoot) {
-                this.language[version].tokenizer.root.push(def)
+                tokenizer: {
+                    root: [ ...this.languageTokenizerRoot ],
+                    ...this.languageTokenizerCommon
+                }
             }
             this.language[version].tokenizer.root.splice(5, 0, [ new RegExp(Tokenizer.keywordRegex[version]), 'keyword' ])
             const reserved = Tokenizer.reserved[version].map((r) => r.replace('$', '\\$'))
             this.language[version].tokenizer.root.splice(6, 0, [ new RegExp(`(${reserved.join('|')})`), 'reserved' ])
+            const lineNumbered = Tokenizer.lineNumberTokens[version].map((r) => r.replace('$', '\\$'))
+            this.language[version].tokenizer.root.splice(1, 0, [ new RegExp(`(${lineNumbered.join('|')})`), 'keyword', '@goto' ])
+            for (const additionalTokenizing of (Tokenizer.additionalTokenizing[version] || [])) {
+                this.language[version].tokenizer.root.splice(
+                    additionalTokenizing.rootInsertLocation, 0, additionalTokenizing.rootInsert
+                )
+                this.language[version].tokenizer = {
+                    ...this.language[version].tokenizer,
+                    ...additionalTokenizing.tokenizerInsert
+                }
+                let foo = 2
+            }
         }
     }
     static monacoSetUp = false
