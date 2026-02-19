@@ -113,7 +113,7 @@ class Palette {
             setTimeout(() => { this.setEditorTheme() }, 50)
             return
         }
-        if (!Palette.editorThemes[this.name]) {
+        if (!Palette.editorThemes[this.name] || this.name === 'custom') {
             window.editor.generateEditorTheme(this.name, this.editorColors)
             Palette.editorThemes[this.name] = `${this.name}theme`
         }
@@ -173,7 +173,11 @@ class PaletteEditor {
         fontSelectors.forEach((el) => { el.addEventListener('change', (ev) => { this.fontSelected(ev) })})
 
         const colorSelectors = this.paletteEditor.querySelectorAll('input[type=color]')
-        colorSelectors.forEach((el) => { el.addEventListener('change', (ev) => { this.colorSelected(ev) })})
+        colorSelectors.forEach((el) => { el.addEventListener('change', (ev) => { this.colorSelected(ev) }) })
+
+        this.paletteEditor.addEventListener('click', (e) => {
+            if (this.editingColor) { this.editingColor = false }
+        })
 
         this.editorGrid = this.paletteEditor.querySelector('.grid.editor')
         this.highlightGrid = this.paletteEditor.querySelector('.grid.highlight')
@@ -220,12 +224,14 @@ class PaletteEditor {
     }
 
     setToDefaults() {
-        this.paletteDirectEdits = {
-            font: this.paletteDefinition.editorFont
-        }
+        const machine = window.palettes.machine
+        const palette = machine.palette || machine.name
+        const deafultPaletteDef = PaletteDefinitions[palette]
+        this.setPaletteDefinition(deafultPaletteDef, null)
         this.generateNewPaletteDefinition()
         this.setColors()
         this.setFonts()
+        this.resetButton.disabled = false
     }
 
     setColors() {
@@ -322,7 +328,7 @@ class PaletteEditor {
     fontSelected(event) {
         this.ignoreNextActivate = true
         this.resetButton.disabled = false
-
+        
         const elem = event.target.closest('div.elem')
         const elemType = elem.dataset.elem
         const font = elem.querySelector('select').value
@@ -343,6 +349,7 @@ class PaletteEditor {
 
     colorSelected(event) {
         this.resetButton.disabled = false
+        this.editingColor = false
 
         const elem = event.target.closest('div.elem')
         const elemType = elem.dataset.elem
@@ -362,6 +369,10 @@ class PaletteEditor {
         this.generateNewPaletteDefinition()
 
         this.setColors()
+    }
+
+    colorEditCanceled(event) {
+        this.editingColor = false
     }
 }
 
@@ -421,7 +432,15 @@ class PaletteMenu {
             paletteDef = PaletteDefinitions[`${palette}${paletteVariant}`]
         } else if (palette === 'custom') {
             if (this.customPalette === null) { return }
-            paletteDef = this.customPalette.paletteDef
+            if (!this.customPalette.paletteObj) {
+                this.customPalette.paletteObj = new Palette(
+                    'custom', 
+                    this.customPalette.paletteDef.editorColors.background, 
+                    this.customPalette.paletteDef.editorColors.foreground,
+                    this.customPalette.edits
+                )
+            }
+            paletteDef = this.customPalette.paletteObj
         }
         if (paletteDef === null) { return }
         this.menu.querySelectorAll('li').forEach(li => {
