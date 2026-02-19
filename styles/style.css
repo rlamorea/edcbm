@@ -50,6 +50,9 @@ html, body {
     display: none;
     z-index: 10;
 }
+dialog::backdrop {
+    background: var(--blocker-color);
+}
 
 /* Main Menu */
 
@@ -89,7 +92,7 @@ html, body {
 }
 #menu svg { vertical-align: middle; }
 
-#menu button, #paletteeditor button {
+#menu button, dialog button, .dialog button {
     font-family: sans-serif;
     font-size: 15px;
     min-height: 20px;
@@ -102,14 +105,15 @@ html, body {
     cursor: pointer;
 }
 #menu button:disabled, #menu button:disabled:hover,
-#paletteeditor button:disabled, #paletteeditor button:disabled:hover {
+dialog button:disabled, dialog button:disabled:hover,
+.dialog button:disabled, .dialog button:disabled:hover {
     opacity: 0.5;
     cursor: default;
     background: var(--button-background);
     color: black;
 }
 #menu button.enabled { background: var(--button-background-enabled); }
-#menu button:hover, #paletteeditor button:hover {
+#menu button:hover, dialog button:hover, .dialog button:hover {
     background: var(--button-background-hover);
     color: var(--menu-foreground-strong);
 }
@@ -205,9 +209,8 @@ html, body {
 
 #menu #debug-actions { display: none; }
 
-#menu #server svg { display: none; }
-#menu #server.connected svg.connected { display: inline; }
-#menu #server.disconnected svg.disconnected { display: inline; }
+#menu #server.connected { background: #99dd99; }
+#menu #server.disconnected { background: #ff9999; }
 
 #menu #edit-actions { display: none; }
 
@@ -247,12 +250,47 @@ html, body {
     display: none !important;
 }
 
-#about {
-    width: 30vw;
-    max-height: 60vh;
+/* dialogs */
+dialog {
     border: solid 4px var(--dialog-border);
     background: var(--dialog-background);
     color: var(--dialog-foreground);
+    font-family: monospace;
+    font-size: 12pt;
+    position: relative;
+}
+dialog span.close {
+    position: absolute;
+    right: 4px;
+    top: 0px;
+    width: 18px;
+    height: 18px;
+    opacity: 0.75;
+    cursor: pointer;
+}
+dialog span.close:hover {
+    opacity: 1;
+}
+dialog:has(h2) {
+    padding-top: calc(14pt + 15px);
+}
+dialog h2 {
+    position: absolute;
+    top: -1em;
+    left: 0;
+    width: calc(100% + 2em - 8px);
+    padding: 2px 4px;
+    font-size: 14pt;
+    color: var(--dialog-background);
+    background: var(--dialog-border);
+}
+dialog .actions {
+    text-align: right;
+}
+
+#about {
+    width: 30vw;
+    max-height: 60vh;
 }
 #about h1 img { 
     display: none; 
@@ -281,8 +319,7 @@ html, body {
     font-family: monospace;
     font-size: 8pt;
 }
-#about h2 {
-    font-family: monospace;
+#about h3 {
     font-size: 16px;
     margin-top: 20px;
 }
@@ -309,25 +346,30 @@ html, body {
     display: flex;
     justify-content: space-between;
 }
-#about button {
-    border: solid 1px var(--dialog-foreground);
-    background: var(--dialog-foreground);
-    padding: 0.15em 1em;
-    margin: 0 2%;
-    color: var(--dialog-background);
-    font-family: monospace;
-    font-size: 12pt;
-    border-radius: 0.5em;
-    font-weight: bold;
-    opacity: 0.8;
-    cursor: pointer;
+#about button { margin: 0 2%; }
+
+#server-config label {
+    display: inline-block;
+    margin: 0 0 15px;
 }
-#about button:hover { opacity: 1; } 
-#about button.ol {
+#server-config input {
+    border: solid 1px var(--dialog-border);
+    border-radius: 0.25em;
     background: var(--dialog-background);
-    color: var(--dialog-foreground);    
+    color: var(--dialog-foreground);
+    font-size: 12pt;
+    width: 6em;
+    text-align: right;
+    vertical-align: middle;
 }
-#about button.ol:hover {
-    background: var(--dialog-foreground);
-    color: var(--dialog-background);
+#server-config p {
+    margin: 0 0 15px;
+    font-size: 9pt;
+}
+#server-config em {
+    display: inline-block;
+    font-style: normal;
+    background: black;
+    color: white;
+    padding: 2px 4px;
 }

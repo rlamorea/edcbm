@@ -116,7 +116,7 @@ class Petscii {
         this.tables['c128-lU'] = {
             ...this.generateCodeSequence(0x00, 0x1F, 0xE380),
             ...this.coreTable_Sym,
-            ...this.coretable_lc,
+            ...this.coreTable_lc,
             ...this.generateCodeSequence(0x60, 0x7F, 0xE340),
             ...this.generateCodeSequence(0x80, 0x9F, 0xE3C0),
             ...this.generateCodeSequence(0xA0, 0xBF, 0xE360),
@@ -434,6 +434,11 @@ class Petscii {
                 raw = true
             } else {
                 const petsciiByte = this.lookup[char]
+                if (isNaN(petsciiByte)) {
+                    console.log(`NaN char "${char}"`)
+                    if (char.length > 0) { console.log('code is', char.codePointAt(0)) }
+                    continue
+                }
                 if (petsciiByte <= 0) {
                     petsciiStr += raw ? char : `{${char.codePointAt(0).toString(0).padStart(2, '0')}}`
                 } else {

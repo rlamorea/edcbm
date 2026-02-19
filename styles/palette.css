@@ -13,10 +13,15 @@
     left: calc(50vw - 15em);
     color: var(--dialog-foreground);
     background: var(--dialog-background);
-    display: block;
     text-transform: uppercase;
     display: none;
 }
+#paletteeditor .close {
+    float: right;
+    margin-top: -4px;
+    opacity: 0.75;
+}
+#paletteeditor .close:hover { opacity: 1; }
 #paletteeditor h2 {
     margin: 0;
     padding: 1px 0;

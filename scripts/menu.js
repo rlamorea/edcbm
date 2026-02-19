@@ -83,10 +83,12 @@ class DropMenu {
                 let textContainer = label || li
                 const itemText = textContainer.textContent
                 let itemHtml = ''
+                let foundHotKey = false
                 for (let i = 0; i < itemText.length; i++) {
                     const char = itemText[i]
-                    if (char.toUpperCase() === hotkey.toUpperCase()) {
+                    if (!foundHotKey && char.toUpperCase() === hotkey.toUpperCase()) {
                         itemHtml += `<u>${char}</u>`
+                        foundHotKey = true
                     } else {
                         itemHtml += char
                     }
@@ -413,4 +415,10 @@ class Controls {
 
 window.addEventListener('load', () => { 
     window.menu = new Controls()
+    document.querySelectorAll('dialog .close').forEach((closer) => {
+        closer.addEventListener('click', (e) => {
+            const dialog = e.target.closest('dialog')
+            dialog.close()
+        })
+    })
 })

@@ -202,7 +202,6 @@ class FileControls {
         })
 
         this.catalog = document.getElementById('catalog')
-        this.catalog.style.display = 'none'
         this.catalogLoaded = false
         this.catalogRendered = false
         this.catalog.querySelector('ul').addEventListener('click', (e) => { this.diskFileSelected(e) })
@@ -369,10 +368,10 @@ class FileControls {
     diskCatalog(e) {
         if (!this.currentDisk) { return }
 
-        window.blocker.show(this.catalog)
+        this.catalog.showModal()
         if (this.catalogRendered && this.currentDisk.catalogLoaded) { return }
 
-        const dnameEl = this.catalog.querySelector('h2 span')
+        const dnameEl = this.catalog.querySelector('h3 span')
         let dname = window.petscii.petsciiStringToString(this.currentDisk.diskName).padEnd(16) + ' '
         dname += window.petscii.petsciiStringToString(this.currentDisk.diskId).padEnd(2) + ' '
         dname += window.petscii.petsciiStringToString(this.currentDisk.diskDOS).padEnd(2)
@@ -400,7 +399,7 @@ class FileControls {
         this.catalogRendered = false
         await this.currentDisk.diskLoaded()
         window.localStorage.setItem('currentDisk', this.currentDisk.diskBytes().toBase64())
-        const dname = this.currentDisk.diskName
+        const dname = this.currentDisk.diskName || 'unnamed'
 
         this.diskOptions.setName(dname)
         this.diskOptions.selectionsEnable()
@@ -475,7 +474,7 @@ class FileControls {
             program += window.tokenizer.detokenizeLine(lineBytes) + '\n'
         }
 
-        window.editor.setProgram(program)
+        window.editor.setProgram(program, true)
         window.editor.enableEditor()
         window.blocker.hide()
     }

@@ -1,26 +1,21 @@
 /* Disk Catalog */
 
 #catalog {
-    z-index: 20;
     font-family: var(--menu-font);
     font-size: 16px;
-    position: fixed;
-    width: 28em;
     padding: 1em;
-    border: solid 1em var(--dialog-border);
+    width: 28em;
     height: 70vh;
-    overflow-y: auto;
-    top: 15vh;
-    left: calc(50vw - 14em);
     color: var(--dialog-foreground);
     background: var(--dialog-background);
+    overflow-y: auto;
 }
-#catalog h2 {
+#catalog h3 {
     padding: 0;
     margin: 0;
     font-size: 16px;
 }
-#catalog h2 span { white-space: pre; }
+#catalog h3 span { white-space: pre; }
 #catalog ul {
     padding: 0;
     margin: 0;
@@ -30,7 +25,7 @@
     white-space: pre;  
     cursor: pointer;
 }
-#catalog h2 span, #disk ul li:hover {
+#catalog h3 span, #disk ul li:hover {
     color: var(--dialog-background);
     background: var(--dialog-foreground);
 }

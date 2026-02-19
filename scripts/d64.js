@@ -144,6 +144,7 @@ class D64 {
     }
 
     dumpBAM() {
+        if (1 === 1) { return } // stop logging for now 
         console.log('BAM Dump:')
         console.log('                       1    1    2')
         console.log('Track Free   .1...5....0....5....0xxx')

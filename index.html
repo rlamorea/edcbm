@@ -66,12 +66,16 @@
         </button> -->
       </span>
 
-      <span id="debug-actions">
-        <button id="server" class="disconnected">
-          <svg class="connected" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path x="2" y="2" width="20" height="8" rx="2" ry="2" d="M2.667 1.333H13.333A1.333 1.333 0 0 1 14.667 2.667V5.333A1.333 1.333 0 0 1 13.333 6.667H2.667A1.333 1.333 0 0 1 1.333 5.333V2.667A1.333 1.333 0 0 1 2.667 1.333z"/><path x="2" y="14" width="20" height="8" rx="2" ry="2" d="M2.667 9.333H13.333A1.333 1.333 0 0 1 14.667 10.667V13.333A1.333 1.333 0 0 1 13.333 14.667H2.667A1.333 1.333 0 0 1 1.333 13.333V10.667A1.333 1.333 0 0 1 2.667 9.333z"/><path d="M4 4h0.007M4 12h0.007"/></svg>
-          <svg class="disconnected" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><path d="M6 6h.01M6 18h.01"/><path stroke-width="4" stroke="#fff" d="M20 0 4 24"/><path d="m19.5 1-15 22"/></svg>      
-        </button>
+      <button id="server" class="unset" data-menu="servermenu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><path d="M6 6h.01M6 18h.01"/></svg>
+      </button>
+      <ul id="servermenu">
+        <li data-hotkey="c" class="disabled">Connect</li>
+        <li data-hotkey="d" class="disabled">Disconnect</li>
+        <li data-hotkey="o" class="disabled">Configure</li>
+      </ul>
 
+      <span id="debug-actions">
         <button id="run">
           <svg width="18px" height="18px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="#000000"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.25 3l1.166-.624 8 5.333v1.248l-8 5.334-1.166-.624V3zm1.5 1.401v7.864l5.898-3.932L5.75 4.401z"/></svg>
         </button>
@@ -126,11 +130,15 @@
     </span>
   </div>
   <div id="container"></div>
-  <div id="catalog">
-    <h2>0 <span></span></h2>
+
+  <dialog id="catalog" closedby="any">
+    <span class="close"><svg width="18" height="18" viewBox="0 0 0.36 0.36" xmlns="http://www.w3.org/2000/svg"><path fill="#444" d="M.34.07.29.02.18.133.07.02.02.07l.112.11L.02.29l.05.05.11-.112.11.112.05-.05L.228.18z"/></svg></span>
+    <h3>0 <span></span></h3>
     <ul></ul>
-  </div>
-  <div id="paletteeditor">
+  </dialog>
+
+  <div id="paletteeditor" class="dialog">
+    <span class="close"><svg width="18" height="18" viewBox="0 0 0.36 0.36" xmlns="http://www.w3.org/2000/svg"><path fill="#444" d="M.34.07.29.02.18.133.07.02.02.07l.112.11L.02.29l.05.05.11-.112.11.112.05-.05L.228.18z"/></svg></span>
     <h2>custom palette</h2>
     <div class="grid editor">
       <h3>editor</h3>
@@ -207,6 +215,7 @@
   </div>
 
   <dialog id="about" closedby="any">
+    <span class="close"><svg width="18" height="18" viewBox="0 0 0.36 0.36" xmlns="http://www.w3.org/2000/svg"><path fill="#444" d="M.34.07.29.02.18.133.07.02.02.07l.112.11L.02.29l.05.05.11-.112.11.112.05-.05L.228.18z"/></svg></span>
     <h1>
       <img class="c64" src="/assets/c64.svg">
       <img class="c128" src="/assets/c128.svg">
@@ -219,7 +228,7 @@
       <img class="cbm2" src="/assets/cbm2.svg">
       EDCBM<p>Version: 0.5</p>
     </h1>
-    <h2>by: Rick Lamoreaux</h2>
+    <h3>by: Rick Lamoreaux</h3>
     <div class="links">
       <a href="https://github.com/rlamorea/edcbm" target="_blank" tabindex="3"><img src="/assets/github.svg" alt="github"/></a>
       <a href="https://bsky.app/profile/ricksayshelloworld.bsky.social" target="_blank" tabindex="4"><img src="/assets/bluesky.svg" alt="bluesky"/></a>
@@ -227,8 +236,25 @@
       <a href="https://ricksayshello.world/" target="_blank" tabindex="6"><img src="/assets/blog.svg" alt="Rick Says Hello World Blog"/></a>
     </div>
     <div class="actions">
-      <button class="ol" data-action="welcome" tabindex="2">WELCOME PAGE</button>
-      <button data-action="close" tabindex="1" autofocus>CLOSE</button>
+      <button data-action="welcome" tabindex="2">WELCOME PAGE</button>
+      <button class="close" tabindex="1" autofocus>CLOSE</button>
+    </div>
+  </dialog>
+
+  <dialog id="server-config" closedby="any">
+    <h2>Configure Server</h2>
+    <span class="close"><svg width="18" height="18" viewBox="0 0 0.36 0.36" xmlns="http://www.w3.org/2000/svg"><path fill="#444" d="M.34.07.29.02.18.133.07.02.02.07l.112.11L.02.29l.05.05.11-.112.11.112.05-.05L.228.18z"/></svg></span>
+    <label for="server-port">Port: localhost:</label><input id="server-port" type="number" min="3000" max="49151" placeholder="port #"/><br/>
+    <p><b>Server Startup:</b><br/>
+      <em>npx edcbmServer</em><br/>
+      set environment (can be in .edcbmenv):<br/>
+      * PORT=<i>port</i> - default 3129<br/>
+      * VICE=<i>path/to/vice</i> - path to vice executables<br/>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (e.g. x64sc, x128, xvic, etc.)
+    </p>
+    <div class="actions">
+      <button class="close">CANCEL</button>
+      <button class="save">CONNECT</button>
     </div>
   </dialog>
 
@@ -245,6 +271,7 @@
   <script type="text/javascript" src="/scripts/asm.js"></script>
   <script type="text/javascript" src="/scripts/keyboard.js"></script>
   <script type="text/javascript" src="/scripts/welcome.js"></script>
+  <script type="text/javascript" src="/scripts/server.js"></script>
 </body>
 </html>
 
