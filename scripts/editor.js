@@ -1,8 +1,9 @@
 class Editor {
     static petsciiKeymap = { }
 
-    static editorConfig = {
+    static commonEditorConfig = {
         brackets: [ [ '(', ')' ] ],
+        comments: { lineComment: "`" }
     }
 
     // always combined with control
@@ -26,7 +27,7 @@ class Editor {
         [ /[+-]?\d*\.?\d+(e?[+-]?\d+)?/, 'number' ],
         [ /\uE05E/, 'number' ], // pi
         [ /"/, 'string', '@string' ],
-        [ /[\(\)]/, 'paren' ],
+        [ /(\(|\)]BEGIN|BEND)/, 'paren' ],
     ]
     static languageTokenizerCommon = {
         string: [
@@ -67,7 +68,13 @@ class Editor {
 
     static {
         this.language = {}
+        this.editorConfig = {}
         for (const version in Tokenizer.keywords) {
+            this.editorConfig[version] = {
+                ...this.commonEditorConfig,
+                ...Tokenizer.editorConfig[version] || {}
+            }
+
             this.language[version] = {
                 keywords: Tokenizer.keywords[version],
                 ignoreCase: true,
@@ -89,7 +96,6 @@ class Editor {
                     ...this.language[version].tokenizer,
                     ...additionalTokenizing.tokenizerInsert
                 }
-                let foo = 2
             }
         }
     }
@@ -101,7 +107,7 @@ class Editor {
         for (const version in Editor.language) {
             const id = `${version}basic`
             monaco.languages.register({ id })
-            monaco.languages.setLanguageConfiguration(id, Editor.editorConfig)
+            monaco.languages.setLanguageConfiguration(id, Editor.editorConfig[version])
             monaco.languages.setMonarchTokensProvider(id, Editor.language[version])
         }
     }

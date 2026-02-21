@@ -260,6 +260,11 @@ class Tokenizer {
             }
         ]
     }
+    static editorConfig = {
+        'v7': {
+            brackets: [ [ '(', ')' ], [ 'begin', 'bend' ] ]
+        }
+    }
     static keywordPetscii = {
         ...Petscii.coreTable_Sym,
         ...Petscii.coreTable_UC
