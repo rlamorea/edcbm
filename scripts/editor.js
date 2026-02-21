@@ -141,6 +141,7 @@ class Editor {
             value: '',
             bracketPairColorization: { enabled: false },
             cursorStyle: 'block',
+            contextmenu: false
         })
         document.fonts.ready.then(() => {
             monaco.editor.remeasureFonts()
