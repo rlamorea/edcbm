@@ -180,7 +180,7 @@ class Keymap {
         const petscii = lookup[key.code]
         if (petscii && petscii >= 0x00) {
             if (petscii === 0x00) { return 0 }
-            if (options.noCtrl && (petscii <= 0x1F) || (petscii >= 0x80 && petscii <= 0x9F)) { return 0 }
+            if (options.noCtrl && ((petscii <= 0x1F) || (petscii >= 0x80 && petscii <= 0x9F))) { return 0 }
             if (options.noExt && petscii >= 0xA0) { return 0 }
             return petscii
         }
