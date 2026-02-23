@@ -7,7 +7,7 @@ class Editor {
     }
 
     // always combined with control
-    static menuHotkeys = [ 'KeyM', 'KeyP', 'KeyD', 'KeyK', 'KeyL' ]
+    static menuHotkeys = [ 'KeyQ', 'KeyP', 'KeyD', 'KeyK', 'KeyL' ]
 
     static languageTokenizerRoot = [
         [ /^\d+/, 'linenumber' ],
@@ -112,6 +112,60 @@ class Editor {
         }
     }
 
+    getKeyBindingsToRemove() {
+        return [
+            monaco.KeyMod.CtrlCmd | monaco.KeyMod.AltCmd | monaco.KeyCode.LeftArrow,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.CtrlCmd | monaco.KeyMod.AltCmd | monaco.KeyCode.LeftArrow,
+            monaco.KeyMod.CtrlCmd | monaco.KeyMod.AltCmd | monaco.KeyCode.RightArrow,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.CtrlCmd | monaco.KeyMod.AltCmd | monaco.KeyCode.RightArrow,
+            monaco.KeyMod.CtrlCmd | monaco.KeyMod.AltCmd | monaco.KeyCode.Backspace,
+            monaco.KeyMod.CtrlCmd | monaco.KeyMod.AltCmd | monaco.KeyCode.Delete,
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+            monaco.KeyMod.MetaCmd | monaco.KeyCode.Enter,
+            monaco.KeyMod.AltCmd | monaco.KeyCode.Escape,
+            monaco.KeyCode.F1,
+            monaco.KeyCode.F2,
+            monaco.KeyMod.MetaCmd | monaco.KeyCode.F2,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.MetaCmd | monaco.KeyCode.F2,
+            monaco.KeyCode.F4,
+            monaco.KeyMod.ShiftCmd | monaco.KeyCode.F4,
+            monaco.KeyCode.F7,
+            monaco.KeyMod.ShiftCmd | monaco.KeyCode.F7,
+            monaco.KeyCode.F8,
+            monaco.KeyMod.AltCmd | monaco.KeyCode.F8,
+            monaco.KeyMod.ShiftCmd | monaco.KeyCode.F8,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.AltCmd | monaco.KeyCode.F8,
+            monaco.KeyCode.F12,
+            monaco.KeyMod.AltCmd | monaco.KeyCode.F12,
+            monaco.KeyMod.ShiftCmd | monaco.KeyCode.F12,
+            monaco.KeyMod.MetaCmd | monaco.KeyCode.F12,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.MetaCmd | monaco.KeyCode.F12,
+            monaco.KeyMod.AltCmd | monaco.KeyCode.BracketLeft,
+            monaco.KeyMod.AltCmd | monaco.KeyMod.MetaCmd | monaco.KeyCode.BracketLeft,
+            monaco.KeyMod.AltCmd | monaco.KeyCode.BracketRight,
+            monaco.KeyMod.AltCmd | monaco.KeyMod.MetaCmd | monaco.KeyCode.BracketRight,
+            monaco.KeyMod.MetaCmd | monaco.KeyCode.Period,
+            monaco.KeyMod.AltCmd | monaco.KeyMod.MetaCmd | monaco.KeyCode.Period,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.MetaCmd | monaco.KeyCode.Period,
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.Space,
+            monaco.KeyMod.CtrlCmd | monaco.KeyMod.AltCmd | monaco.KeyCode.Space,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.MetaCmd | monaco.KeyCode.Space,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.AltCmd | monaco.KeyCode.KeyA,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.AltCmd | monaco.KeyCode.KeyF,
+            monaco.KeyMod.MetaCmd | monaco.KeyCode.KeyI,
+            monaco.KeyMod.MetaCmd | monaco.KeyCode.KeyK,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.MetaCmd | monaco.KeyCode.KeyL,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyM,
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyN,
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyO,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.AltCmd | monaco.KeyCode.KeyO,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.MetaCmd | monaco.KeyCode.KeyO,
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP,
+            monaco.KeyMod.ShiftCmd | monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyR,
+            monaco.KeyMod.AltCmd | monaco.KeyMod.MetaCmd | monaco.KeyCode.KeyP,
+        ]
+    }
+
     constructor() {
         this.initialized = false
         this.setUpMonaco()
@@ -141,10 +195,17 @@ class Editor {
             value: '',
             bracketPairColorization: { enabled: false },
             cursorStyle: 'block',
+            contextmenu: false
         })
         document.fonts.ready.then(() => {
             monaco.editor.remeasureFonts()
         })
+
+        // remove undesirable keybindings (?)
+        const keyBindingsToRemove = this.getKeyBindingsToRemove()
+        for (const kb of keyBindingsToRemove) {
+            monaco.editor.addKeybindingRule({ keybinding: kb, command: null })            
+        }
 
         this.maximumLineLength = 160
         this.editor.onKeyDown((key) => { this.keyDown(key) })
