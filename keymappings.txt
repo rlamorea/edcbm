@@ -1,0 +1,152 @@
+none+
+    ArrowUp - up
+    ArrowDown - down
+    ArrowLeft - left
+    ArrowRight - right
+    PageUp/fn+LeftArrow - page up
+    PageDown/fn+RigthArrow - page down
+    Home/fn+LeftArrow - start of line
+    End/fn+RightArrow - end of line
+    Escape (when any selection) - cancel selection (priority 1)
+    Escape (when in column select) - cancel column select (priority 2)
+    Escape (when no selection or multicursor) - go to menu bar (priority 3)
+    Backspace - delete left
+    Delete/fn+Backspace - delete right [REIMPLEMENT -- delete to line number]
+    Tab (when there is a selection) - indent lines
+    F1-F8 - CBM Function Symbols
+
+shift+
+    ArrowUp - select up to previous line/current col
+    ArrowDown - select down to next line/current col
+    ArrowLeft - select to previous letter
+    ArrowRight - select to next letter
+    PageUp/fn+UpArrow - select to page up
+    PageDown/fn+DownArrow - select to page down
+    Home/fn+LeftArrow - select to start of line
+    End/fn+RightArrow - select to end of line
+    Tab (when there is a selection) - unindent lines
+    Enter - process line without breaking
+    A-Z, 0-9, Symbols - CBM Symbols
+  
+ctrl+
+    UpArrow - scroll line up
+    DownArrow - scroll line down
+    A - start of line
+    B - left
+    C - copy
+    D - disk menu
+    E - end of line
+    G - goto line number
+    H - up
+    J - join lines
+    K - toggle virtual keyboard
+    L - swap case
+    M - right
+    N - down
+    P - program menu
+    Q - machine menu
+    T - transpose letter
+    V - paste
+    X - cut
+    
+alt+
+    LeftArrow - word left
+    RightArrow - word right
+    DownArrow - move line down
+    UpArrow - move line up
+
+meta+
+    UpArrow - Top
+    DownArrow - Bottom
+    LeftArrow - start of line
+    RightArrow - end of line
+    PageUp/fn+UpArrow - scroll page up
+    PageDown/fn+DownArrow - scroll page down
+    Enter - insert blank line below
+    [ - to go opposite bracket
+    ] - indent line
+    / - comment line
+    ` - comment line
+    , - move selected text left
+    . - move selected text right
+    A - select all
+    C - copy
+    D - assign selection as find pattern (no find panel)
+    E - find current selection
+    F - find
+    G - go to next match of find pattern
+    M - show context menu
+    U - undo last cursor move
+    V - paste
+    W - highlight next match of current word
+    X - cut
+    Z - undo
+    Backspace - delete to start of line
+    Delete/fn+Backspace - delete to end of line
+
+shift+ctrl+
+    LeftArrow - "smart" contract selection
+    RightArrow - "smart" expand selection
+    UpArrow - scroll page up
+    DownArrow - scroll page down
+    A - select to start of line
+    B - extend select left
+    E - select to end of line
+    H - extend select up
+    M - extend select right
+    N - extend select down
+
+shift+alt+
+    A-Z+symbols - CBM symbols
+    0-9 - CBM C= colors
+    LeftArrow - select to start of current/previous word
+    RightArrow - select to end of current/next word
+    DownArrow - copy line down
+    UpArrow - copy line up
+
+ctrl+alt+
+    A-Z+symbols - CBM CTRL symbols
+    0-9 - CBM CTRL colors + REV OFF/ON
+    Arrows - CBM Arrow symbols
+
+shift+meta+
+    UpArrow - select to top
+    DownArrow - select to bottom
+    LeftArrow - select to start of line
+    RightArrow - select to end of line
+    Enter - insert blank line above
+    / - uncomment line
+    ` - uncomment line
+    [ - select to opposite bracket
+    ] - unindent line
+    , - delete word left
+    . - delete word right
+    G - go to previous match of find pattern
+    K - delete line with cursor (or all selected)
+    L - expand selection to full line/next line
+    J - delete trailing whitespace
+    U - redo last cursor move
+    W - highlight previous match of current word
+    Z - redo
+
+alt+meta+
+    ; - add cursor below
+    - - decrease font size
+    = - reset font size
+    Backspace - delete current brackets
+    C - toggle find case sensitive    
+    F - find and replace
+    I - add cursors to end of all selected lines
+    L - toggle find in selection
+    R - toggle find with regex
+    W - toggle find whole word
+
+shift+alt+meta+
+    ArrowDown - column select extend down
+    ArrowUp - column select extend up
+    ArrowLeft - column select extend left
+    ArrowRight - column select extend right
+    PageUp/fn-UpArrow - column select page up
+    PageDown/fn-LeftArrow - column select page down
+    = - increase font size
+    ; - add cursor above

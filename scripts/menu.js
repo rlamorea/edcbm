@@ -392,7 +392,7 @@ class Controls {
                 activeElement.blur()
                 activeElement.click()
             }
-        } else if (event.code === 'KeyM' && event.ctrlKey) {
+        } else if (event.code === 'KeyQ' && event.ctrlKey) {
             this.handleHotkey(event, thisthis.machineDropMenu.dropToggle)
             this.machineDropMenu.toggleMenu(true)
         } else if (event.code === 'KeyP' && event.ctrlKey) {
