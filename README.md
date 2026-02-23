@@ -6,7 +6,7 @@ An online editor for Commodore BASIC programs supporting annotation
 ### Cursor Movement
 
 | Action | Key Sequence |
-+--------+--------------+
+|--------|-------------:|
 | Move cursor up one line | `UpArrow` or `control`+`H` |
 | Move cursor down one line | `DownArrow` or `control`+`N` |
 | Move cursor left one character | `LeftArrow` or `control`+`B` |
@@ -30,7 +30,7 @@ An online editor for Commodore BASIC programs supporting annotation
 ### Selection
 
 | Action | Key Sequence |
-+--------+--------------+
+|--------|-------------:|
 | Move cursor up one line and extend selection to cursor | `shift`+`UpArrow` or `shift`+`control`+`H` |
 | Move cursor down one line and extend selection to cursor | `shift`+`DownArrow` or `shift`+`control`+`N` |
 | Move cursor left one character and extend selection to cursor | `shift`+`LeftArrow` or `shift`+`control`+`B` |
@@ -53,7 +53,7 @@ An online editor for Commodore BASIC programs supporting annotation
 ### Column Selection/Multi-Cursor
 
 | Action | Key Sequence |
-+--------+--------------+
+|--------|-------------:|
 | Extend column selection down | `shift`+`alt`+`meta`+`DownArrow` |
 | Extend column selection up | `shift`+`alt`+`meta`+`UpArrow` |
 | Extend column selection left | `shift`+`alt`+`meta`+`LeftArrow` |
@@ -68,7 +68,7 @@ An online editor for Commodore BASIC programs supporting annotation
 ### Deletion
 
 | Action | Key Sequence |
-+--------+--------------+
+|--------|-------------:|
 | Delete character to left of cursor | `Backspace` (mac: `delete`) |
 | Delete character to right of cursor | `Delete` (mac: `fn`+`delete`) |
 | Delete to start of line | `meta`+`Backspace` |
@@ -82,7 +82,7 @@ An online editor for Commodore BASIC programs supporting annotation
 ### Editing
 
 | Action | Key Sequence |
-+--------+--------------+
+|--------|-------------:|
 | Accept and process current line | `Enter` _at end of line_ |
 | Split current line and process first part | `Enter` _anywhere but end of line_ |
 | Accept and process current line | `shift`+`Enter` _anywhere in line_ |
@@ -109,7 +109,7 @@ An online editor for Commodore BASIC programs supporting annotation
 ### Find and Replace
 
 | Action | Key Sequence |
-+--------+--------------+
+|--------|-------------:|
 | Open find panel | `meta`+`F` |
 | Open find and replace panel | `alt`+`meta`+`'F` |
 | Find current selection | `meta`+`E` |
@@ -127,7 +127,7 @@ An online editor for Commodore BASIC programs supporting annotation
 ### EDCBM Shortcuts
 
 | Action | Key Sequence |
-+--------+--------------+
+|--------|-------------:|
 | Open Machine menu | `control`+`Q` |
 | Open Program menu | `control`+`P` |
 | Open DISK menu | `control`+`D` |
@@ -142,7 +142,7 @@ An online editor for Commodore BASIC programs supporting annotation
 ### PETSCII and Special CBM Characters
 
 | Action | Key Sequence |
-+--------+--------------+
+|--------|-------------:|
 | Function Key Code Symbols | F1-F8 (machine depending) |
 | SHIFT-ed Symbols | `shift`+`A-Z`, `0-9`, `(Symbolic Keys)` |
 | C= Symbols | `shift`+`alt`+`A-Z`, `(Symbolic Keys)` |
