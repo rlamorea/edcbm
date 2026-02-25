@@ -140,7 +140,7 @@ export class ViceCommand {
             ]
         },
         'execrts': 0x73,
-        'execrun': 0xaa,
+        'execrun': 0xaa, 
         'type': {
             commandByte: 0x72,
             payload: [
@@ -148,7 +148,10 @@ export class ViceCommand {
                 { name: 'text', type: 'petscii' }
             ]
         },
-        'ping': 0x81,
+        'ping': { 
+            commandByte: 0x81, 
+            // sendsRegisters: true 
+        },
         'infobanks': 0x82,
         'inforeg': {
             commandByte: 0x83,
@@ -163,7 +166,10 @@ export class ViceCommand {
             ]
         },
         'infovice': 0x85,
-        'quit': 0xbb,
+        'quit': { 
+            commandByte: 0xbb,
+            // sendsRegisters: true
+        },
         'reset': {
             commandByte: 0xcc,
             payload: [
@@ -185,6 +191,7 @@ export class ViceCommand {
             this.commandStruct = { commandByte: this.commandStruct, payload: [] }
         }
         this.response = this.commandStruct.responseByte || this.commandStruct.commandByte
+        this.sendsRegisters = this.commandStruct.sendsRegisters ?? false
         const pbytes = this.getPayloadBytes({ name: command, payload: this.commandStruct }, this.args)
         this.payloadBytes =  [
             STX,
@@ -287,7 +294,7 @@ export class ViceCommand {
         let sizeKey = ''
         if (payload.payload instanceof Object) {
             sizeKey = payload.payload.size || ''
-            payload.payload = payload.payload.payload // wow!
+            payload.payload = payload.payload.payload || [] // wow!
         }
         let pbytes = []
         for (let element of payload.payload) {
@@ -377,6 +384,10 @@ export class ViceCommand {
         return this.response
     }
 
+    needsRegisters() {
+        return this.sendsRegisters
+    }
+
     bytes() {
         return new Uint8Array(this.payloadBytes)
     }
@@ -393,6 +404,34 @@ export class ViceResponse {
         0x83: 'Invalid command',
         0x84: 'General failure'
     }
+
+    static HEADER_LENGTH = 12
+
+    static parseInt(bytes) {
+        const bits = bytes.length * 8
+        let val = 0
+        for (let byte = 0; byte < bytes.length; byte++) {
+            val = val + bytes[byte] * 2**(byte*8)
+        }
+        return val
+    }
+
+    static responseSplitter(bytes) {
+        let responses = []
+        while (bytes.length >= ViceResponse.HEADER_LENGTH) { // if we have a minimum sized response
+            const dataLengthBytes = bytes.slice(2, 6)
+            const dataLength = ViceResponse.parseInt(dataLengthBytes) + ViceResponse.HEADER_LENGTH
+            if (bytes.length >= dataLength) {
+                responses.push(bytes.slice(0, dataLength))
+                bytes = bytes.slice(dataLength)
+            } else {
+                break
+            }
+        }
+
+        return { responses, extra: bytes }
+    }
+
     static responses = {
         'memget': {
             responseByte: 0x01,
@@ -510,7 +549,11 @@ export class ViceResponse {
         this.lookup = {}
         for (const k in this.responses) {
             let byte = this.responses[k]
-            if (byte instanceof Object) { byte = byte.responseByte }
+            if (byte instanceof Object) { 
+                byte = byte.responseByte 
+            } else {
+                this.responses[k] = { responseByte: byte }
+            }
             this.lookup[byte] = k
         }
     }

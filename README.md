@@ -6,7 +6,7 @@ An online editor for Commodore BASIC programs supporting annotation
 ### Cursor Movement
 
 | Action | Key Sequence |
-|--------|-------------:|
+|--------|-------------:    |
 | Move cursor up one line | `UpArrow` or `control`+`H` |
 | Move cursor down one line | `DownArrow` or `control`+`N` |
 | Move cursor left one character | `LeftArrow` or `control`+`B` |
