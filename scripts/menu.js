@@ -20,6 +20,7 @@ const Machines = {
         menu: 'c128-80 columns',
         language: 'v7',
         kb: 'c128',
+        executeMachine: 'c128',
         startAddress: 0x1c01,
     },
     'vic20' : {

@@ -243,6 +243,7 @@ class Editor {
         if (cursorPos) {
             this.newCursorLocation = JSON.parse(cursorPos)
             this.editor.setPosition(this.newCursorLocation)
+            this.editor.revealPosition(this.newCursorLocation, monaco.editor.ScrollType.Immediate)            
         }
         this.initialized = true
     }
@@ -273,6 +274,7 @@ class Editor {
         if (this.newCursorLocation) {
             setTimeout(() => {
                 this.editor.setPosition(this.newCursorLocation)
+                this.editor.revealPosition(this.newCursorLocation, monaco.editor.ScrollType.Immediate)
                 this.newCursorLocation = null
             }, 20)
         }
@@ -345,7 +347,7 @@ class Editor {
         this.editor.updateOptions({ readOnly: !enable })
         this.enabled = enable
         if (enable) { 
-            this.editor.setPosition({ lineNumber: 1, column: 1 })
+            // this.editor.setPosition({ lineNumber: 1, column: 1 })
             setTimeout(() => this.editor.focus(), 100) // delay focus until extraneous keypresses settle out and are ignored
         }
         document.getElementById('edit-actions').style.display = enable ? 'inline' : 'none'

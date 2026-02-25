@@ -32,6 +32,16 @@ class Server {
         }
 
         this.portInput.value = this.port
+
+        this.runButton = document.getElementById('run')
+        this.runButton.addEventListener('click', () => this.runProgram())
+        this.runButton.style.display = 'none'
+
+        this.stopButton = document.getElementById('run-stop')
+        this.stopButton.addEventListener('click', () => this.stopProgram())
+        this.stopButton.style.display = 'none'
+
+        this.isRunning = false
     }
 
     itemSelected(li) {
@@ -83,6 +93,7 @@ class Server {
                 this.disconnectItem.classList.remove('disabled')
                 this.configureItem.classList.remove('disabled')
                 window.localStorage.setItem('serverPort', this.port)
+                this.runButton.style.display = 'inline'
                 this.connected = true
             } else {
                 console.log('invalid ping response from server:', result)
@@ -101,7 +112,63 @@ class Server {
         this.connectItem.classList.remove('disabled')
         this.disconnectItem.classList.add('disabled')
         this.configureItem.classList.remove('disabled')
+        this.runButton.style.display = 'none'
+        this.stopButton.style.display = 'none'
+        this.isRunning = false
         this.connectButton.disabled = false
+    }
+
+    async runProgram() {
+        if (!this.connected) { return }
+        this.runButton.style.display = 'none'
+        window.editor.enableEditor(false)
+        
+        const startAddress = window.menu.machine.startAddress
+        const payload = {
+            executeMachine: window.menu.machine.executeMachine || window.menu.machine.name,
+            startAddress: startAddress,
+            programBytes: editor.getProgramBytes(startAddress).toBase64()
+        }
+        try {
+            const response = await window.fetch(`http://localhost:${this.port}/vice/run`, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'application/json; charset=UTF-8' }
+            })
+            const result = await response.json()
+            if (result.status === 'running') {
+                this.stopButton.style.display = 'inline'
+                this.isRunning = true
+            } else {
+                console.log('invalid run response from server:', result)
+                this.runButton.style.display = 'inline'
+                // TODO: report error
+            }
+        } catch (error) {
+            console.log('error running program')
+            console.error(error)
+            this.runButton.style.display = 'inline'
+            // TODO: report error
+        }
+    }
+
+    async stopProgram() {
+        this.stopButton.style.display = 'none'
+        try {
+            const response = await window.fetch(`http://localhost:${this.port}/vice/stop`, { method: 'POST' })
+            const result = await response.json()
+            if (result.status !== 'stopped') {
+                console.log('invalid stop response from server:', result)
+                // TODO: report error
+            }
+        } catch (error) {
+            console.log('error stopping program')
+            console.error(error)
+            // TODO: report error
+        }
+        this.runButton.style.display = 'inline'
+        window.editor.enableEditor(true)
+        this.isRunning = false
     }
 }
 
