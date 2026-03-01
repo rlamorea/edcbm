@@ -1,0 +1,3 @@
+#debug-pause-cont svg.cont { display: none }
+#debug-pause-cont.cont svg.pause { display: none }
+#debug-pause-cont.cont svg.cont { display: inline }

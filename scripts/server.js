@@ -41,6 +41,7 @@ class Server {
         this.stopButton.addEventListener('click', () => this.stopProgram())
         this.stopButton.style.display = 'none'
 
+        this.debugger = new Debugger(this)
         this.isRunning = false
     }
 
@@ -94,6 +95,9 @@ class Server {
                 this.configureItem.classList.remove('disabled')
                 window.localStorage.setItem('serverPort', this.port)
                 this.runButton.style.display = 'inline'
+                this.stopButton.style.display = 'none'
+                this.stopButton.disabled = true
+                this.debugger.setState('connected')
                 this.connected = true
             } else {
                 console.log('invalid ping response from server:', result)
@@ -116,18 +120,28 @@ class Server {
         this.stopButton.style.display = 'none'
         this.isRunning = false
         this.connectButton.disabled = false
+        this.debugger.enable(false)
+    }
+
+    debugging(active = true) {
+        this.isRunning = active ? 'debugging' : false
+        this.runButton.style.display = active ? 'none' : 'inline'
+        this.stopButton.style.display = active ? 'inline' : 'none'
+        this.stopButton.disabled = false
     }
 
     async runProgram() {
         if (!this.connected) { return }
-        this.runButton.style.display = 'none'
+        this.runButton.disabled = true
+        this.stopButton.style.display = 'inline'
+        this.debugger.setState('running')
         window.editor.enableEditor(false)
         
         const startAddress = window.menu.machine.startAddress
         const payload = {
             executeMachine: window.menu.machine.executeMachine || window.menu.machine.name,
             startAddress: startAddress,
-            programBytes: editor.getProgramBytes(startAddress).toBase64()
+            programBytes: window.editor.getProgramBytes(startAddress).toBase64()
         }
         try {
             const response = await window.fetch(`http://localhost:${this.port}/vice/run`, {
@@ -137,7 +151,7 @@ class Server {
             })
             const result = await response.json()
             if (result.status === 'running') {
-                this.stopButton.style.display = 'inline'
+                this.stopButton.disabled = false
                 this.isRunning = true
             } else {
                 console.log('invalid run response from server:', result)
@@ -153,7 +167,12 @@ class Server {
     }
 
     async stopProgram() {
+        this.stopButton.disabled = true
         this.stopButton.style.display = 'none'
+        if (this.isRunning === 'debugging') {
+            this.debugger.stop()
+            return
+        }
         try {
             const response = await window.fetch(`http://localhost:${this.port}/vice/stop`, { method: 'POST' })
             const result = await response.json()
@@ -166,8 +185,9 @@ class Server {
             console.error(error)
             // TODO: report error
         }
-        this.runButton.style.display = 'inline'
-        window.editor.enableEditor(true)
+        this.runButton.disabled = false
+        this.debugger.setState('stopped')
+        window.editor.enableEditor()
         this.isRunning = false
     }
 }

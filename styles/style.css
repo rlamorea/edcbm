@@ -207,8 +207,6 @@ dialog button:disabled, dialog button:disabled:hover,
 #menu #palette.lite svg.lite { display: inline; }
 #menu #palette.cbm svg.cbm { display: inline; }
 
-#menu #debug-actions { display: none; }
-
 #menu #server.connected { background: #99dd99; }
 #menu #server.disconnected { background: #ff9999; }
 
@@ -248,6 +246,14 @@ dialog button:disabled, dialog button:disabled:hover,
 }
 #container.read-only-mode .monaco-editor .cursors-layer .cursor {
     display: none !important;
+}
+
+.executionPoint::before {
+    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 15 15' stroke='red' fill='red'%3E%3Cpath d='M14 7 9 2H1v10h8z'/%3E%3C/svg%3E");
+    text-align: center;
+}
+.debugHighlight {
+    text-decoration: underline 3px dashed var(--dialog-foreground);
 }
 
 /* dialogs */
