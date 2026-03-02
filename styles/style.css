@@ -13,6 +13,7 @@
     --menu-foreground-strong: white;
     --menu-foreground-weak: #aaaaaa;
     --menu-placeholder: #888888;
+    --menu-height: 27px;
 
     --dialog-border: '#444444';
     --dialog-foreground: '#dddddd';
@@ -56,21 +57,23 @@ dialog::backdrop {
 
 /* Main Menu */
 
-#menu {
+.menubar {
     font-family: var(--menu-font);
     color: var(--menu-foreground);
     background: var(--menu-border);
     text-transform: uppercase;
     font-size: 14px;
-    position: fixed;
     vertical-align: top;
-    top: 0;
     height: 27px;
     line-height: 27px;
     width: 100%;
     z-index: 5;
     display: flex;
     justify-content: space-between;
+}
+#menu {
+    position: fixed;
+    top: 0;    
 }
 #menu h1 {
     margin: 0;
@@ -84,7 +87,7 @@ dialog::backdrop {
     cursor: pointer;
 }
 
-#menu .m-right {
+.menubar .m-right {
     display: flex;
     justify-content: flex-end;
     gap: 0;
@@ -92,7 +95,7 @@ dialog::backdrop {
 }
 #menu svg { vertical-align: middle; }
 
-#menu button, dialog button, .dialog button {
+.menubar button, dialog button, .dialog button {
     font-family: sans-serif;
     font-size: 15px;
     min-height: 20px;
@@ -104,7 +107,8 @@ dialog::backdrop {
     color: black;
     cursor: pointer;
 }
-#menu button:disabled, #menu button:disabled:hover,
+.menubar button { height: 21px; }
+.menubar button:disabled, .menubar button:disabled:hover,
 dialog button:disabled, dialog button:disabled:hover,
 .dialog button:disabled, .dialog button:disabled:hover {
     opacity: 0.5;
@@ -112,8 +116,8 @@ dialog button:disabled, dialog button:disabled:hover,
     background: var(--button-background);
     color: black;
 }
-#menu button.enabled { background: var(--button-background-enabled); }
-#menu button:hover, dialog button:hover, .dialog button:hover {
+.menubar button.enabled { background: var(--button-background-enabled); }
+.menubar button:hover, dialog button:hover, .dialog button:hover {
     background: var(--button-background-hover);
     color: var(--menu-foreground-strong);
 }
@@ -139,7 +143,7 @@ dialog button:disabled, dialog button:disabled:hover,
     color: var(--menu-placeholder);
     font-style: italic; 
 }
-    #menu input.f-lc::placeholder { text-transform: lowercase; }
+#menu input.f-lc::placeholder { text-transform: lowercase; }
 
 #menu .drop {
     cursor: pointer;
@@ -207,8 +211,6 @@ dialog button:disabled, dialog button:disabled:hover,
 #menu #palette.lite svg.lite { display: inline; }
 #menu #palette.cbm svg.cbm { display: inline; }
 
-#menu #debug-actions { display: none; }
-
 #menu #server.connected { background: #99dd99; }
 #menu #server.disconnected { background: #ff9999; }
 
@@ -231,7 +233,7 @@ dialog button:disabled, dialog button:disabled:hover,
 
 #container {
     width: 98vw;
-    height: calc(99vh - 25px);
+    height: calc(99vh - var(--menu-height));
     margin-top: 25px;
     margin-left: 1vw;
 }

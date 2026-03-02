@@ -1,5 +1,5 @@
 import net from 'net'
-import { ViceCommand, ViceResponse, boolval } from './viceDebugger.js'
+import { ViceCommand, ViceResponse, boolval } from './viceComm.js'
 import { spawn } from 'child_process'
 import config from './config.js'
 
@@ -15,6 +15,9 @@ process.on('uncaughtException', (err) => {
 
 export class ViceConnection {
     static VICE_DEFAULT_PORT = 6502
+    static RUN_COMMAND = [ 0x52, 0x55, 0x4E, 0x0d ]
+
+    static IGNORE_RESPONSES = [ 'stopped', 'resumed', 'registers' ] // NOTE: eventually we'll just store the last registers to save time
 
     static machines = {
         'c128': { 
@@ -22,14 +25,17 @@ export class ViceConnection {
             startupDelay: 500,
             check: { addresses: [ 0x41cf, 0x41d2 ], values: [ 0x56, 0x37, 0x2e, 0x30] },
             exec: { break: 0x4b41, lookup: [ 0x3b, 0x3e] },
-            startOfBasic: 0x2d          
+            startOfBasic: 0x2d,
         },
         'c64': {
             launcher: 'x64sc',
             startupDelay: 2000,
             check: { addresses: [ 0xe488, 0xe489 ], values: [ 0x36, 0x34 ] },
-            exec: { break: 0xa7ef, lookup: [ 0x39, 0x7b ] },
-            startOfBaskc: 0x2b
+            exec: { break: 0xa7ef, lookup: { line: 0x39, addr: 0x7a } },
+            stop: { break: 0xa84f },
+            startOfBaskc: 0x2b,
+            keyboardBuffer: 0x0277,
+            keyboardBufferCount: 0x00c6,
         },
         'c16': { 
             launcher: 'xplus4', args: [ '--model', 'c16' ],
@@ -79,6 +85,7 @@ export class ViceConnection {
         this.viceSocket = null
 
         this.machine = null
+        this.machineData = null
 
         this.port = null
         this.diskPath = null
@@ -90,11 +97,23 @@ export class ViceConnection {
 
         this.bufferedBytes = []
         this.bufferedResponses = []
+
+        this.waitingForCheckpoint = false
+        this.checkpointHandler = null
     }
 
     debug(...message) {
         if (!this.viceDebug) { return }
-        console.log(message.join(' '))
+        let msg = ''
+        for (const mp of message) {
+            if (mp instanceof Object) {
+                msg += JSON.stringify(mp)
+            } else {
+                msg += mp.toString()
+            }
+            msg += ' '
+        }
+        console.log(msg.trim())
     }
 
     prepPromise(method) {
@@ -158,6 +177,7 @@ export class ViceConnection {
             this.debug('process got data on stdout', data)
             this.startupDelay = Math.max(machineData.startupDelay ?? 0, config.STARTUP_DELAY)
             this.commandDelay = Math.max(machineData.commandDelay ?? 0, config.COMMAND_DELAY)
+            this.debugDelay = Math.max(machineData.debugDelayt ?? 0, config.DEBUG_DELAY)
             this.maxRetries = Math.max(machineData.retries ?? 0, config.VICE_RETRIES)
 
             this.establishConnection()
@@ -174,6 +194,7 @@ export class ViceConnection {
         this.viceProcess.on('close', (code) => {
             this.debug(`VICE closed with ${code}`)
             this.viceProcess = null
+            this.bufferedResponses = []
             if (this.reject && !this.quitting) {
                 this.doReject(`vice closed with ${code}`)
             }
@@ -196,6 +217,7 @@ export class ViceConnection {
             this.viceSocket = net.createConnection({ host: 'localhost', port: this.port }, () => {
                 this.debug('vice socket created')
                 this.viceSocket.on('data', (data) => { 
+                    console.log('vice socket got data', data)
                     this.debug('vice socket got data', data)
                     const { responses, extra } = ViceResponse.responseSplitter([ ...this.bufferedBytes, ...data ])
                     this.debug('split into', responses, 'and', extra)
@@ -203,9 +225,8 @@ export class ViceConnection {
                     this.newResponses = []
                     for (const responseBytes of responses) {
                         const response = new ViceResponse(responseBytes)
-                        if (response.requestId() !== 0xffffffff) {
-                            this.bufferedResponses.push(response)
-                        }
+                        if (response.requestId() === 0xffffffff && ViceConnection.IGNORE_RESPONSES.includes(response.responseName)) { continue }
+                        this.bufferedResponses.push(response)
                     }
                 })
                 this.viceSocket.on('end', () => {
@@ -241,20 +262,54 @@ export class ViceConnection {
     }
 
     waitForResponse(requestId, retry = 0) {
+        console.log('waitForResposne from request id', requestId)
         this.debug('waiting for response to', requestId, 'retry', retry, 'against', this.bufferedResponses.length, 'responses')
+        console.log('there are', this.bufferedResponses.length, 'responses buffered', (this.bufferedResponses.map(r => r.responseName)))
         for (let idx = 0; idx < this.bufferedResponses.length; idx++) {
             const response = this.bufferedResponses[idx]
+            console.log('checking against', response.responseName, 'for', response.requestId())
             this.debug('...checking against', response)
             if (response.requestId() === requestId) {
                 this.bufferedResponses.splice(idx, 1)
+                console.log('now there are', this.bufferedResponses.length, 'responses buffered', (this.bufferedResponses.map(r => r.responseName)))
                 this.doResolve(response)
                 return
             }
         }
         if (retry >= this.maxRetries) {
+            this.debug('timed out waiting for request id', requestId)
             this.doReject('request time out')
+            return
         }
         setTimeout( () => { this.waitForResponse(requestId, retry + 1) }, this.commandDelay )
+    }
+
+    waitForCheckpoint() {
+        if (!this.waitingForCheckpoint || !this.checkpointHandler) { return }
+        for (let idx = 0; idx < this.bufferedResponses.length; idx++) {
+            const response = this.bufferedResponses[idx]
+            this.debug('checkpoint checking against', response)
+            if (response.responseName === 'checkpoint') {
+                this.waitingForCheckpoint = false
+                this.bufferedResponses.splice(idx, 1)
+                this.checkpointHandler(response.parsed.checkpoint, response)
+                return
+            }
+        }
+        setTimeout( () => { this.waitForCheckpoint() }, this.debugDelay )
+    }
+
+    startWaiting(handler) {
+        if (handler) { this.checkpointHandler = handler }
+        this.waitingForCheckpoint = true
+        this.waitForCheckpoint()
+    }
+
+    stopWaiting(fullStop = false) {
+        this.waitingForCheckpoint = false
+        if (fullStop) {
+            this.checkpointHandler = null
+        }
     }
 
     checkConnection(callback) {
@@ -263,14 +318,19 @@ export class ViceConnection {
         this.sendCommand(ping, false)
     }
 
-    async sendCommand(command, newPromise = true) {
+    async sendCommand(command, newPromise = true, wait = true) {
         let done = null
         if (newPromise) {
             done = this.prepPromise()
         }
         this.debug('sending command', command)
+        console.log('sending ', command.command, 'as request', command.requestId())
         this.viceSocket.write(Buffer.from(command.bytes()))
-        this.waitForResponse(command.requestId())
+        if (wait) {
+            this.waitForResponse(command.requestId())
+        } else {
+            this.doResolve('assumed to succeed')
+        }
         return done
     }
 
@@ -293,8 +353,8 @@ export class ViceConnection {
             }
         }
         this.debug(`VICE machine ${this.machine} confirmed`)
-        machineGood = true
-        return machineGood
+        this.machineData = ViceConnection.machines[this.machine]
+        return true
     }
 
     shutDown() {
@@ -302,10 +362,67 @@ export class ViceConnection {
         try {
             this.quitting = true
             const exit = new ViceCommand('quit')
-            this.sendCommand(exit, false)
+            this.sendCommand(exit, false, false)
         } catch (e) {
             this.doReject('quit with error ' + e)
         }
         return done
+    }
+
+    // common vice actions
+    async launchViceForMachine(machine) {
+        await this.launchVice(machine)
+        const isMachine = await this.confirmMachine()
+        if (!isMachine) {
+            throw(new Error('wrong machine started'))
+        }
+    }
+
+    async loadProgram(programBytes, startAddress) {
+        if (startAddress == null) {
+            // TODO: look up from machine itself maybe?
+        }
+        await this.sendCommand(new ViceCommand('memset', {
+            startAddress: startAddress,
+            endAddress: startAddress + programBytes.length - 1, // 0-based count
+            dataBytes: programBytes
+        }))
+    }
+
+    async runBASICProgram(startVice = true) {
+        await this.sendCommand(new ViceCommand('memset', {
+            startAddress: this.machineData.keyboardBuffer,
+            endAddress: this.machineData.keyboardBuffer + ViceConnection.RUN_COMMAND.length - 1,
+            dataBytes: ViceConnection.RUN_COMMAND
+        }))
+        await this.sendCommand(new ViceCommand('memset', {
+            startAddress: this.machineData.keyboardBufferCount,
+            endAddress: this.machineData.keyboardBufferCount,
+            dataBytes: [ ViceConnection.RUN_COMMAND.length ]
+        }))
+        if (startVice) {
+            await this.sendCommand(new ViceCommand('execrun'))
+        }
+    }
+
+    async setUpforBASICBreak() {
+        const execResponse = await this.sendCommand(new ViceCommand('chkset', {
+            startAddress: this.machineData.exec.break,
+            endAddress:  this.machineData.exec.break,
+            stopWhenHit: boolval.btrue,
+            enabled: boolval.btrue,
+            operation: 0x04, // on exec
+        }))
+        const stopResponse = await this.sendCommand(new ViceCommand('chkset', {
+            startAddress: this.machineData.stop.break,
+            endAddress: this.machineData.stop.break,
+            stopWhenHit: boolval.btrue,
+            enabled: boolval.btrue,
+            operation: 0x04, // on exec
+        }))
+        return { 
+            execCheckpoint: execResponse.parsed.checkpoint,
+            stopCheckpoint: stopResponse.parsed.checkpoint
+        }
     }
 }

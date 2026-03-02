@@ -1,17 +1,55 @@
 import express from 'express'
 import { ViceConnection } from './vice.js'
-import { ViceCommand } from './viceDebugger.js'
+import { ViceCommand } from './viceComm.js'
+import { ViceDebugger } from './viceDebugger.js'
 import cors from 'cors'
 import config from './config.js'
+import { createServer } from 'http'
+import { WebSocketServer } from 'ws' 
 
 const app = express()
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
 
-const port = config.PORT
-
-//const vice = new ViceConnection()
 let currentVice = null
+
+const server = createServer(app)
+const wss = new WebSocketServer({ server })
+
+wss.on('connection', ws => {
+    if (currentVice) {
+        ws.send(JSON.stringify({ status: 'error', error: 'VICE already running'}))
+        return
+    }
+
+    console.log('socket connected')
+    currentVice = new ViceConnection()
+    const viceDebugger = new ViceDebugger(currentVice, ws)
+
+    ws.on('message', message => {
+        console.log('got message:', message.toString())
+        viceDebugger.handleMessage(message)
+    })
+
+    ws.on('end', () => {
+        viceDebugger.close()
+    })
+
+    ws.on('close', () => {
+        viceDebugger.close()
+        currentVice = null
+        console.log('socket closed')
+    })
+
+    ws.on('error', (e) => {
+        console.log('socket error', e)
+    })
+})
+wss.on('error', (e) => {
+    console.log('socket server error', e)
+})
+
+const port = config.PORT
 
 app.get('/', (req, res) => {
     res.send({ edcbm: true })
@@ -34,30 +72,12 @@ app.post('/vice/run', async (req, res) => {
     console.log('start', req.body.startAddress, 'programBytes', programBytes)
     currentVice = new ViceConnection()
     try {
-        const result = await currentVice.launchVice(machine)
-        const isMachine = await currentVice.confirmMachine()
-        if (!isMachine) {
-            res.status(500).json({ status: 'error', error: 'wrong machine started' })
-        }
-        await currentVice.sendCommand(new ViceCommand('memset', {
-            startAddress: req.body.startAddress,
-            endAddress: req.body.startAddress + programBytes.length - 1, // 0-based count
-            dataBytes: programBytes
-        }))
-        await currentVice.sendCommand(new ViceCommand('memset', {
-            startAddress: 631,
-            endAddress: 634,
-            dataBytes: [ 82, 85, 78, 13 ] // RUN<return>
-        }))
-        await currentVice.sendCommand(new ViceCommand('memset', {
-            startAddress: 198,
-            endAddress: 198,
-            dataBytes: [ 4 ] // 4 bytes in keyboard buffer
-        }))
-        await currentVice.sendCommand(new ViceCommand('execrun'))
+        await currentVice.launchViceForMachine(machine)
+        await currentVice.loadProgram(programBytes, req.body.startAddress)
+        await currentVice.runBASICProgram()
         res.send({ status: 'running' })
     } catch (e) {
-        res.status(500).json({ status: 'error', error: e.toString() })
+        res.status(500).json({ status: 'error', error: e.message })
     }
 })
 
@@ -77,8 +97,8 @@ app.post('/vice/stop', async (req, res) => {
 
 if (config.good) {
     // Start the server
-    app.listen(port, () => {
+    server.listen(port, () => {
         console.log(`EDCBM Server listening at http://localhost:${port}`)
-        //vice.launchVice('plus4')
+        console.log('Websocket listening here as well')
     })
 }

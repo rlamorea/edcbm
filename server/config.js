@@ -37,14 +37,14 @@ function validateVicePath(v) {
 const trueValues = [ 1, true, 'true', 'yes', 't', 'y', '1' ]
 const falseValues = [ 0, false, 'false', 'no', 'f', 'n', '0' ]
 
-function validateFlag(v) {
+function validateFlag(v, name) {
     let error = null
     if (trueValues.includes(v.toLowerCase())) {
         v = true
     } else if (falseValues.includes(v.toLowerCase())) {
         v = false
     } else {
-        error = 'invalid flag value: ' + v
+        error = `invalid ${name} flag value ${v}`
     }
     return { value: v, error }
 }
@@ -57,7 +57,8 @@ const availableConfig = {
     VICE_RETRIES: { args: [ '-r', '--retries' ], default: 5, validator: (v) => { return validateNumber(v, 'retries', 1, 20) } },
     STARTUP_DELAY: { args: [ '-s', '--startup', '--startupdelay' ], default: 500, validator: (v) => { return validateNumber(v, 'startup delay', 10, 60000) } },
     COMMAND_DELAY: { args: [ '-c', '--command', '--commanddelay' ], default: 250, validator: (v) => { return validateNumber(v, 'command delay', 10, 60000) } },
-    VICE_DEBUG: { args: [ '-D', '--debug' ], default: false, validator: (v) => { validateFlag(v, 'debug') } }
+    DEBUG_DELAY: { arcs: [ '-b', '--debugdelay' ], default: 50, validator: (v) => { return validateNumber(v, 'debug delay', 10, 60000) } },
+    VICE_DEBUG: { args: [ '-D', '--debug' ], default: false, validator: (v) => { return validateFlag(v, 'debug') } }
 }
 
 const config = { }

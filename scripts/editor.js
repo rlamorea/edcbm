@@ -230,6 +230,8 @@ class Editor {
 
         this.bufferedProgram = null
 
+        this.debuggerBox = null
+
         this.enabled = false
         this.enableEditor(false)
     }
@@ -349,6 +351,10 @@ class Editor {
         if (enable) { 
             // this.editor.setPosition({ lineNumber: 1, column: 1 })
             setTimeout(() => this.editor.focus(), 100) // delay focus until extraneous keypresses settle out and are ignored
+            if (this.debuggerBox) {
+                this.editor.deltaDecorations(this.debuggerBox, [])
+                this.debuggerBox = null
+            }
         }
         document.getElementById('edit-actions').style.display = enable ? 'inline' : 'none'
     }
@@ -691,6 +697,54 @@ class Editor {
         var op = {identifier: id, range, text: str, forceMoveMarkers: true}
         this.editor.executeEdits("", [op])
         this.newCursorLocation = { lineNumber: position.positionLineNumber, column: position.selectionStartColumn + str.length }
+    }
+
+    debuggerMode(enable = true) {
+        if (enable) {
+            this.editor.updateOptions({ 
+                glyphMargin: true
+            })
+        } else {
+            this.editor.updateOptions({ glyphMargin: false })
+        }
+    }
+
+    debuggerLineNumber(lineNo, show = true) {
+        if (lineNo == null) {
+            if (this.debuggerBox) {
+                this.editor.deltaDecorations(this.debuggerBox, [])
+                this.debuggerBox = null
+            }
+            return
+        }
+        const prevDebug = this.debuggerBox ?? []
+        // find editor line starting with line number
+        const lines = this.editor.getValue().split('\n')
+        let highlightLine = -1
+        let lineLength = 0
+        for (let editorLine = 1; editorLine <= lines.length; editorLine++) {
+            const line = lines[editorLine - 1]
+            const { byteArray, lineNumber } = window.tokenizer.tokenizeLine(line)
+            if (lineNumber == null) { continue }
+            if (lineNumber === lineNo) {
+                highlightLine = editorLine
+                lineLength = line.length + 1
+                break
+            }
+        }
+        let newDebug = []
+        this.debuggerLineNo = highlightLine
+        if (highlightLine >= 0) {
+            const range = new monaco.Range(highlightLine, 1, highlightLine, lineLength)
+            newDebug.push({ 
+                range, options: { 
+                    glyphMarginClassName: 'executionPoint',
+                    inlineClassName: 'debugHighlight'
+                }
+            })
+            this.editor.revealLine(highlightLine)
+        }
+        this.debuggerBox = this.editor.deltaDecorations(prevDebug, newDebug)
     }
 }
 
