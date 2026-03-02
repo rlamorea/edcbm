@@ -73,7 +73,7 @@ app.post('/vice/run', async (req, res) => {
     currentVice = new ViceConnection()
     try {
         await currentVice.launchViceForMachine(machine)
-        await currentVice.loadProgram(programBytes, req.body.startAddress)
+        await currentVice.loadBASICProgram(programBytes, req.body.startAddress)
         await currentVice.runBASICProgram()
         res.send({ status: 'running' })
     } catch (e) {

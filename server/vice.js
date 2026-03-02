@@ -378,13 +378,23 @@ export class ViceConnection {
         }
     }
 
-    async loadProgram(programBytes, startAddress) {
+    async loadBASICProgram(programBytes, startAddress) {
         if (startAddress == null) {
             // TODO: look up from machine itself maybe?
         }
+        const endAddress = startAddress + programBytes.length
+        // initialize BASIC pointers
+        const endLow = endAddress & 0xff
+        const endHigh = (endAddress >> 8) & 0xff
+        await this.sendCommand(new ViceCommand('memset', {
+            startAddress: 0x002d,
+            endAddress: 0x0032,
+            dataBytes: [ endLow, endHigh, endLow, endHigh, endLow, endHigh ]
+        }))
+        // load in program bytes
         await this.sendCommand(new ViceCommand('memset', {
             startAddress: startAddress,
-            endAddress: startAddress + programBytes.length - 1, // 0-based count
+            endAddress: endAddress - 1, // 0-based count
             dataBytes: programBytes
         }))
     }

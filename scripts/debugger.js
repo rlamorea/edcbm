@@ -46,11 +46,11 @@ class Debugger {
         disconnected: false
     }
     static buttonDisabledStates = {
-        'run': [ 'disconnected', 'starting', 'running', 'debugging', 'paused', 'continued', 'stepping' ],
+        'run': [ 'disconnected', 'starting', 'running', 'debugging', 'ended', 'paused', 'continued', 'stepping' ],
         'debug': [ 'disconnected', 'starting', 'running', 'debugging', 'paused', 'continued', 'stepping' ],
-        'pause': [ 'disconnected', 'connected', 'starting', 'running', 'stopped', 'alert', ],
-        'step': [ 'disconnected', 'connected', 'starting', 'running', 'continued', 'stepping', 'stopped', 'alert' ],
-        'stop': [ 'disconnected', 'connected', 'starting', 'ended', 'stopped', 'alert' ]
+        'pause': [ 'disconnected', 'connected', 'starting', 'running', 'ended', 'stopped', 'alert', ],
+        'step': [ 'disconnected', 'connected', 'starting', 'running', 'continued', 'ended', 'stepping', 'stopped', 'alert' ],
+        'stop': [ 'disconnected', 'connected', 'starting', 'stopped', 'alert' ]
     }
     setState(newState, message) {
         // debug mode
@@ -158,7 +158,7 @@ class Debugger {
     }
 
     startDebug() {
-        if (this.runMode !== 'stopped') { return }
+        if (this.runMode !== 'ended' && this.runMode !== 'stopped') { return }
         if (!this.port) { return }
         this.runMode = 'debugging'
         
@@ -234,6 +234,7 @@ class Debugger {
         if (!this.socket) { return }
         window.editor.debuggerLineNumber()
         this.setState('ended')
+        this.runMode = 'ended'
     }
 
     stopDebug() {

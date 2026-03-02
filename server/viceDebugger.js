@@ -47,7 +47,7 @@ export class ViceDebugger {
             console.log('start', data.startAddress, 'programBytes', programBytes)
 
             await this.vice.launchViceForMachine(machine)
-            await this.vice.loadProgram(programBytes, data.startAddress)
+            await this.vice.loadBASICProgram(programBytes, data.startAddress)
             const { execCheckpoint, stopCheckpoint } = await this.vice.setUpforBASICBreak()
             this.execCheckpoint = execCheckpoint
             this.stopCheckpoint = stopCheckpoint
