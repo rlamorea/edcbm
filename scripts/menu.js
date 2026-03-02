@@ -267,7 +267,9 @@ class Controls {
             selectHandler: (li) => { this.setMachine(li.dataset.machine) }
         })
 
-        document.getElementById('clean').addEventListener('click', () => this.cleanCode())
+        this.cleanButton = document.getElementById('clean')
+        this.cleanButton.addEventListener('click', () => this.cleanCode())
+        this.cleanButton.style.display = 'none' // not sure if this will be needed, so hiding for now
 
         this.title = document.querySelector('#menu h1')
         this.about = document.getElementById('about')
