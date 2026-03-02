@@ -127,14 +127,12 @@ class Debugger {
                 this.setState('running')
             } else {
                 console.log('invalid run response from server:', result)
-                this.setState('stopped')
-                // TODO: report error
+                this.setState('alert', 'Error: unexpected run response')
             }
         } catch (error) {
             console.log('error running program')
             console.error(error)
-            this.setState('stopped')
-            // TODO: report error
+            this.setState('alert', `Error: ${error.message}`)
         }
     }
 
@@ -148,12 +146,12 @@ class Debugger {
             const result = await response.json()
             if (result.status !== 'stopped') {
                 console.log('invalid stop response from server:', result)
-                // TODO: report error
+                this.setState('alert', 'Error: unexpected stop response')
             }
         } catch (error) {
             console.log('error stopping program')
             console.error(error)
-            // TODO: report error
+            this.setState('alert', `Error: ${error.message}`)
         }
         this.setState('stopped')
         this.runMode = 'stopped'
@@ -207,7 +205,7 @@ class Debugger {
         })
         this.socket.addEventListener('error', (e) => { 
             console.log('websocket error', e)
-            this.setState('connected') // restore basic buttons
+            this.setState('alert', `Error: ${e}`) 
             this.runMode = 'stopped'
         })
     }
