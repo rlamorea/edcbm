@@ -22,59 +22,162 @@ export class ViceConnection {
     static machines = {
         'c128': { 
             launcher: 'x128', 
-            startupDelay: 500,
+            startupDelay: 2000,
             check: { addresses: [ 0x41cf, 0x41d2 ], values: [ 0x56, 0x37, 0x2e, 0x30] },
-            exec: { break: 0x4b41, lookup: [ 0x3b, 0x3e] },
-            startOfBasic: 0x2d,
+            exec: { break: 0x4b41, lookup: { line: 0x3b, addr: 0x3d } },
+            stop: {
+                common: 0x4be3,
+                runout: { addr: 0x4b31, condition: '@0:$7f != $00' },
+                reset: 0x4009,
+            },
+            pointers: {
+                startOfBasic: 0x2d,
+                startOfVars: 0x2f, // pointing to bank 1
+                startOfArrays: 0x31, // pointing to bank 1
+                bottomOfStrings: 0x33, // pointing to bank 1
+                topOfStrings: 0x35, // pointing to bank 1
+                keyboardBuffer: 0x034a,
+                keyboardBufferCount: 0xd0,
+            },
+            basicPrep: false
         },
         'c64': {
             launcher: 'x64sc',
             startupDelay: 2000,
             check: { addresses: [ 0xe488, 0xe489 ], values: [ 0x36, 0x34 ] },
             exec: { break: 0xa7ef, lookup: { line: 0x39, addr: 0x7a } },
-            stop: { break: 0xa84f },
-            startOfBaskc: 0x2b,
-            keyboardBuffer: 0x0277,
-            keyboardBufferCount: 0x00c6,
+            stop: { 
+                common: 0xa84f,
+                reset: 0xe37b,
+            },
+            pointers: {
+                startOfBasic: 0x2b,
+                startOfVars: 0x2d,
+                startOfArrays: 0x2f,
+                bottomOfStrings: 0x31,
+                topOfStrings: 0x33,
+                keyboardBuffer: 0x277,
+                keyboardBufferCount: 0x00c6,
+            },
+            basicPrep: { start: 0x2d, end: 0x32 }
         },
         'c16': { 
             launcher: 'xplus4', args: [ '--model', 'c16' ],
             check: { addresses: [ 0x80df, 0x80e3 ], values: [ 0x56, 0x33, 0x2e, 0x35, 0x20 ] },
-            exec: { break: 0x8c27, lookup: [ 0x39, 0x3c ] },
-            startOfBasic: 0x2b
+            exec: { break: 0x8c27, lookup: { line: 0x39, addr: 0x3b } },
+            stop: { 
+                common: 0x8cdb,
+                runout: 0x8c17,
+            },
+            pointers: {
+                startOfBasic: 0x2b,
+                startOfVars: 0x2d,
+                startOfArrays: 0x2e,
+                bottomOfStrings: 0x31,
+                topOfStrings: 0x33,
+                keyboardBuffer: 0x527,
+                keyboardBufferCount: 0xef,
+            },
+            basicPrep: { start: 0x2d, end: 0x32 }
          },
         'plus4': { 
             launcher: 'xplus4', args: [ '--model', 'plus4' ],
             check: { addresses: [ 0x80df, 0x80e3 ], values: [ 0x56, 0x33, 0x2e, 0x35, 0x20 ] },
-            exec: { break: 0x8c27, lookup: [ 0x39, 0x3c ] },
-            startOfBasic: 0x2b
+            exec: { break: 0x8c27, lookup: { line: 0x39, addr: 0x3c } },
+            stop: { 
+                common: 0x8cdb,
+                runout: 0x8c17,
+            },
+            pointers: {
+                startOfBasic: 0x2b,
+                startOfVars: 0x2d,
+                startOfArrays: 0x2e,
+                bottomOfStrings: 0x31,
+                topOfStrings: 0x33,
+                keyboardBuffer: 0x527,
+                keyboardBufferCount: 0xef,
+            },
+            basicPrep: { start: 0x2d, end: 0x32 }
         },
         'vic20': {
             launcher: 'xvic',
             check: { addresses: [ 0xe446, 0xe447 ], values: [ 0x56, 0x32 ] },
-            exec: { break: 0xc7ef, lookup: [ 0x39, 0x7b ] },
-            startOfBasic: 0x2b
+            exec: { break: 0xc7ef, lookup: { line: 0x39, addr: 0x7b } },
+            stop: { 
+                common: 0xc84f,
+                reset: 0xfed2,
+            },
+            pointers: {
+                startOfBasic: 0x2b,
+                startOfVars: 0x2d,
+                startOfArrays: 0x2f,
+                bottomOfStrings: 0x31,
+                topOfStrings: 0x33,
+                keyboardBuffer: 0x277,
+                keyboardBufferCount: 0xc6,
+            },
+            basicPrep: { start: 0x2d, end: 0x32 }
         },
         'pet-g': { 
             launcher: 'xpet', args: [ '--model', '3032' ],
             startupDelay: 2000,
             check: { addresses: [ 0xe1d2, 0xe1d4 ], values: [ 0x42, 0x41, 0x53 ] },
-            exec: { break: 0xc702, lookup: [ 0x36, 0x78 ] },
-            startOfBasic: 0x28
+            exec: { break: 0xc702, lookup: { line: 0x36, addr: 0x78 } },
+            stop: { 
+                common: 0xc763
+            },
+            pointers: {
+                startOfBasic: 0x28,
+                startOfVars: 0x2a,
+                startOfArrays: 0x2c,
+                bottomOfStrings: 0x2e,
+                topOfStrings: 0x30,
+                keyboardBuffer: 0x270,
+                keyboardBufferCount: 0x9e,
+            },
+            basicPrep: { start: 0x2a, end: 0x2f }
          },
         'pet-b': { 
             launcher: 'xpet', args: [ '--model', '8032' ], 
             startupDelay: 2000,
             check: { addresses: [ 0xdeb8, 0xdeba ], values: [ 0x34, 0x2e, 0x30 ] },
-            exec: { break: 0xb787, lookup: [ 0x36, 0x78 ] },
-            startOfBasic: 0x28
+            exec: { break: 0xb787, lookup: { line: 0x36, addr: 0x7b } },
+            stop: { 
+                common: 0xb7e6,
+            },
+            pointers: {
+                startOfBasic: 0x28,
+                startOfVars: 0x2a,
+                startOfArrays: 0x2c,
+                bottomOfStrings: 0x2e,
+                topOfStrings: 0x30,
+                keyboardBuffer: 0x270,
+                keyboardBufferCount: 0x9e,
+            },
+            basicPrep: { start: 0x2a, end: 0x2f }
         },
         'cbm2': {
             launcher: 'xcbm2',
             startupDelay: 1000,
             check: { addresses: [ 0xbb96, 0xbb98 ], bank: 17, values: [ 0x31, 0x32, 0x38 ] },
-            exec: { break: 0x87aa, lookup: [ 0x42, 0x86 ] },
-            startOfBasic: 0x2d, // NOTE: always in bank ram01
+            exec: { break: 0x87aa, lookup: { line: 0x42, addr: 0x86 } },
+            stop: { 
+                common: 0x8bdc, // pointing to bank cpu
+                runout: 0x876c, // pointing to bank cpu
+            },
+            pointers: {
+                startOfBasic: 0x2d, // pointing to bank ram01
+                endOfBasic: 0x2f, // pointing to bank ram01
+                startOfVars: 0x31, // pointing to bank ram03
+                endOfVars: 0x33, // pointing to bank ram03
+                startOfArrays: 0x35, // pointing to bank ram02
+                endOfArrays: 0x37, // pointing to bank ram02
+                bottomOfStrings: 0x3b, // pointing to bank ram04
+                topOfStrings: 0x3f, // pointing to bank ram04
+                keyboardBuffer: 0x03ab,
+                keyboardBufferCount: 0xd1,
+            },
+            basicPrep: { start: 0x2f, end: 0x30 }
         }
     }
 
@@ -114,6 +217,22 @@ export class ViceConnection {
             msg += ' '
         }
         console.log(msg.trim())
+    }
+
+    async waitUntilCurrentPromiseCompleted(resolve, reject) {
+        let p = null
+        if (!resolve) {
+            p = new Promise((res, rej) => {
+                resolve = res
+                reject = rej
+            })
+        }
+        if (this.resolve) {
+            setTimeout(() => { this.waitUntilCurrentPromiseCompleted(resolve, reject)}, 50)
+        } else {
+            resolve('ready')
+        }
+        return p
     }
 
     prepPromise(method) {
@@ -162,6 +281,13 @@ export class ViceConnection {
         }
         this.machine = machine
         const launcher = machineData.launcher
+
+        const keymapType = config[`VICE_KEYMAP_${machine.toUpperCase()}`] ?? -1 // default, don't change
+        const keymapFile = config[`VICE_KEYMAPFILE_${machine.toUpperCase()}`]
+        if (keymapType < 0 && keymapFile != null) {
+            keymapType = 2 // default to user-sym map
+        }
+
         let args = []
         args.push('--binarymonitor')
         if (this.port !== ViceConnection.VICE_DEFAULT_PORT) {
@@ -169,6 +295,12 @@ export class ViceConnection {
         }
         if (this.diskPath) {
             args.push('--8', this.diskPath)
+        }
+        if (keymapType >= 0) {
+            args.push('--keymap', keymapType)
+        }
+        if (keymapFile != null) {
+            args.push((keymapType === 2) ? '--symkeymap' : '--poskeymap', keymapFile)
         }
         this.debug('Spawning:', `${this.viceRoot}/${launcher} ${args.join(' ')}`)
         this.viceProcess = spawn(`${this.viceRoot}/${launcher}`, args)
@@ -357,7 +489,8 @@ export class ViceConnection {
         return true
     }
 
-    shutDown() {
+    async shutDown() {
+        await this.waitUntilCurrentPromiseCompleted()
         let done = this.prepPromise('alwaysresolve')
         try {
             this.quitting = true
@@ -386,11 +519,17 @@ export class ViceConnection {
         // initialize BASIC pointers
         const endLow = endAddress & 0xff
         const endHigh = (endAddress >> 8) & 0xff
-        await this.sendCommand(new ViceCommand('memset', {
-            startAddress: 0x002d,
-            endAddress: 0x0032,
-            dataBytes: [ endLow, endHigh, endLow, endHigh, endLow, endHigh ]
-        }))
+        if (this.machineData.basicPrep !== false) {
+            const start = this.machineData.basicPrep.start
+            const end = this.machineData.basicPrep.end
+            const len = end - start + 1
+            const bytes = [...Array(len)].map((_, i) => i % 2 === 0 ? endLow : endHigh);
+            await this.sendCommand(new ViceCommand('memset', {
+                startAddress: start,
+                endAddress: end,
+                dataBytes: bytes
+            }))
+        }
         // load in program bytes
         await this.sendCommand(new ViceCommand('memset', {
             startAddress: startAddress,
@@ -401,13 +540,13 @@ export class ViceConnection {
 
     async runBASICProgram(startVice = true) {
         await this.sendCommand(new ViceCommand('memset', {
-            startAddress: this.machineData.keyboardBuffer,
-            endAddress: this.machineData.keyboardBuffer + ViceConnection.RUN_COMMAND.length - 1,
+            startAddress: this.machineData.pointers.keyboardBuffer,
+            endAddress: this.machineData.pointers.keyboardBuffer + ViceConnection.RUN_COMMAND.length - 1,
             dataBytes: ViceConnection.RUN_COMMAND
         }))
         await this.sendCommand(new ViceCommand('memset', {
-            startAddress: this.machineData.keyboardBufferCount,
-            endAddress: this.machineData.keyboardBufferCount,
+            startAddress: this.machineData.pointers.keyboardBufferCount,
+            endAddress: this.machineData.pointers.keyboardBufferCount,
             dataBytes: [ ViceConnection.RUN_COMMAND.length ]
         }))
         if (startVice) {
@@ -423,16 +562,31 @@ export class ViceConnection {
             enabled: boolval.btrue,
             operation: 0x04, // on exec
         }))
-        const stopResponse = await this.sendCommand(new ViceCommand('chkset', {
-            startAddress: this.machineData.stop.break,
-            endAddress: this.machineData.stop.break,
-            stopWhenHit: boolval.btrue,
-            enabled: boolval.btrue,
-            operation: 0x04, // on exec
-        }))
-        return { 
-            execCheckpoint: execResponse.parsed.checkpoint,
-            stopCheckpoint: stopResponse.parsed.checkpoint
+            // stop: {
+            //     common: 0x4be3,
+            //     runout: { addr: 0x4b31, condition: '@0:$7f != $00' },
+            //     reset: 0x4009,
+            // },
+        let stopCheckpoints = {}
+        for (const stop in this.machineData.stop) {
+            const stopBreak = this.machineData.stop[stop]
+            let stopAddress = (stopBreak instanceof Object) ? stopBreak.addr : stopBreak
+            const stopResponse = await this.sendCommand(new ViceCommand('chkset', {
+                startAddress: stopBreak,
+                endAddress: stopBreak,
+                stopWhenHit: boolval.btrue,
+                enabled: boolval.btrue,
+                operation: 0x04, // on exec
+            }))
+            const stopCheckpoint = stopResponse.parsed.checkpoint
+            if (stopBreak instanceof Object && stopBreak.condition) {
+                await this.sendCommand(new ViceCommand('chkcondition', {
+                    checkpoint: stopCheckpoint,
+                    condition: stopBreak.condition
+                }))
+            }
+            stopCheckpoints[stop] = stopCheckpoint
         }
+        return { execCheckpoint: execResponse.parsed.checkpoint, stopCheckpoints }
     }
 }

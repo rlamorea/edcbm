@@ -48,9 +48,9 @@ export class ViceDebugger {
 
             await this.vice.launchViceForMachine(machine)
             await this.vice.loadBASICProgram(programBytes, data.startAddress)
-            const { execCheckpoint, stopCheckpoint } = await this.vice.setUpforBASICBreak()
+            const { execCheckpoint, stopCheckpoints } = await this.vice.setUpforBASICBreak()
             this.execCheckpoint = execCheckpoint
-            this.stopCheckpoint = stopCheckpoint
+            this.stopCheckpoints = stopCheckpoints
         }
         await this.vice.runBASICProgram()
         this.socket.send(JSON.stringify({ status: 'running' }))
@@ -63,7 +63,7 @@ export class ViceDebugger {
     }
 
     async basicCheckpointHit(checkpoint, response) {
-        if (checkpoint === this.stopCheckpoint) {
+        if (checkpoint !== this.execCheckpoint) {
             this.socket.send(JSON.stringify({ status: 'ended' }))
             await this.vice.sendCommand(new ViceCommand('execrun'))
             return

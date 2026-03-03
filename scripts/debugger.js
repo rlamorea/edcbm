@@ -137,7 +137,7 @@ class Debugger {
     }
 
     async stopProgram() {
-        if (this.runMode === 'debugging') {
+        if (this.socket) {
             this.stopDebug()
             return
         }
@@ -181,6 +181,7 @@ class Debugger {
             this.socket = null
             if (this.runMode !== 'stopped') {
                 this.setState('stopped')
+                this.runMode = 'stopped'
             }
         })
         this.socket.addEventListener('message', (event) => {
