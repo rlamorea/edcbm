@@ -99,7 +99,7 @@
   <path stroke-width="0.5" stroke="#888" d="M10.5 65 h 59"/>
   <path stroke-width="2" stroke="#888" stroke-linecap="round" d="M 30 66.5 h 20"/>
   <rect stroke="none" fill="#555" x="65" y="65.5" width="2" height="2"/>
-  <path fill="#ff9bd8" stroke-width="0.5" d="M 16 26 a 50 10 0 0 1 48 0 a 20 50 0 0 1 0 34 a 50 10 0 0 1 -48 0 a 20 50 0 0 1 0 -34"/>
+  <path fill="#b27fd7" stroke-width="0.5" d="M 16 26 a 50 10 0 0 1 48 0 a 20 50 0 0 1 0 34 a 50 10 0 0 1 -48 0 a 20 50 0 0 1 0 -34"/>
   <rect fill="#ffffff" stroke="none" x="20" y="30" width="40" height="26"/>
   <path stroke-width="1.5" stroke="#000" d="M 21 32 h 38 m -39 3 h 6 m -6 1.7 h 1"/>
 </g>

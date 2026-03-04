@@ -286,7 +286,7 @@ class Controls {
     waitToLoad() {
         const ready = (window.editor != null && window.palettes != null && window.fileControls != null && 
                        window.virtualKeyboard != null && window.tokenizer != null && window.petscii != null &&
-                       window.keymap != null && window.welcome != null)
+                       window.keymap != null && window.welcome != null && window.edcbmServer != null)
 
         if (ready) {
             const machineName = window.localStorage.getItem('machineName')
@@ -327,6 +327,7 @@ class Controls {
         window.fileControls.setMachine(machine)
         window.virtualKeyboard.setMachine(this.machine)
         window.editor.setMachine(this.machine)
+        window.edcbmServer.setMachine(this.machine)
         
         this.about.className = machine
         window.blocker.hide()

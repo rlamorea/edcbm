@@ -36,6 +36,10 @@ class Server {
         this.debugger = new Debugger(this)
     }
 
+    setMachine(machine) {
+        this.debugger.setMachine(machine)
+    }
+
     itemSelected(li) {
         if (li.dataset.name === 'configure') {
             this.configureDialog.showModal()

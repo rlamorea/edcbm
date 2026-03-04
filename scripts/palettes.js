@@ -131,7 +131,7 @@ const PaletteDefinitions = {
     'c128-80' : new Palette('c128-80', '#000000', '#00ffff', { '--menu-border': '#444444', '--menu-foreground': '#00ffff', editorBase: 'vs-dark', font: 'cbmthick-80', menuFont: 'cbmthick-40', variable: '#03d3d3' }),
     'c64' : new Palette('c64', '#4555d6', '#8e9aff', { '--menu-border': '#8e9aff', '--menu-foreground': '#4555d6', string: '#9985ff', operator: '#8fc9db', comment: '#958fbc' }),
     'vic20' : new Palette('vic20', '#ffffff', '#5800FC', { '--menu-border': '#80ffff', font: 'cbmthin-22', menuFont: 'cbmthin-40', string: '#408cfd', number: '#257e74', operator: '#30bb83', comment: '#ac9ec7' }), // slightly darker menu color than text color
-    'ted' : new Palette('ted', '#ffffff', '#000000', { '--menu-border': '#ff9bd8', '--menu-foreground': '#202020', variable: '#606060', string: '#0000a0', number: '#007800', operator: '#05888a' }), 
+    'ted' : new Palette('ted', '#ffffff', '#000000', { '--menu-border': '#b27fd7', '--menu-foreground': '#202020', variable: '#606060', string: '#0000a0', number: '#007800', operator: '#05888a' }), 
     'pet-40' : new Palette('pet-40', '#000000', '#65D045', { '--menu-border': '#444444', '--menu-foreground': '#65D045', editorBase: 'vs-dark', font: 'cbmthin-40', variable: '#499933', string: '#4c7cdc', number: '#61b392', operator: '#4fadc4', comment: '#72836d' }),
     'pet' : new Palette('pet', '#000000', '#65D045', { '--menu-border': '#444444', '--menu-foreground': '#65D045', editorBase: 'vs-dark', font: 'cbmthin-80', menuFont: 'cbmthin-40', variable: '#499933', string: '#4c7cdc', number: '#61b392', operator: '#4fadc4', comment: '#72836d' }),
 }

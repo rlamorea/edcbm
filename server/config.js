@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import { readdirSync } from 'fs';
+import { readdirSync, existsSync } from 'fs';
 dotenv.config({ path: './.edcbmenv'})
 
 function validateNumber(v, desc, min, max) {
@@ -28,7 +28,20 @@ function validateVicePath(v) {
             error = 'unable to locate VICE files at: ' + v
         }
     } catch (err) {
-        error = 'bad directory: ' + v + ' - ' + err.toString()
+        error = 'bad directory: ' + v + ' - ' + err.message
+    }
+
+    return { value: v, error }
+}
+
+function validateFile(v) {
+    let error = null
+    try {
+        if (!existsSync(v)) {
+            error = `${desc} file does not exist`
+        }
+    } catch (err) {
+        error = `bad ${desc} file: ${v} - ${err.message}`
     }
 
     return { value: v, error }
@@ -57,8 +70,12 @@ const availableConfig = {
     VICE_RETRIES: { args: [ '-r', '--retries' ], default: 5, validator: (v) => { return validateNumber(v, 'retries', 1, 20) } },
     STARTUP_DELAY: { args: [ '-s', '--startup', '--startupdelay' ], default: 500, validator: (v) => { return validateNumber(v, 'startup delay', 10, 60000) } },
     COMMAND_DELAY: { args: [ '-c', '--command', '--commanddelay' ], default: 250, validator: (v) => { return validateNumber(v, 'command delay', 10, 60000) } },
-    DEBUG_DELAY: { arcs: [ '-b', '--debugdelay' ], default: 50, validator: (v) => { return validateNumber(v, 'debug delay', 10, 60000) } },
-    VICE_DEBUG: { args: [ '-D', '--debug' ], default: false, validator: (v) => { return validateFlag(v, 'debug') } }
+    DEBUG_DELAY: { arcs: [ '-b', '--debugdelay' ], default: 1, validator: (v) => { return validateNumber(v, 'debug delay', 10, 60000) } },
+    VICE_DEBUG: { args: [ '-D', '--debug' ], default: false, validator: (v) => { return validateFlag(v, 'debug') } },
+    VICE_KEYMAP_C64: { args: [ '-k', '--keymap' ], default: 0, validator: (v) => { return validateNumber(v, 'c64 keymap type', 0, 3) } },
+    // VICE_KEYMAPFILE_C64: { args: [ ], default: '', validator: (v) => { return validateFile(v, 'c64 keymap file') } },
+    // VICE_KEYMAP_PET_G: { args: [ ], default: '', validator: (v) => { return validateFile(v, 'pet-g keymap file') } },
+    // VICE_KEYMAP_PET_B: { args: [ ], default: '', validator: (v) => { return validateFile(v, 'pet-b keymap file') } },
 }
 
 const config = { }
