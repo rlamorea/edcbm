@@ -70,21 +70,27 @@ export class ViceDebugger {
             this.vice.startWaiting()
             return
         }
-        // look up line number
-        const lineData = await this.vice.sendCommand(new ViceCommand('memget', {
-            startAddress: machine.exec.lookup.line,
-            endAddress: machine.exec.lookup.line + 1,
-            bankId: machine.exec.lookup.bank ?? 0
-        }))
-        const memory = lineData.response().memory
-        const lineNo = ViceResponse.parseInt(memory)
         if (this.skipNextLineBreak) { // still getting started, ignore
             this.skipNextLineBreak = false
             await this.vice.sendCommand(new ViceCommand('execrun'))
             this.vice.startWaiting()
             return
         }
-        this.socket.send(JSON.stringify({ status: 'checkpoint', reason: 'line', lineNo, info: this.freeRunning }))
+        // look up line number
+        const lineData = await this.vice.sendCommand(new ViceCommand('memget', {
+            startAddress: machine.exec.lookup.line,
+            endAddress: machine.exec.lookup.line + 1,
+            bankId: machine.exec.lookup.bank ?? 0
+        }))
+        const lineNo = ViceResponse.parseInt(lineData.response().memory)
+        // look up break address
+        const addrData = await this.vice.sendCommand(new ViceCommand('memget', {
+            startAddress: machine.exec.lookup.addr,
+            endAddress: machine.exec.lookup.addr + 1,
+            bankId: machine.exec.lookup.bank ?? 0
+        }))
+        const address = ViceResponse.parseInt(addrData.response().memory)
+        this.socket.send(JSON.stringify({ status: 'checkpoint', reason: 'step', lineNo, address, info: this.freeRunning }))
         if (this.freeRunning) {
             await this.vice.sendCommand(new ViceCommand('execrun'))
             this.vice.startWaiting()
@@ -118,8 +124,6 @@ export class ViceDebugger {
     async doContinue(data) {
         this.freeRunning = true
         await this.vice.sendCommand(new ViceCommand('execrun'))
-        if (data.trace) {
-            this.vice.startWaiting()
-        }
+        this.vice.startWaiting()
     }
 }

@@ -406,7 +406,7 @@ class Editor {
                     this.writeWord(lineAddr, arrayOfArrays[lineIndex - 1])
                 }
                 let lineByteArray = new Uint8Array(byteArray.length + 3)
-                lineByteArray.set(byteArray, 2) // open space for next line number
+                lineByteArray.set(byteArray, 2) // open space for next line address
                 arrayOfArrays.push(lineByteArray)
                 lineIndex += 1
                 totalBytes += lineByteArray.length
@@ -421,6 +421,32 @@ class Editor {
             fileIndex += lb.length
         }
         return fileBytes
+    }
+
+    getDebugAddresses(startAddr) {
+        let debugAddresses = {}
+        let lineAddr = startAddr
+        let lineIndex = 1
+        for (const line of this.editor.getValue().split('\n')) {
+            const {  byteArray, lineNumber, tokens } = window.tokenizer.tokenizeLine(line)
+            if (byteArray.length > 0) {
+                lineAddr += 4 // skip next address and line number
+                let breakPoints = { }
+                let lastBreakPoint = null
+                for (const token of tokens) {
+                    if (![ 'line-number', 'colon', 'then-split' ].includes(token.token)) { continue }
+                    const addr = lineAddr + token.byteOffset
+                    if (lastBreakPoint) { lastBreakPoint.end = token.start + 1 }
+                    breakPoints[addr] = { start: token.end + 2 } // +1 to move past token, +1 due to 1-based column indexes in editor
+                    lastBreakPoint = breakPoints[addr]
+                }
+                lastBreakPoint.end = line.length + 1
+                debugAddresses[lineNumber] = { lineIndex, breakPoints }
+                lineAddr += byteArray.length - 1 // compensate for skipped line number, add line ending 0
+            }
+            lineIndex += 1
+        }
+        return debugAddresses
     }
 
     keyDown(key) {
@@ -709,8 +735,8 @@ class Editor {
         }
     }
 
-    debuggerLineNumber(lineNo, show = true) {
-        if (lineNo == null) {
+    debuggerBreakpoint(lineIndex, breakPoint) {
+        if (lineIndex == null) {
             if (this.debuggerBox) {
                 this.editor.deltaDecorations(this.debuggerBox, [])
                 this.debuggerBox = null
@@ -718,32 +744,21 @@ class Editor {
             return
         }
         const prevDebug = this.debuggerBox ?? []
-        // find editor line starting with line number
-        const lines = this.editor.getValue().split('\n')
-        let highlightLine = -1
-        let lineLength = 0
-        for (let editorLine = 1; editorLine <= lines.length; editorLine++) {
-            const line = lines[editorLine - 1]
-            const { byteArray, lineNumber } = window.tokenizer.tokenizeLine(line)
-            if (lineNumber == null) { continue }
-            if (lineNumber === lineNo) {
-                highlightLine = editorLine
-                lineLength = line.length + 1
-                break
-            }
+        let colStart = (breakPoint ?? {}).start || 1
+        let colEnd = (breakPoint ?? {}).end
+        if (colEnd == null) {
+            // read in line?
+            colEnd = 80 // just try it for the hell of it
         }
+        const range = new monaco.Range(lineIndex, colStart, lineIndex, colEnd)
         let newDebug = []
-        this.debuggerLineNo = highlightLine
-        if (highlightLine >= 0) {
-            const range = new monaco.Range(highlightLine, 1, highlightLine, lineLength)
-            newDebug.push({ 
-                range, options: { 
-                    glyphMarginClassName: 'executionPoint',
-                    inlineClassName: 'debugHighlight'
-                }
-            })
-            this.editor.revealLine(highlightLine)
-        }
+        newDebug.push({ 
+            range, options: { 
+                glyphMarginClassName: 'executionPoint',
+                inlineClassName: 'debugHighlight'
+            }
+        })
+        this.editor.revealLine(lineIndex)
         this.debuggerBox = this.editor.deltaDecorations(prevDebug, newDebug)
     }
 }

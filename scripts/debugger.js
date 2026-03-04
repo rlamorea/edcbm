@@ -32,6 +32,7 @@ class Debugger {
         this.runStatusIcon = document.getElementById('run-status-icon')
         this.runStatusText = document.getElementById('run-status')
 
+        this.debugAddresses = null
         this.runMode = 'stopped'
         this.setState('disconnected')
     }
@@ -60,7 +61,7 @@ class Debugger {
     }
     static buttonDisabledStates = {
         'run': [ 'disconnected', 'starting', 'running', 'debugging', 'ended', 'paused', 'continued', 'stepping' ],
-        'debug': [ 'disconnected', 'starting', 'running', 'debugging', 'paused', 'continued', 'stepping' ],
+        'debug': [ 'disconnected', 'starting', 'running', 'debugging', 'ended', 'paused', 'continued', 'stepping' ],
         'pause': [ 'disconnected', 'connected', 'starting', 'running', 'ended', 'stopped', 'alert', ],
         'step': [ 'disconnected', 'connected', 'starting', 'running', 'continued', 'ended', 'stepping', 'stopped', 'alert' ],
         'stop': [ 'disconnected', 'connected', 'starting', 'stopped', 'alert' ],
@@ -96,7 +97,7 @@ class Debugger {
         // enable/disable editor
         if (newState === 'running' || newState === 'debugging') {
             window.editor.enableEditor(false)
-        } else if (newState === 'ended' || newState === 'stopped') {
+        } else if (newState === 'stopped') {
             window.editor.enableEditor()
         }
     }
@@ -122,7 +123,7 @@ class Debugger {
 
     setEditorToDebuggerMode(newMode) {
         if (window.editor) { 
-            window.editor.debuggerMode(newMode) 
+            window.editor.debuggerMode(newMode)
         } else if (newMode) {
             setTimeout(() => { this.setEditorToDebuggerMode(newMode)}, 50)
         }
@@ -195,6 +196,9 @@ class Debugger {
         }
         this.setState('starting')
 
+        const startAddress = window.menu.machine.startAddress
+        this.debugAddresses = window.editor.getDebugAddresses(startAddress)
+
         this.socket = new WebSocket(`ws://localhost:${this.port}`, 'JSON')
         this.socket.addEventListener('open', (event) => {
             this.socket.send('ping')
@@ -208,12 +212,12 @@ class Debugger {
             if (this.runMode !== 'stopped') {
                 this.setState('stopped')
                 this.runMode = 'stopped'
+                this.debugAddresses = null
             }
         })
         this.socket.addEventListener('message', (event) => {
             console.log('from socket:', event.data)
             if (event.data === 'pong') { // handshake complete, let's get running!
-                const startAddress = window.menu.machine.startAddress
                 const payload = {
                     command: 'start',
                     executeMachine: window.menu.machine.executeMachine || window.menu.machine.name,
@@ -260,7 +264,7 @@ class Debugger {
 
     ended() {
         if (!this.socket) { return }
-        window.editor.debuggerLineNumber()
+        window.editor.debuggerBreakpoint()
         this.setState('ended')
         this.runMode = 'ended'
     }
@@ -273,12 +277,14 @@ class Debugger {
     }
 
     hitCheckpoint(data) {
-        if (this.lastExecLineNo != null) {
-            window.editor.debuggerLineNumber(this.lastExecLineNo, false)
+        console.log('on line', data.lineNo, 'at address', data.address)
+        const debug = this.debugAddresses[data.lineNo]
+        if (debug == null) {
+            console.log('unknown line number', data.lineNo)
+            return
         }
-        console.log('on line', data.lineNo)
-        window.editor.debuggerLineNumber(data.lineNo)
-        this.lastExecLineNo = data.lineNo
+        const breakPoint = debug.breakPoints[data.address]
+        window.editor.debuggerBreakpoint(debug.lineIndex, breakPoint)
         if (!data.info) { this.setState('paused') }
     }
 }

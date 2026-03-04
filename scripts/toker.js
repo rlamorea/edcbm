@@ -381,8 +381,13 @@ class Tokenizer {
         return { line, lineIdx }
     }
 
-    addVariable(variables, varName, varStart) {
-        if (varName) {
+    addVariable(variables, varName, varStart, tokens) {
+        if (typeof varName === 'string' && varName !== '') {
+            tokens.push({ token: 'variable', start: varStart, end: varStart + varName.length - 1, value: varName })
+        } else if (varName != null) {
+            tokens.push({ token: 'line-number-ref', start: varStart, end: varStart + varName.toString().length - 1, value: varName })
+        }
+        if (varName != null) {
             variables[varName] = variables[varName] || []
             variables[varName].push(varStart)
         }
@@ -394,6 +399,8 @@ class Tokenizer {
     tokenizeLine(origLine) {
         let { line, lineIdx } = this.trimLine(origLine)
         let variables = {}
+        let tokens = []
+
         const specialCommentIndex = line.indexOf('`')
         let specialComment = null
         if (specialCommentIndex >= 0) {
@@ -406,11 +413,15 @@ class Tokenizer {
 
         let lineNumber = line.match(/^(\d+)/)
         if (lineNumber && lineNumber.length === 2) {
+            let token = { token: 'line-number', start: lineIdx, byteOffset: 0 }
             lineNumber = lineNumber[1]
             line = line.substring(lineNumber.length)
             lineIdx += lineNumber.length
+            token.end = lineIdx
             ;({ line, lineIdx } = this.trimLine(line, lineIdx))
             lineNumber = parseInt(lineNumber)
+            token.value = lineNumber
+            tokens.push(token)
         } else {
             return { byteArray: [], variables, specialComment }
         }
@@ -446,13 +457,13 @@ class Tokenizer {
         for (let linesplit of petsciiLine.split(/("|:|DATA|REM)/)) {
             if (!inRem) {
                 if (linesplit === '"') {
-    ``               ;({ varName, varStart} = this.addVariable(variables, varName, varStart))
+                    ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
                     inQuote = !inQuote
                     tokenBytes.push(0x22) // '"'
                     lineIdx += 1
                     continue
                 } else if (linesplit === 'REM') {
-                    ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
+                    ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
                     inRem = true // everything from here on is literal
                     inQuote = true // use inQute state to get literal chars
                     tokenBytes.push(0x8F) // REM
@@ -460,13 +471,14 @@ class Tokenizer {
                     continue
                 } else if (linesplit === ':') {
                     inData = false
-                    ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
+                    ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
+                    tokens.push({ token: 'colon', start: lineIdx, end: lineIdx, byteOffset: tokenBytes.length - 1 })
                     tokenBytes.push(0x3A) // ':'
                     lineIdx += 1
                     continue
                 } else if (linesplit === 'DATA') {
                     inData = true
-                    ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
+                    ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
                     tokenBytes.push(0x83) // DATA
                     lineIdx += 4
                     continue
@@ -476,7 +488,7 @@ class Tokenizer {
             let nextToken = (lineTokens && lineTokens.length > 0) ? lineTokens.shift() : null
             while (linesplit.length > 0) {
                 if (nextToken && linesplit.startsWith(nextToken)) {
-                    ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
+                    ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
                     const tok = this.tokenLookup[nextToken]
                     if (tok instanceof Array) {
                         tokenBytes.push(...tok)
@@ -486,11 +498,37 @@ class Tokenizer {
                     linesplit = linesplit.substring(nextToken.length)
                     lineIdx += nextToken.length
                     if (this.lineNumberTokens.includes(nextToken)) {
-                        let lineNo = linesplit.match(/^ *(\d+)/)
-                        if (lineNo && lineNo.length === 2) {
-                            const lno = parseInt(lineNo[1])
-                            const idx = lineIdx + (lineNo[0].length - lineNo[1].length)
-                            this.addVariable(variables, lno, idx)
+                        const lineNos = linesplit.match(/( *(\d+) *,?)+/g)
+                        if (lineNos.length > 0) {
+                            let lno = ''
+                            let lnoStart = -1
+                            for (let lnidx = 0; lnidx < lineNos[0].length; lnidx++) {
+                                const lch = lineNos[0][lnidx]
+                                if (lch.match(/\d/)) {
+                                    if (lnoStart < 0) {
+                                        lnoStart = lineIdx + lnidx
+                                        lno = ''
+                                    }
+                                    lno += lch
+                                } else if (lnoStart >= 0) {
+                                    const lineNo = parseInt(lno)
+                                    this.addVariable(variables, lineNo, lnoStart, tokens)
+                                    lnoStart = -1
+                                    lno = ''
+                                }
+                            }
+                            if (lnoStart >= 0) {
+                                const lineNo = parseInt(lno)
+                                this.addVariable(variables, lineNo, lnoStart, tokens)
+                            }
+                        }
+                    } else if (nextToken === 'THEN') {
+                        const lno = linesplit.match(/^ *(\d+)/)
+                        if (lno != null) {
+                            const lineNo = parseInt(lno[1])
+                            this.addVariable(variables, lineNo, lineIdx, tokens)
+                        } else {
+                            tokens.push({ token: 'then-split', start: lineIdx, end: lineIdx, byteOffset: tokenBytes.length - 1 })
                         }
                     }
                     nextToken = (lineTokens.length > 0) ? lineTokens.shift() : null
@@ -504,13 +542,13 @@ class Tokenizer {
                     } else if (varName && (char === '$' || char === '%')) {
                         varName += char
                         if (linesplit.length <= 1 || linesplit[1] !== '(') {
-                            ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
+                            ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
                         }
                     } else if (varName && char === '(') {
                         varName += char
-                        ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
+                        ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
                     } else if (varName) {
-                        ;({ varName, varStart } = this.addVariable(variables, varName, varStart))
+                        ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
                     }
                     linesplit = linesplit.substring(1)
                     const petsciiChar = window.petscii.lookup[char] ?? char.codePointAt(0)
@@ -519,14 +557,14 @@ class Tokenizer {
                 }
             }
         }
-        if (varName) { this.addVariable(variables, varName, varStart) }
+        if (varName) { this.addVariable(variables, varName, varStart, tokens) }
 
         const byteArray = new Uint8Array(tokenBytes.length)
         for (let i = 0; i < tokenBytes.length; i++) {
             byteArray[i] = parseInt(tokenBytes[i])
         }
 
-        return { byteArray, lineNumber, variables, specialComment }
+        return { byteArray, lineNumber, variables, specialComment, tokens }
     }
 }
 
