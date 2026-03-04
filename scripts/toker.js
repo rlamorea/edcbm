@@ -239,6 +239,10 @@ class Tokenizer {
         'v2': [ 'GOTO', 'GO TO', 'GOSUB' ],
         'v4+': [ 'RESTORE', 'TRAP', 'RESUME' ],
     }
+    static breakTokens = {
+        'v2': [ 'THEN' ],
+        'v4+': [ 'ELSE' ]
+    }
     static additionalTokenizing = {
         'v7': [
             {   
@@ -320,6 +324,11 @@ class Tokenizer {
         this.lineNumberTokens['v3.5'] = [ ...this.lineNumberTokens['v4+'] ]
         this.lineNumberTokens['v7'] = [ ...this.lineNumberTokens['v3.5'] ]
 
+        this.breakTokens['v4'] = this.breakTokens['v2']
+        this.breakTokens['v4+'] = [ ...this.breakTokens['v2'], ...this.breakTokens['v4+'] ]
+        this.breakTokens['v3.5'] = [ ...this.breakTokens['v4+'] ]
+        this.breakTokens['v7'] = [ ...this.breakTokens['v3.5'] ]
+
         this.keywordPetscii[0x5E] = '^' // replace special char with standard one
         this.keywordPetsciiLookup = Object.fromEntries( Object.entries(this.keywordPetscii).map(([k,v]) => [v,parseInt(k)]) )
     }
@@ -340,6 +349,7 @@ class Tokenizer {
         this.tokenRegex = new RegExp(Tokenizer.tokenRegex[this.version], 'g')
         this.maxLineLength = Tokenizer.maxLineLength[this.version]
         this.lineNumberTokens = Tokenizer.lineNumberTokens[this.version]
+        this.breakTokens = Tokenizer.breakTokens[this.version]
         this.keywords = Tokenizer.keywords[this.version]
     }
 
@@ -522,13 +532,13 @@ class Tokenizer {
                                 this.addVariable(variables, lineNo, lnoStart, tokens)
                             }
                         }
-                    } else if (nextToken === 'THEN' || nextToken === 'ELSE') {
+                    } else if (this.breakTokens.includes(nextToken)) {
                         const lno = linesplit.match(/^ *(\d+)/)
                         if (lno != null) {
                             const lineNo = parseInt(lno[1])
                             this.addVariable(variables, lineNo, lineIdx, tokens)
                         } else {
-                            tokens.push({ token: 'then-split', start: lineIdx, end: lineIdx, byteOffset: tokenBytes.length - 1 })
+                            tokens.push({ token: `${nextToken.toLowerCase()}-split`, start: lineIdx, end: lineIdx, byteOffset: tokenBytes.length - 1 })
                         }
                     }
                     nextToken = (lineTokens.length > 0) ? lineTokens.shift() : null

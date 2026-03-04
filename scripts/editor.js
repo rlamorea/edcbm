@@ -434,10 +434,16 @@ class Editor {
                 let breakPoints = { }
                 let lastBreakPoint = null
                 for (const token of tokens) {
-                    if (![ 'line-number', 'colon', 'then-split' ].includes(token.token)) { continue }
+                    if (![ 'line-number', 'colon', 'then-split', 'else-split' ].includes(token.token)) { continue }
                     const addr = lineAddr + token.byteOffset
-                    if (lastBreakPoint) { lastBreakPoint.end = token.start + 1 }
-                    breakPoints[addr] = { start: token.end + 2 } // +1 to move past token, +1 due to 1-based column indexes in editor
+                    if (lastBreakPoint) { 
+                        if (token.token === 'else-split') { // destroy the breakpoint for the preceding colon
+                            delete breakPoints[lastBreakPoint.address]
+                        } else {
+                            lastBreakPoint.end = token.start + 1 
+                        }
+                    }
+                    breakPoints[addr] = { address: addr, start: token.end + 2 } // +1 to move past token, +1 due to 1-based column indexes in editor
                     lastBreakPoint = breakPoints[addr]
                 }
                 lastBreakPoint.end = line.length + 1
