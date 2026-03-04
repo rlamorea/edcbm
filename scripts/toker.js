@@ -522,7 +522,7 @@ class Tokenizer {
                                 this.addVariable(variables, lineNo, lnoStart, tokens)
                             }
                         }
-                    } else if (nextToken === 'THEN') {
+                    } else if (nextToken === 'THEN' || nextToken === 'ELSE') {
                         const lno = linesplit.match(/^ *(\d+)/)
                         if (lno != null) {
                             const lineNo = parseInt(lno[1])
