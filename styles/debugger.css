@@ -35,9 +35,17 @@ body[data-debug=true] #container {
 }
 body[data-debug=true] #debug-bar { display: block; }
 
-#debug-pause-cont svg.cont { display: none }
-#debug-pause-cont.cont svg.pause { display: none }
-#debug-pause-cont.cont svg.cont { display: inline }
+#debug-pause-cont svg.cont { display: none; }
+#debug-pause-cont.cont svg.pause { display: none; }
+#debug-pause-cont.cont svg.cont { display: inline; }
+
+#trace-mode svg { display: none; width: 18px; height: 18px; }
+#trace-mode.tracing svg.tracing { display: inline; }
+#trace-mode.running svg.running { display: inline; }
+
+#run-columns svg { display: none; width: 18px; height: 18px; }
+#run-columns.col-40 svg.col-40 { display: inline; }
+#run-columns.col-80 svg.col-80 { display: inline; }
 
 #run-status-icon svg { 
     display: none; 

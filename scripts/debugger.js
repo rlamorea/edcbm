@@ -25,11 +25,24 @@ class Debugger {
         this.stopButton = document.getElementById('run-stop')
         this.stopButton.addEventListener('click', () => this.stopProgram())
 
+        this.runColumnsButton = document.getElementById('run-columns')
+        this.runColumnsButton.addEventListener('click', () => { this.toggleRunColumns() })
+        this.runColumnsButton.style.displa = 'none'
+
         this.runStatusIcon = document.getElementById('run-status-icon')
         this.runStatusText = document.getElementById('run-status')
 
         this.runMode = 'stopped'
         this.setState('disconnected')
+    }
+
+    setMachine(machine) {
+        if (machine.name.startsWith('c128')) {
+            this.runColumnsButton.style.display = 'inline'
+            this.toggleRunColumns(machine.name === 'c128-80' ? 'col-80' : 'col-40')
+        } else {
+            this.runColumnsButton.style.display = 'none'
+        }
     }
 
     static states = {
@@ -50,7 +63,8 @@ class Debugger {
         'debug': [ 'disconnected', 'starting', 'running', 'debugging', 'paused', 'continued', 'stepping' ],
         'pause': [ 'disconnected', 'connected', 'starting', 'running', 'ended', 'stopped', 'alert', ],
         'step': [ 'disconnected', 'connected', 'starting', 'running', 'continued', 'ended', 'stepping', 'stopped', 'alert' ],
-        'stop': [ 'disconnected', 'connected', 'starting', 'stopped', 'alert' ]
+        'stop': [ 'disconnected', 'connected', 'starting', 'stopped', 'alert' ],
+        'cols': [ 'disconnected', 'starting', 'running', 'debugging', 'paused', 'continued', 'stepping', 'ended' ]
     }
     setState(newState, message) {
         // debug mode
@@ -65,6 +79,7 @@ class Debugger {
         this.pauseContButton.disabled = Debugger.buttonDisabledStates.pause.includes(newState)
         this.stepButton.disabled = Debugger.buttonDisabledStates.step.includes(newState)
         this.stopButton.disabled = Debugger.buttonDisabledStates.stop.includes(newState)
+        this.runColumnsButton.disabled = Debugger.buttonDisabledStates.cols.includes(newState)
 
         // now deal with pause/continue
         this.pauseContButton.classList.toggle('cont', newState === 'paused')
@@ -97,6 +112,14 @@ class Debugger {
         this.setEditorToDebuggerMode(newMode)
     }
 
+    toggleRunColumns(newCols = 'toggle') {
+        if (newCols === 'toggle') {
+            newCols = (this.runColumns === 'col-80') ? 'col-40' : 'col-80'
+        }
+        this.runColumns = newCols
+        this.runColumnsButton.className = newCols
+    }
+
     setEditorToDebuggerMode(newMode) {
         if (window.editor) { 
             window.editor.debuggerMode(newMode) 
@@ -114,7 +137,8 @@ class Debugger {
         const payload = {
             executeMachine: window.menu.machine.executeMachine || window.menu.machine.name,
             startAddress: startAddress,
-            programBytes: window.editor.getProgramBytes(startAddress).toBase64()
+            programBytes: window.editor.getProgramBytes(startAddress).toBase64(),
+            columns: this.runColumns
         }
         try {
             const response = await window.fetch(`http://localhost:${this.port}/vice/run`, {
@@ -128,11 +152,13 @@ class Debugger {
             } else {
                 console.log('invalid run response from server:', result)
                 this.setState('alert', 'Error: unexpected run response')
+                this.runMode = 'stopped'
             }
         } catch (error) {
             console.log('error running program')
             console.error(error)
             this.setState('alert', `Error: ${error.message}`)
+            this.runMode = 'stopped'
         }
     }
 
@@ -192,7 +218,8 @@ class Debugger {
                     command: 'start',
                     executeMachine: window.menu.machine.executeMachine || window.menu.machine.name,
                     startAddress: startAddress,
-                    programBytes: window.editor.getProgramBytes(startAddress).toBase64()
+                    programBytes: window.editor.getProgramBytes(startAddress).toBase64(),
+                    columns: this.runColumns
                 }
                 this.socket.send(JSON.stringify(payload))
                 return

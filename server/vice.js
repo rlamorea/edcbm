@@ -22,12 +22,12 @@ export class ViceConnection {
     static machines = {
         'c128': { 
             launcher: 'x128', 
-            startupDelay: 2000,
+            startupDelay: 2500,
             check: { addresses: [ 0x41cf, 0x41d2 ], values: [ 0x56, 0x37, 0x2e, 0x30] },
             exec: { break: 0x4b41, lookup: { line: 0x3b, addr: 0x3d } },
             stop: {
                 common: 0x4be3,
-                runout: { addr: 0x4b31, condition: '@0:$7f != $00' },
+                runout: 0x4b31, // NOTE: this triggers after every "live" command too, but we don't really care
                 reset: 0x4009,
             },
             pointers: {
@@ -63,6 +63,7 @@ export class ViceConnection {
         },
         'c16': { 
             launcher: 'xplus4', args: [ '--model', 'c16' ],
+            startupDelay: 1000,
             check: { addresses: [ 0x80df, 0x80e3 ], values: [ 0x56, 0x33, 0x2e, 0x35, 0x20 ] },
             exec: { break: 0x8c27, lookup: { line: 0x39, addr: 0x3b } },
             stop: { 
@@ -82,6 +83,7 @@ export class ViceConnection {
          },
         'plus4': { 
             launcher: 'xplus4', args: [ '--model', 'plus4' ],
+            startupDelay: 1000,
             check: { addresses: [ 0x80df, 0x80e3 ], values: [ 0x56, 0x33, 0x2e, 0x35, 0x20 ] },
             exec: { break: 0x8c27, lookup: { line: 0x39, addr: 0x3c } },
             stop: { 
@@ -97,10 +99,11 @@ export class ViceConnection {
                 keyboardBuffer: 0x527,
                 keyboardBufferCount: 0xef,
             },
-            basicPrep: { start: 0x2d, end: 0x32 }
+            basicPrep: { start: 0x2d, end: 0x32 },
         },
         'vic20': {
             launcher: 'xvic',
+            startupDelay: 1500,
             check: { addresses: [ 0xe446, 0xe447 ], values: [ 0x56, 0x32 ] },
             exec: { break: 0xc7ef, lookup: { line: 0x39, addr: 0x7b } },
             stop: { 
@@ -120,7 +123,7 @@ export class ViceConnection {
         },
         'pet-g': { 
             launcher: 'xpet', args: [ '--model', '3032' ],
-            startupDelay: 2000,
+            startupDelay: 1500,
             check: { addresses: [ 0xe1d2, 0xe1d4 ], values: [ 0x42, 0x41, 0x53 ] },
             exec: { break: 0xc702, lookup: { line: 0x36, addr: 0x78 } },
             stop: { 
@@ -135,7 +138,12 @@ export class ViceConnection {
                 keyboardBuffer: 0x270,
                 keyboardBufferCount: 0x9e,
             },
-            basicPrep: { start: 0x2a, end: 0x2f }
+            basicPrep: { start: 0x2a, end: 0x2f },
+            keyboardBufferCountMod: 1,
+            keymap: {
+                // NOTE: default for mac -- need to see about Windows/Linux
+                path: '../VICE.app/Contents/Resources/share/vice/PET/gtk_grus_sym.vkm'
+            }
          },
         'pet-b': { 
             launcher: 'xpet', args: [ '--model', '8032' ], 
@@ -154,26 +162,33 @@ export class ViceConnection {
                 keyboardBuffer: 0x270,
                 keyboardBufferCount: 0x9e,
             },
-            basicPrep: { start: 0x2a, end: 0x2f }
+            basicPrep: { start: 0x2a, end: 0x2f },
+            keyboardBufferCountMod: 1,
+            keymap: {
+                // NOTE: default for mac -- need to see about Windows/Linux
+                path: '../VICE.app/Contents/Resources/share/vice/PET/gtk_buuk_sym.vkm'
+            }
         },
         'cbm2': {
             launcher: 'xcbm2',
-            startupDelay: 1000,
+            startupDelay: 3500,
             check: { addresses: [ 0xbb96, 0xbb98 ], bank: 17, values: [ 0x31, 0x32, 0x38 ] },
-            exec: { break: 0x87aa, lookup: { line: 0x42, addr: 0x86 } },
+            basicProgram: { bank: 1 },
+            basicRun: { bank: 17 },
+            exec: { break: 0x87aa, lookup: { line: 0x42, addr: 0x86, bank: 17 } },
             stop: { 
                 common: 0x8bdc, // pointing to bank cpu
                 runout: 0x876c, // pointing to bank cpu
             },
             pointers: {
-                startOfBasic: 0x2d, // pointing to bank ram01
-                endOfBasic: 0x2f, // pointing to bank ram01
-                startOfVars: 0x31, // pointing to bank ram03
-                endOfVars: 0x33, // pointing to bank ram03
-                startOfArrays: 0x35, // pointing to bank ram02
-                endOfArrays: 0x37, // pointing to bank ram02
-                bottomOfStrings: 0x3b, // pointing to bank ram04
-                topOfStrings: 0x3f, // pointing to bank ram04
+                startOfBasic: 0x2d, // pointing to bank ram01 (id 1)
+                endOfBasic: 0x2f, // pointing to bank ram01 (id 1)
+                startOfVars: 0x31, // pointing to bank ram03 (id 3)
+                endOfVars: 0x33, // pointing to bank ram03 (id 3)
+                startOfArrays: 0x35, // pointing to bank ram02 (id 2)
+                endOfArrays: 0x37, // pointing to bank ram02 (id 2)
+                bottomOfStrings: 0x3b, // pointing to bank ram04 (id 4)
+                topOfStrings: 0x3f, // pointing to bank ram04 (id 4)
                 keyboardBuffer: 0x03ab,
                 keyboardBufferCount: 0xd1,
             },
@@ -269,12 +284,12 @@ export class ViceConnection {
         this.reject = null
     }
 
-    async launchVice(machine, diskPath = null, port = 6502) {
+    async launchVice(machine, options = {}) {
         this.quitting = false
         let done = this.prepPromise()
 
-        this.port = port
-        this.diskPath = diskPath
+        this.port = config.VICE_PORT
+        this.diskPath = options.diskPath
         const machineData = ViceConnection.machines[machine]
         if (!machineData) {
             return this.doReject(`Invalid machine: ${machine}`)
@@ -282,16 +297,25 @@ export class ViceConnection {
         this.machine = machine
         const launcher = machineData.launcher
 
-        const keymapType = config[`VICE_KEYMAP_${machine.toUpperCase()}`] ?? -1 // default, don't change
-        const keymapFile = config[`VICE_KEYMAPFILE_${machine.toUpperCase()}`]
+        let keymapType = config[`VICE_KEYMAP_${machine.toUpperCase().replace(/\-/g, '_')}`] ?? -1 // default, don't change
+        let keymapFile = config[`VICE_KEYMAPFILE_${machine.toUpperCase().replace(/\-/g, '_')}`]
         if (keymapType < 0 && keymapFile != null) {
             keymapType = 2 // default to user-sym map
         }
-
+        if (keymapType === -1 && machineData.keymap) {
+            keymapType = machineData.keymap.type ?? 0 // default to symbolic
+            keymapFile = `${this.viceRoot}/${machineData.keymap.path}`
+        }
         let args = []
         args.push('--binarymonitor')
         if (this.port !== ViceConnection.VICE_DEFAULT_PORT) {
             args.push('--binarymonitoraddress', `ip4://localhost:${this.port}`)
+        }
+        if (machineData.args) {
+            args.push(...machineData.args)
+        }
+        if (machineData.launcher === 'x128' && (options.columns ?? '').startsWith('col-')) {
+            args.push(`--${options.columns.substring(4)}col`)
         }
         if (this.diskPath) {
             args.push('--8', this.diskPath)
@@ -486,6 +510,7 @@ export class ViceConnection {
         }
         this.debug(`VICE machine ${this.machine} confirmed`)
         this.machineData = ViceConnection.machines[this.machine]
+        const r = await this.sendCommand(new ViceCommand('infobanks'))
         return true
     }
 
@@ -503,8 +528,8 @@ export class ViceConnection {
     }
 
     // common vice actions
-    async launchViceForMachine(machine) {
-        await this.launchVice(machine)
+    async launchViceForMachine(machine, options) {
+        await this.launchVice(machine, options)
         const isMachine = await this.confirmMachine()
         if (!isMachine) {
             throw(new Error('wrong machine started'))
@@ -534,7 +559,8 @@ export class ViceConnection {
         await this.sendCommand(new ViceCommand('memset', {
             startAddress: startAddress,
             endAddress: endAddress - 1, // 0-based count
-            dataBytes: programBytes
+            dataBytes: programBytes,
+            bankId: this.machineData.basicProgram?.bank ?? 0
         }))
     }
 
@@ -542,12 +568,14 @@ export class ViceConnection {
         await this.sendCommand(new ViceCommand('memset', {
             startAddress: this.machineData.pointers.keyboardBuffer,
             endAddress: this.machineData.pointers.keyboardBuffer + ViceConnection.RUN_COMMAND.length - 1,
-            dataBytes: ViceConnection.RUN_COMMAND
+            dataBytes: ViceConnection.RUN_COMMAND,
+            bankId: this.machineData.basicRun?.bank ?? 0
         }))
         await this.sendCommand(new ViceCommand('memset', {
             startAddress: this.machineData.pointers.keyboardBufferCount,
             endAddress: this.machineData.pointers.keyboardBufferCount,
-            dataBytes: [ ViceConnection.RUN_COMMAND.length ]
+            dataBytes: [ ViceConnection.RUN_COMMAND.length + (this.machineData.keyboardBufferCountMod ?? 0) ],
+            bankId: this.machineData.basicRun?.bank ?? 0
         }))
         if (startVice) {
             await this.sendCommand(new ViceCommand('execrun'))
@@ -562,11 +590,6 @@ export class ViceConnection {
             enabled: boolval.btrue,
             operation: 0x04, // on exec
         }))
-            // stop: {
-            //     common: 0x4be3,
-            //     runout: { addr: 0x4b31, condition: '@0:$7f != $00' },
-            //     reset: 0x4009,
-            // },
         let stopCheckpoints = {}
         for (const stop in this.machineData.stop) {
             const stopBreak = this.machineData.stop[stop]
@@ -578,14 +601,7 @@ export class ViceConnection {
                 enabled: boolval.btrue,
                 operation: 0x04, // on exec
             }))
-            const stopCheckpoint = stopResponse.parsed.checkpoint
-            if (stopBreak instanceof Object && stopBreak.condition) {
-                await this.sendCommand(new ViceCommand('chkcondition', {
-                    checkpoint: stopCheckpoint,
-                    condition: stopBreak.condition
-                }))
-            }
-            stopCheckpoints[stop] = stopCheckpoint
+            stopCheckpoints[stopResponse.parsed.checkpoint] = stop
         }
         return { execCheckpoint: execResponse.parsed.checkpoint, stopCheckpoints }
     }

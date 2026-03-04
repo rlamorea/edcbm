@@ -46,7 +46,7 @@ export class ViceDebugger {
             const programBytes = [ ...Buffer.from(data.programBytes, 'base64') ].splice(2) // cut off the address bytes from the program
             console.log('start', data.startAddress, 'programBytes', programBytes)
 
-            await this.vice.launchViceForMachine(machine)
+            await this.vice.launchViceForMachine(machine, data)
             await this.vice.loadBASICProgram(programBytes, data.startAddress)
             const { execCheckpoint, stopCheckpoints } = await this.vice.setUpforBASICBreak()
             this.execCheckpoint = execCheckpoint
@@ -63,13 +63,14 @@ export class ViceDebugger {
     }
 
     async basicCheckpointHit(checkpoint, response) {
+        const machine = this.vice.machineData
         if (checkpoint !== this.execCheckpoint) {
             this.socket.send(JSON.stringify({ status: 'ended' }))
             await this.vice.sendCommand(new ViceCommand('execrun'))
+            this.vice.startWaiting()
             return
         }
         // look up line number
-        const machine = this.vice.machineData
         const lineData = await this.vice.sendCommand(new ViceCommand('memget', {
             startAddress: machine.exec.lookup.line,
             endAddress: machine.exec.lookup.line + 1,
@@ -117,6 +118,8 @@ export class ViceDebugger {
     async doContinue(data) {
         this.freeRunning = true
         await this.vice.sendCommand(new ViceCommand('execrun'))
-        this.vice.startWaiting()
+        if (data.trace) {
+            this.vice.startWaiting()
+        }
     }
 }
