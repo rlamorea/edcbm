@@ -230,16 +230,18 @@ class Editor {
 
         this.bufferedProgram = null
 
-        this.debuggerBox = null
-
         this.enabled = false
         this.enableEditor(false)
+        this.lineChangeObserver = null
     }
 
     init() {
         const editorText = window.localStorage.getItem('currentProgram')
         if (editorText) {
             this.editor.setValue(editorText)
+            this.parseLines()
+            this.notateLines()
+            if (this.lineChangeObserver) { this.lineChangeObserver.contentChanged() }
         }
         const cursorPos = window.localStorage.getItem('currentCursor')
         if (cursorPos) {
@@ -248,6 +250,10 @@ class Editor {
             this.editor.revealPosition(this.newCursorLocation, monaco.editor.ScrollType.Immediate)            
         }
         this.initialized = true
+    }
+
+    addLineChangeObserver(observer) {
+        this.lineChangeObserver = observer // for now there's only one
     }
 
     preFontChange() {
@@ -351,10 +357,6 @@ class Editor {
         if (enable) { 
             // this.editor.setPosition({ lineNumber: 1, column: 1 })
             setTimeout(() => this.editor.focus(), 100) // delay focus until extraneous keypresses settle out and are ignored
-            if (this.debuggerBox) {
-                this.editor.deltaDecorations(this.debuggerBox, [])
-                this.debuggerBox = null
-            }
         }
         document.getElementById('edit-actions').style.display = enable ? 'inline' : 'none'
     }
@@ -368,6 +370,7 @@ class Editor {
         }
         this.parseLines()
         this.notateLines()
+        if (this.lineChangeObserver) { this.lineChangeObserver.contentChanged() }
     }
 
     setProgramBytes(bytes) {
@@ -376,10 +379,7 @@ class Editor {
             window.localStorage.setItem('currentProgram', this.editor.getValue())
         }
         this.parseLines()
-    }
-
-    setHelpText(text) {
-        this.editor.setValue(text)
+        if (this.lineChangeObserver) { this.lineChangeObserver.contentChanged() }
     }
 
     getProgram(withNotations = true) {
@@ -421,38 +421,6 @@ class Editor {
             fileIndex += lb.length
         }
         return fileBytes
-    }
-
-    getDebugAddresses(startAddr) {
-        let debugAddresses = {}
-        let lineAddr = startAddr
-        let lineIndex = 1
-        for (const line of this.editor.getValue().split('\n')) {
-            const {  byteArray, lineNumber, tokens } = window.tokenizer.tokenizeLine(line)
-            if (byteArray.length > 0) {
-                lineAddr += 4 // skip next address and line number
-                let breakPoints = { }
-                let lastBreakPoint = null
-                for (const token of tokens) {
-                    if (![ 'line-number', 'colon', 'then-split', 'else-split' ].includes(token.token)) { continue }
-                    const addr = lineAddr + token.byteOffset
-                    if (lastBreakPoint) { 
-                        if (token.token === 'else-split') { // destroy the breakpoint for the preceding colon
-                            delete breakPoints[lastBreakPoint.address]
-                        } else {
-                            lastBreakPoint.end = token.start + 1 
-                        }
-                    }
-                    breakPoints[addr] = { address: addr, start: token.end + 2 } // +1 to move past token, +1 due to 1-based column indexes in editor
-                    lastBreakPoint = breakPoints[addr]
-                }
-                lastBreakPoint.end = line.length + 1
-                debugAddresses[lineNumber] = { lineIndex, breakPoints }
-                lineAddr += byteArray.length - 1 // compensate for skipped line number, add line ending 0
-            }
-            lineIndex += 1
-        }
-        return debugAddresses
     }
 
     keyDown(key) {
@@ -613,7 +581,7 @@ class Editor {
             this.editor.trigger('keyboard', 'type', { text: '\n' })
         }
 
-        const { byteArray, lineNumber: basicLine, variables, specialComment } = window.tokenizer.tokenizeLine(lineContent)
+        const { byteArray, lineNumber: basicLine, variables, specialComment, tokens } = window.tokenizer.tokenizeLine(lineContent)
         if (basicLine == null && !lineContent.trim().startsWith("`")) {
             const newLineContent = "` " + lineContent
             this.editor.executeEdits("", [{
@@ -628,6 +596,9 @@ class Editor {
         }
         this.parseSpecialComment(specialComment, lineNumber, lineContent)
         this.notateLine(lineNumber, lineContent, basicLine, variables)
+        if (this.lineChangeObserver) {
+            this.lineChangeObserver.lineChanged(lineNumber, basicLine, lineContent, tokens, byteArray.length)
+        }
     }
 
     parseLines() {
@@ -671,6 +642,7 @@ class Editor {
         this.editor.setValue(program)
         this.parseLines()
         this.notateLines()
+        if (this.lineChangeObserver) { this.lineChangeObserver.contentChanged() }
     }
 
     notationsHeader() {
@@ -729,43 +701,6 @@ class Editor {
         var op = {identifier: id, range, text: str, forceMoveMarkers: true}
         this.editor.executeEdits("", [op])
         this.newCursorLocation = { lineNumber: position.positionLineNumber, column: position.selectionStartColumn + str.length }
-    }
-
-    debuggerMode(enable = true) {
-        if (enable) {
-            this.editor.updateOptions({ 
-                glyphMargin: true
-            })
-        } else {
-            this.editor.updateOptions({ glyphMargin: false })
-        }
-    }
-
-    debuggerBreakpoint(lineIndex, breakPoint) {
-        if (lineIndex == null) {
-            if (this.debuggerBox) {
-                this.editor.deltaDecorations(this.debuggerBox, [])
-                this.debuggerBox = null
-            }
-            return
-        }
-        const prevDebug = this.debuggerBox ?? []
-        let colStart = (breakPoint ?? {}).start || 1
-        let colEnd = (breakPoint ?? {}).end
-        if (colEnd == null) {
-            // read in line?
-            colEnd = 80 // just try it for the hell of it
-        }
-        const range = new monaco.Range(lineIndex, colStart, lineIndex, colEnd)
-        let newDebug = []
-        newDebug.push({ 
-            range, options: { 
-                glyphMarginClassName: 'executionPoint',
-                inlineClassName: 'debugHighlight'
-            }
-        })
-        this.editor.revealLine(lineIndex)
-        this.debuggerBox = this.editor.deltaDecorations(prevDebug, newDebug)
     }
 }
 

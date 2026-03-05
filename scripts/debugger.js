@@ -35,15 +35,24 @@ class Debugger {
         this.debugAddresses = null
         this.runMode = 'stopped'
         this.setState('disconnected')
+
+        this.editor = null
+        this.machine = null
+        this.setBreakPoints = {}
+        this.breakPointLocations = null
+        this.debuggerLine = null
+        this.debuggerLineDecoration = null
     }
 
     setMachine(machine) {
+        this.machine = machine
         if (machine.name.startsWith('c128')) {
             this.runColumnsButton.style.display = 'inline'
             this.toggleRunColumns(machine.name === 'c128-80' ? 'col-80' : 'col-40')
         } else {
             this.runColumnsButton.style.display = 'none'
         }
+        this.setBreakPointLocations(true)
     }
 
     static states = {
@@ -99,6 +108,10 @@ class Debugger {
             window.editor.enableEditor(false)
         } else if (newState === 'stopped') {
             window.editor.enableEditor()
+            if (this.debuggerLineDecoration) {
+                this.editor.deltaDecorations(this.debuggerLineDecoration, [])
+                this.debuggerLineDecoration = null
+            }
         }
     }
 
@@ -122,10 +135,76 @@ class Debugger {
     }
 
     setEditorToDebuggerMode(newMode) {
-        if (window.editor) { 
-            window.editor.debuggerMode(newMode)
+        if (this.editor) {
+            this.editor.updateOptions({ glyphMargin: newMode })
+            return
+        }
+        if (window.editor) {
+            this.editor = window.editor.editor // ugly, but efficient
+            this.editor.onMouseDown((e) => { this.editorMouseDown(e) })
+            window.editor.addLineChangeObserver(this)
+            this.setEditorToDebuggerMode(newMode)
+            this.setBreakPointLocations(true)
         } else if (newMode) {
             setTimeout(() => { this.setEditorToDebuggerMode(newMode)}, 50)
+        }
+    }
+
+    showExecutionPoint(lineIndex, lineNumber, lineLength, breakPoint) {
+        if (lineIndex == null) {
+            if (this.debuggerLineDecoration) {
+                this.editor.deltaDecorations(this.debuggerLineDecoration, [])
+                this.debuggerLineDecoration = null
+            }
+            this.restoreBreakpointMarker()
+            this.debuggerLine = null
+            return
+        }
+        const prevDebug = this.debuggerLineDecoration ?? []
+        let colStart = (breakPoint ?? {}).start || 1
+        let colEnd = (breakPoint ?? {}).end
+        if (colEnd == null) { colEnd = lineLength }
+        const range = new monaco.Range(lineIndex, colStart, lineIndex, colEnd)
+        let glyphClass = 'executionPoint'
+        const existingBreakpoint = this.setBreakPoints[lineNumber]
+        if (existingBreakpoint) {
+            this.toggleBreakPointMarker(lineNumber, existingBreakpoint.lineIndex, existingBreakpoint.lineLength, 'hide')
+            glyphClass = 'executionBreakPoint'
+        }
+        let newDebug = []
+        newDebug.push({ 
+            range, options: { 
+                glyphMarginClassName: glyphClass,
+                inlineClassName: 'debugHighlight'
+            }
+        })
+        this.editor.revealLine(lineIndex)
+        this.debuggerLineDecoration = this.editor.deltaDecorations(prevDebug, newDebug)
+        if (this.debuggerLine) { this.restoreBreakpointMarker() }
+        this.debuggerLine = lineNumber
+    }
+
+    restoreBreakpointMarker() {
+        const existingBreakPoint = this.setBreakPoints[this.debuggerLine]
+        if (existingBreakPoint) {
+            this.toggleBreakPointMarker(this.debuggerLine, existingBreakPoint.lineIndex, existingBreakPoint.lineLength, 'set')
+        }
+    }
+
+    toggleBreakPointMarker(lineNumber, lineIndex, lineLength, state = 'toggle') {
+        const range = new monaco.Range(lineIndex, 1, lineIndex, lineLength)
+        const breakPoint = this.setBreakPoints[lineNumber]
+        const disable = (state === 'toggle') ? (breakPoint != null) : (state === 'clear')
+        if (disable || state === 'hide') {   
+            this.editor.deltaDecorations(breakPoint.decoration, [])
+            if (state === 'hide') { 
+                breakPoint.decoration = null
+            } else {
+                delete this.setBreakPoints[lineNumber] 
+            }
+        } else {
+            const decoration = this.editor.deltaDecorations([], [ { range, options: { glyphMarginClassName: 'breakPoint' } } ])
+            this.setBreakPoints[lineNumber] = { lineNumber, lineIndex, lineLength, decoration }
         }
     }
 
@@ -134,9 +213,9 @@ class Debugger {
         this.setState('starting')
         this.runMode = 'running'
         
-        const startAddress = window.menu.machine.startAddress
+        const startAddress = this.machine.startAddress
         const payload = {
-            executeMachine: window.menu.machine.executeMachine || window.menu.machine.name,
+            executeMachine: this.machine.executeMachine || this.machine.name,
             startAddress: startAddress,
             programBytes: window.editor.getProgramBytes(startAddress).toBase64(),
             columns: this.runColumns
@@ -184,6 +263,45 @@ class Debugger {
         this.runMode = 'stopped'
     }
 
+    getLineDebugAddresses(lineAddr, lineLength, tokens) {
+        lineAddr += 4 // skip next address and line number
+        let breakPoints = { }
+        let lastBreakPoint = null
+        for (const token of tokens) {
+            if (![ 'line-number', 'colon', 'then-split', 'else-split' ].includes(token.token)) { continue }
+            const addr = lineAddr + token.byteOffset
+            if (lastBreakPoint) { 
+                if (token.token === 'else-split') { // destroy the breakpoint for the preceding colon
+                    delete breakPoints[lastBreakPoint.address]
+                } else {
+                    lastBreakPoint.end = token.start + 1 
+                }
+            }
+            breakPoints[addr] = { address: addr, start: token.end + 2 } // +1 to move past token, +1 due to 1-based column indexes in editor
+            lastBreakPoint = breakPoints[addr]
+        }
+        lastBreakPoint.end = lineLength + 1
+        return breakPoints
+    }
+
+    setBreakPointLocations(skipIfSet) {
+        if (!this.editor || !this.machine) { return }
+        if (skipIfSet && this.breakPointLocations) { return }
+        this.breakPointLocations = {}
+        let lineAddr = this.machine.startAddress
+        let lineIndex = 1
+        for (const line of this.editor.getValue().split('\n')) {
+            const {  byteArray, lineNumber, tokens } = window.tokenizer.tokenizeLine(line)
+            if (byteArray.length > 0) {
+                const breakPoints = this.getLineDebugAddresses(lineAddr, line.length, tokens)
+                this.breakPointLocations[lineNumber] = { lineIndex, lineLength: line.length, breakPoints }
+                lineAddr += byteArray.length + 3 // I think this should be 3
+            }
+            lineIndex += 1
+        }
+        console.log(this.breakPointLocations)
+    }
+
     startDebug() {
         if (this.runMode !== 'ended' && this.runMode !== 'stopped') { return }
         if (!this.port) { return }
@@ -195,9 +313,9 @@ class Debugger {
             return
         }
         this.setState('starting')
+        this.setBreakPointLocations(true)
 
-        const startAddress = window.menu.machine.startAddress
-        this.debugAddresses = window.editor.getDebugAddresses(startAddress)
+        const breakPointLines = Object.values(this.setBreakPoints).map((b) => b.lineNumber)
 
         this.socket = new WebSocket(`ws://localhost:${this.port}`, 'JSON')
         this.socket.addEventListener('open', (event) => {
@@ -218,11 +336,14 @@ class Debugger {
         this.socket.addEventListener('message', (event) => {
             console.log('from socket:', event.data)
             if (event.data === 'pong') { // handshake complete, let's get running!
+                const startAddress = this.machine.startAddress
+                console.log(window.editor.getProgramBytes(startAddress))
                 const payload = {
                     command: 'start',
-                    executeMachine: window.menu.machine.executeMachine || window.menu.machine.name,
+                    executeMachine: this.machine.executeMachine || this.machine.name,
                     startAddress: startAddress,
                     programBytes: window.editor.getProgramBytes(startAddress).toBase64(),
+                    breakPoints: breakPointLines,
                     columns: this.runColumns
                 }
                 this.socket.send(JSON.stringify(payload))
@@ -264,7 +385,7 @@ class Debugger {
 
     ended() {
         if (!this.socket) { return }
-        window.editor.debuggerBreakpoint()
+        this.showExecutionPoint()
         this.setState('ended')
         this.runMode = 'ended'
     }
@@ -278,13 +399,39 @@ class Debugger {
 
     hitCheckpoint(data) {
         console.log('on line', data.lineNo, 'at address', data.address)
-        const debug = this.debugAddresses[data.lineNo]
+        const debug = this.breakPointLocations[data.lineNo]
         if (debug == null) {
             console.log('unknown line number', data.lineNo)
             return
         }
         const breakPoint = debug.breakPoints[data.address]
-        window.editor.debuggerBreakpoint(debug.lineIndex, breakPoint)
+        this.showExecutionPoint(debug.lineIndex, data.lineNo, debug.lineLength, breakPoint)
         if (!data.info) { this.setState('paused') }
+    }
+
+    editorMouseDown(event) {
+        if (event.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
+            const lineIndex = event.target.position.lineNumber
+            const model = this.editor.getModel()
+            const lineValue = model.getLineContent(lineIndex).trim()
+            
+            const lno = lineValue.match(/^ *(\d+)/)
+            if (lno) {
+                const lineNumber = parseInt(lno[1])
+                this.toggleBreakPointMarker(lineNumber, lineIndex, lineValue.length)
+            }
+        }
+    }
+
+    lineChanged(lineIndex, lineNumber, content, tokens, bytes) {
+        let breakPoint = this.breakPointLocations[lineNumber]
+        if (breakPoint) {
+            breakPoint.lineIndex = lineIndex
+            return
+        }
+    }
+
+    contentChanged() {
+        this.setBreakPointLocations()
     }
 }

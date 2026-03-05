@@ -7,6 +7,8 @@ export class ViceDebugger {
         this.vice = connection
         this.socket = socket
 
+        this.breakPointLines = []
+
         this.freeRunning = false
     }
 
@@ -52,11 +54,15 @@ export class ViceDebugger {
             this.execCheckpoint = execCheckpoint
             this.stopCheckpoints = stopCheckpoints
         }
+        this.breakPointLines = data.breakPoints
+        if (this.breakPointLines.length > 0) {
+            this.freeRunning = true
+        }
         await this.vice.runBASICProgram()
         this.socket.send(JSON.stringify({ status: 'running' }))
         this.skipNextLineBreak = true
         if (data.restart) {
-            this.vice.startWaiting()
+            this.vice.startWaiting() // NOTE: restart has been disabled, and might not be viable
         } else {
             this.vice.startWaiting((response) => { this.basicCheckpointHit(response) })
         }
@@ -90,6 +96,7 @@ export class ViceDebugger {
             bankId: machine.exec.lookup.bank ?? 0
         }))
         const address = ViceResponse.parseInt(addrData.response().memory)
+        if (this.breakPointLines.includes(lineNo)) { this.freeRunning = false }
         this.socket.send(JSON.stringify({ status: 'checkpoint', reason: 'step', lineNo, address, info: this.freeRunning }))
         if (this.freeRunning) {
             await this.vice.sendCommand(new ViceCommand('execrun'))
@@ -113,6 +120,7 @@ export class ViceDebugger {
     }
 
     async doStep(data) {
+        this.freeRunning = false
         await this.vice.sendCommand(new ViceCommand('execrun'))
         this.vice.startWaiting()
     }
