@@ -20,6 +20,15 @@ body[data-debug=true] #container {
     text-align: center;
 }
 
+.breakPoint::before {
+    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 15 15' stroke='black' stroke-width='2' fill='none'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3C/svg%3E");
+    text-align: center;
+}
+.executionBreakPoint::before {
+    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 15 15' stroke='black' stroke-width='2' fill='red'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3C/svg%3E");
+    text-align: center;
+}
+
 .debugHighlight {
     text-decoration: underline 3px dashed var(--dialog-foreground);
 }

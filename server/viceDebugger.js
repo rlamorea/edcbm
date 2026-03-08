@@ -7,6 +7,8 @@ export class ViceDebugger {
         this.vice = connection
         this.socket = socket
 
+        this.breakPointLines = []
+
         this.freeRunning = false
     }
 
@@ -52,11 +54,15 @@ export class ViceDebugger {
             this.execCheckpoint = execCheckpoint
             this.stopCheckpoints = stopCheckpoints
         }
+        this.breakPointLines = data.breakPoints
+        if (this.breakPointLines.length > 0) {
+            this.freeRunning = true
+        }
         await this.vice.runBASICProgram()
         this.socket.send(JSON.stringify({ status: 'running' }))
         this.skipNextLineBreak = true
         if (data.restart) {
-            this.vice.startWaiting()
+            this.vice.startWaiting() // NOTE: restart has been disabled, and might not be viable
         } else {
             this.vice.startWaiting((response) => { this.basicCheckpointHit(response) })
         }
@@ -70,21 +76,28 @@ export class ViceDebugger {
             this.vice.startWaiting()
             return
         }
-        // look up line number
-        const lineData = await this.vice.sendCommand(new ViceCommand('memget', {
-            startAddress: machine.exec.lookup.line,
-            endAddress: machine.exec.lookup.line + 1,
-            bankId: machine.exec.lookup.bank ?? 0
-        }))
-        const memory = lineData.response().memory
-        const lineNo = ViceResponse.parseInt(memory)
         if (this.skipNextLineBreak) { // still getting started, ignore
             this.skipNextLineBreak = false
             await this.vice.sendCommand(new ViceCommand('execrun'))
             this.vice.startWaiting()
             return
         }
-        this.socket.send(JSON.stringify({ status: 'checkpoint', reason: 'line', lineNo, info: this.freeRunning }))
+        // look up line number
+        const lineData = await this.vice.sendCommand(new ViceCommand('memget', {
+            startAddress: machine.exec.lookup.line,
+            endAddress: machine.exec.lookup.line + 1,
+            bankId: machine.exec.lookup.bank ?? 0
+        }))
+        const lineNo = ViceResponse.parseInt(lineData.response().memory)
+        // look up break address
+        const addrData = await this.vice.sendCommand(new ViceCommand('memget', {
+            startAddress: machine.exec.lookup.addr,
+            endAddress: machine.exec.lookup.addr + 1,
+            bankId: machine.exec.lookup.bank ?? 0
+        }))
+        const address = ViceResponse.parseInt(addrData.response().memory)
+        if (this.breakPointLines.includes(lineNo)) { this.freeRunning = false }
+        this.socket.send(JSON.stringify({ status: 'checkpoint', reason: 'step', lineNo, address, info: this.freeRunning }))
         if (this.freeRunning) {
             await this.vice.sendCommand(new ViceCommand('execrun'))
             this.vice.startWaiting()
@@ -107,6 +120,7 @@ export class ViceDebugger {
     }
 
     async doStep(data) {
+        this.freeRunning = false
         await this.vice.sendCommand(new ViceCommand('execrun'))
         this.vice.startWaiting()
     }
@@ -118,8 +132,6 @@ export class ViceDebugger {
     async doContinue(data) {
         this.freeRunning = true
         await this.vice.sendCommand(new ViceCommand('execrun'))
-        if (data.trace) {
-            this.vice.startWaiting()
-        }
+        this.vice.startWaiting()
     }
 }
