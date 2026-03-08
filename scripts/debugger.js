@@ -142,7 +142,7 @@ class Debugger {
         if (window.editor) {
             this.editor = window.editor.editor // ugly, but efficient
             this.editor.onMouseDown((e) => { this.editorMouseDown(e) })
-            window.editor.addLineChangeObserver(this)
+            window.editor.setDebugger(this)
             this.setEditorToDebuggerMode(newMode)
             this.setBreakPointLocations(true)
         } else if (newMode) {
@@ -415,7 +415,7 @@ class Debugger {
             const model = this.editor.getModel()
             const lineValue = model.getLineContent(lineIndex).trim()
             
-            const lno = lineValue.match(/^ *(\d+)/)
+            const lno = lineValue.match(/^(\d+)/)
             if (lno) {
                 const lineNumber = parseInt(lno[1])
                 this.toggleBreakPointMarker(lineNumber, lineIndex, lineValue.length)
@@ -423,15 +423,70 @@ class Debugger {
         }
     }
 
-    lineChanged(lineIndex, lineNumber, content, tokens, bytes) {
-        let breakPoint = this.breakPointLocations[lineNumber]
-        if (breakPoint) {
-            breakPoint.lineIndex = lineIndex
-            return
+    contentReplaced() {
+        // clear all breakpoints
+        for (const breakPoint of Object.values(this.setBreakPoints)) {
+            this.editor.deltaDecorations(breakPoint.decoration)
         }
+        this.setBreakPoints = []
+        this.setBreakPointLocations()
     }
 
-    contentChanged() {
+    lineChanged(lineIndex, lineNumber, content, tokens, bytes) {
+        // do nothing for now, use contentChanged
+    }
+
+    deleteBreakPoint(breakPoint) {
+        this.editor.deltaDecorations(breakPoint.decoration, [])
+        delete this.setBreakPoints[breakPoint.lineNumber]
+    }
+
+    checkBreakPointLine(lineIndex, doDelete = null) {
+        if (this.setBreakPoints.length === 0) { return }
+        const breakPoint = Object.values(this.setBreakPoints).find((e) => e.lineIndex === lineIndex)
+        if (!breakPoint) { return }
+        if (doDelete === null) {
+            const model = this.editor.getModel()
+            const lineValue = model.getLineContent(lineIndex).trim()
+            const lno = lineValue.match(/^(\d+)/)
+            if (lno) {
+                const lineNumber = parseInt(lno[1])
+                if (breakPoint.lineNumber !== lineNumber) {
+                    doDelete = true
+                }
+            }
+        }
+        if (doDelete) { this.deleteBreakPoint(breakPoint) }
+    }
+
+    contentChanged(event) {
+        const breakLines = Object.keys(this.setBreakPoints)
+        if (breakLines.length === 0) { return }
+        let anyMultilineChanges = false
+        for (const change of event.changes) {
+            let range = change.range
+            let nlCount = (change.text.indexOf('\n') >= 0) ? change.text.match(/\n/g).length : 0
+            range.endLineNumber += nlCount
+            if (range.startLineNumber === range.endLineNumber) { 
+                this.checkBreakPointLine(range.startLineNumber)
+                continue 
+            }
+            anyMultilineChanges = true
+        }
+        if (!anyMultilineChanges) { return }
         this.setBreakPointLocations()
+        const lineNos = Object.keys(this.breakPointLocations)
+        const changedLines = breakLines.filter((e) => lineNos.includes(e))
+        const removedLines = breakLines.filter((e) => !changedLines.includes(e))
+        for (const lineNo of changedLines) {
+            let breakPoint = this.setBreakPoints[lineNo]
+            breakPoint.lineIndex = this.breakPointLocations[lineNo].lineIndex
+            breakPoint.lineLength = this.breakPointLocations[lineNo].lineLength
+            const range = new monaco.Range(breakPoint.lineIndex, 1, breakPoint.lineIndex, breakPoint.lineLength)
+            breakPoint.decoration = this.editor.deltaDecorations(breakPoint.decoration, [ { range, options: { glyphMarginClassName: 'breakPoint' } } ])
+        }
+        for (const delLineNo of removedLines) {
+            this.deleteBreakPoint(this.setBreakPoints[delLineNo])
+        }
     }
 }

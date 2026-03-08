@@ -267,9 +267,9 @@ class Controls {
             selectHandler: (li) => { this.setMachine(li.dataset.machine) }
         })
 
-        this.cleanButton = document.getElementById('clean')
-        this.cleanButton.addEventListener('click', () => this.cleanCode())
-        this.cleanButton.style.display = 'none' // not sure if this will be needed, so hiding for now
+        // this.cleanButton = document.getElementById('clean')
+        // this.cleanButton.addEventListener('click', () => this.cleanCode())
+        // this.cleanButton.style.display = 'none' // not sure if this will be needed, so hiding for now
 
         this.title = document.querySelector('#menu h1')
         this.about = document.getElementById('about')
@@ -333,9 +333,9 @@ class Controls {
         window.blocker.hide()
     }
 
-    cleanCode() {
-        window.editor.cleanProgram()
-    }
+    // cleanCode() {
+    //     window.editor.cleanProgram()
+    // }
 
     showAbout() {
         this.menuFocused = 'about'

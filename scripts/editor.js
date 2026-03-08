@@ -232,7 +232,7 @@ class Editor {
 
         this.enabled = false
         this.enableEditor(false)
-        this.lineChangeObserver = null
+        this.debugger = null
     }
 
     init() {
@@ -241,7 +241,7 @@ class Editor {
             this.editor.setValue(editorText)
             this.parseLines()
             this.notateLines()
-            if (this.lineChangeObserver) { this.lineChangeObserver.contentChanged() }
+            if (this.debugger) { this.debugger.contentReplaced() }
         }
         const cursorPos = window.localStorage.getItem('currentCursor')
         if (cursorPos) {
@@ -252,8 +252,8 @@ class Editor {
         this.initialized = true
     }
 
-    addLineChangeObserver(observer) {
-        this.lineChangeObserver = observer // for now there's only one
+    setDebugger(observer) {
+        this.debugger = observer
     }
 
     preFontChange() {
@@ -290,18 +290,27 @@ class Editor {
     }
 
     checkInsertions(event) {
-        if (event.changes.length !== 1) { return }
-        const change = event.changes[0]
-        let range = change.range
-        const text = change.text
-        if (text.length === 0) { return }
-        if (Keymap.diacriticals.includes(text.codePointAt(0))) {
-            if (text.length === 2) {
-                range.startColumn -= 1
-                setTimeout(() => { this.editor.executeEdits("", [{ range, text: '', forceMoveMarkers: true }]) }, 10)
+        let handled = false
+        if (event.changes.length === 1) {
+            const change = event.changes[0]
+            let range = change.range
+            const text = change.text
+            if (text.length > 0) {
+                if (Keymap.diacriticals.includes(text.codePointAt(0))) {
+                    if (text.length === 2) {
+                        handled = true
+                        range.startColumn -= 1
+                        setTimeout(() => { this.editor.executeEdits("", [{ range, text: '', forceMoveMarkers: true }]) }, 10)
+                    }
+                } else if (Keymap.diacriticalChars.includes(text.charAt(0))) {
+                    handled = true
+                    this.editor.executeEdits("", [{ range, text: '', forceMoveMarkers: true }]) 
+                }
             }
-        } else if (Keymap.diacriticalChars.includes(text.charAt(0))) {
-            this.editor.executeEdits("", [{ range, text: '', forceMoveMarkers: true }]) 
+        }
+        if (handled) { return }
+        if (this.debugger) {
+            this.debugger.contentChanged(event)
         }
     }
 
@@ -370,7 +379,7 @@ class Editor {
         }
         this.parseLines()
         this.notateLines()
-        if (this.lineChangeObserver) { this.lineChangeObserver.contentChanged() }
+        if (this.debugger) { this.debugger.contentReplaced() }
     }
 
     setProgramBytes(bytes) {
@@ -379,7 +388,7 @@ class Editor {
             window.localStorage.setItem('currentProgram', this.editor.getValue())
         }
         this.parseLines()
-        if (this.lineChangeObserver) { this.lineChangeObserver.contentChanged() }
+        if (this.debugger) { this.debugger.contentReplaced() }
     }
 
     getProgram(withNotations = true) {
@@ -596,8 +605,8 @@ class Editor {
         }
         this.parseSpecialComment(specialComment, lineNumber, lineContent)
         this.notateLine(lineNumber, lineContent, basicLine, variables)
-        if (this.lineChangeObserver) {
-            this.lineChangeObserver.lineChanged(lineNumber, basicLine, lineContent, tokens, byteArray.length)
+        if (this.debugger) {
+            this.debugger.lineChanged(lineNumber, basicLine, lineContent, tokens, byteArray.length)
         }
     }
 
@@ -611,39 +620,39 @@ class Editor {
         }
     }
 
-    cleanProgram() {
-        const programLines = {}
-        let precedingLines = []
-        for (const line of this.editor.getValue().split('\n')) {
-            let lineNumber = line.match(/^ *(\d+)/)
-            if (lineNumber && lineNumber.length === 2) {
-                lineNumber = parseInt(lineNumber[1])
+    // cleanProgram() {
+    //     const programLines = {}
+    //     let precedingLines = []
+    //     for (const line of this.editor.getValue().split('\n')) {
+    //         let lineNumber = line.match(/^ *(\d+)/)
+    //         if (lineNumber && lineNumber.length === 2) {
+    //             lineNumber = parseInt(lineNumber[1])
 
-                const existingLine = programLines[lineNumber]
-                if (existingLine) {
-                    programLines[lineNumber].precedingLines.push(existingLine)
-                } else {
-                    programLines[lineNumber] = { preceding: precedingLines || [] }
-                    precedingLines = []
-                }
-                programLines[lineNumber].line = line
-            } else {
-                precedingLines.push(line)
-            }
-        }
-        let program = ''
-        for (const pline of Object.keys(programLines).sort((a,b) => { return parseInt(a) - parseInt(b) })) {
-            const plineContent = programLines[pline]
-            for (const precede of plineContent.preceding) {
-                program += precede + '\n'
-            }
-            program += plineContent.line + '\n'
-        }
-        this.editor.setValue(program)
-        this.parseLines()
-        this.notateLines()
-        if (this.lineChangeObserver) { this.lineChangeObserver.contentChanged() }
-    }
+    //             const existingLine = programLines[lineNumber]
+    //             if (existingLine) {
+    //                 programLines[lineNumber].precedingLines.push(existingLine)
+    //             } else {
+    //                 programLines[lineNumber] = { preceding: precedingLines || [] }
+    //                 precedingLines = []
+    //             }
+    //             programLines[lineNumber].line = line
+    //         } else {
+    //             precedingLines.push(line)
+    //         }
+    //     }
+    //     let program = ''
+    //     for (const pline of Object.keys(programLines).sort((a,b) => { return parseInt(a) - parseInt(b) })) {
+    //         const plineContent = programLines[pline]
+    //         for (const precede of plineContent.preceding) {
+    //             program += precede + '\n'
+    //         }
+    //         program += plineContent.line + '\n'
+    //     }
+    //     this.editor.setValue(program)
+    //     this.parseLines()
+    //     this.notateLines()
+    //     if (this.debugger) { this.debugger.contentReplaced() }
+    // }
 
     notationsHeader() {
         if (Object.keys(this.notations).length === 0) {
