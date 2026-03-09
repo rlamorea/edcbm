@@ -1,5 +1,8 @@
 /* page */
+#editor-pane { position: relative; }
 body[data-debug=true] #container {
+    display: inline-block;
+    width: calc(80vw - 1em);
     height: calc(99vh - 2*var(--menu-height));
 }
 
@@ -84,4 +87,71 @@ body[data-debug=true] #debug-bar { display: block; }
     vertical-align: top;
     line-height: 30px;
     text-transform: capitalize;
+}
+
+/* variable panel */
+#debug-variables {
+    margin: 0;
+    padding: 26px 0 0 0;
+    display: none;
+    position: absolute;
+    right: 1em;
+    top: 0;
+    width: calc(18vw);
+    height: calc(99vh - 55px);
+    overflow-y: auto;
+    background: var(--dialog-background);
+    font-family: var(--editor-font);
+    color: var(--dialog-foreground)
+}
+#debug-variables dt {
+    display: inline-block;
+    width: 4em;
+    margin-right: 1em;
+    border-top: solid 1px var(--dialog-border);
+    padding-top: 2px;
+    margin-bottom: 2px;
+    text-align: right;
+    vertical-align: top;
+}
+#debug-variables dd {
+    display: inline-block;
+    width: calc(100% - 5em);
+    border-top: solid 1px var(--dialog-border);
+    padding-top: 2px;
+    margin-bottom: 2px;
+    margin-left: 0;
+    vertical-align: top;
+    position: relative;
+}
+#debug-variables dd::before {
+    content: "=";
+    position: absolute;
+    left: -1em;
+    top: -1px;
+    border-top: solid 1px var(--dialog-border);
+    padding-top: 2px;
+}
+body[data-debug=true] #debug-variables { display: block; }
+
+#debug-variables dt.v-arr {
+    display: block;
+    width: 100%;
+    text-align: left;
+}
+#debug-variables dt.v-arr input {
+    font-family: var(--editor-font);
+    font-size: 12pt;
+    color: var(--dialog-foreground);
+    background: var(--dialog-background);
+    text-align: right;
+    border: none;    
+}
+#debug-variables dd.v-arr {
+    border-top: none;
+    margin-left: 5em;
+}
+#debug-variables dd.v-arr::before {
+    border-top: none;
+    top: 0px;
 }

@@ -39,6 +39,10 @@ export class ViceConnection {
                 keyboardBuffer: 0x034a,
                 keyboardBufferCount: 0xd0,
             },
+            banks: {
+                variables: 1,
+                strings: 1,
+            },
             basicPrep: false
         },
         'c64': {
@@ -54,8 +58,9 @@ export class ViceConnection {
                 startOfBasic: 0x2b,
                 startOfVars: 0x2d,
                 startOfArrays: 0x2f,
-                bottomOfStrings: 0x31,
-                topOfStrings: 0x33,
+                endOfArrays: 0x31,
+                startOfStrings: 0x33,
+                endOfStrings: 0x37,
                 keyboardBuffer: 0x277,
                 keyboardBufferCount: 0x00c6,
             },
@@ -150,9 +155,7 @@ export class ViceConnection {
             startupDelay: 2000,
             check: { addresses: [ 0xdeb8, 0xdeba ], values: [ 0x34, 0x2e, 0x30 ] },
             exec: { break: 0xb787, lookup: { line: 0x36, addr: 0x7b } },
-            stop: { 
-                common: 0xb7e6,
-            },
+            stop: { common: 0xb7e6 },
             pointers: {
                 startOfBasic: 0x28,
                 startOfVars: 0x2a,
@@ -181,6 +184,7 @@ export class ViceConnection {
                 runout: 0x876c, // pointing to bank cpu
             },
             pointers: {
+                bank: 17,
                 startOfBasic: 0x2d, // pointing to bank ram01 (id 1)
                 endOfBasic: 0x2f, // pointing to bank ram01 (id 1)
                 startOfVars: 0x31, // pointing to bank ram03 (id 3)
@@ -604,5 +608,188 @@ export class ViceConnection {
             stopCheckpoints[stopResponse.parsed.checkpoint] = stop
         }
         return { execCheckpoint: execResponse.parsed.checkpoint, stopCheckpoints }
+    }
+
+    getPointerValue(pointerAddress, memory, offset) {
+        const startIndex = pointerAddress - offset
+        const pointerMemory = memory.slice(startIndex, startIndex + 2)
+        return ViceResponse.parseInt(pointerMemory)
+    }
+
+    async getVariableMemory() {
+        const machine = this.machineData
+        const pointerMemResponse = await this.sendCommand(new ViceCommand('memget', {
+            startAddress: machine.pointers.startOfVars,
+            endAddress: machine.pointers.endOfStrings + 1,
+            bank: machine.pointers.bank ?? 0
+        }))
+        const pointerMemory = pointerMemResponse.response().memory
+        const pointerOffset = machine.pointers.startOfVars
+        const startOfVars = this.getPointerValue(machine.pointers.startOfVars, pointerMemory, pointerOffset)
+        const startOfArrays = this.getPointerValue(machine.pointers.startOfArrays, pointerMemory, pointerOffset)
+        const endOfArrays = this.getPointerValue(machine.pointers.endOfArrays, pointerMemory, pointerOffset)
+        if ((endOfArrays - startOfVars) <= 0) { return null }
+
+        const varMemoryResponse = await this.sendCommand(new ViceCommand('memget', { 
+            startAddress: startOfVars,
+            endAddress: endOfArrays - 1,
+            bankId: machine?.banks?.variables ?? 0
+        }))
+
+        const startOfStrings = this.getPointerValue(machine.pointers.startOfStrings, pointerMemory, pointerOffset)
+        const endOfStrings = this.getPointerValue(machine.pointers.endOfStrings, pointerMemory, pointerOffset)
+        let stringMemory = []
+        if (endOfStrings > startOfStrings) {
+            const strMemoryResponse = await this.sendCommand(new ViceCommand('memget', {
+                startAddress: startOfStrings,
+                endAddress: endOfStrings - 1,
+                bankId: machine?.banks?.strings ?? 0
+            }))
+            stringMemory = strMemoryResponse.response().memory
+        }
+
+        return {
+            startOfVars,
+            startOfArrays,
+            startOfStrings,
+            varMemory: varMemoryResponse.response().memory,
+            stringMemory
+        }
+    }
+
+    parseVariableName(name1, name2) {
+        let name = `${String.fromCharCode(name1 & 0x7F)}${((name2 & 0x7F) === 0) ? '' : String.fromCharCode(name2 & 0x7F)}`
+        let type = 'num'
+        if ((name1 & 0x80) & (name2 & 0x80)) {
+            name += '%'
+            type = 'int'
+        } else if (name2 & 0x80) {
+            name += '$'
+            type = 'str'
+        }
+        return { name, type }
+    }
+
+    parseNumberValue(bytes) {
+        let exponent = bytes[0]
+        if (exponent === 0) { return 0.0 }
+        exponent = exponent - 128
+        const sign = (bytes[1] & 0x80) ? -1 : 1
+        bytes[1] = bytes[1] | 0x80
+        let power = 1
+        let mantissa = 0
+        for (let by = 1; by <= 4; by++) {
+            let vb = bytes[by]
+            for (let bi = 7; bi >= 0; bi--) {
+                if (vb & 2**bi) {
+                    mantissa = mantissa + 2**(-power)
+                }
+                power = power + 1
+            }
+        }
+        return sign*(mantissa * 2**exponent)
+    }
+
+    parseIntegerValue(bytes) {
+        let value = (bytes[0] << 8) + bytes[1]
+        if (value >= 2**15) { // negative, so 2s complement
+            value = -((~bytes[0] & 0xff) + ((~bytes[1] & 0xff) << 8) + 1)
+        }
+        return value
+    }
+
+    parseStringValue(bytes, stringStart, stringMemory, programStart, programEnd, programMemory) {
+        const length = bytes[0]
+        const address = bytes[1] + (bytes[2] << 8)
+
+        let offset = address - stringStart
+        let memory = stringMemory
+        if (address < programEnd) {
+            offset = address - programStart
+            memory = programMemory
+        }
+        let value = []
+        for (let idx = 0; idx < length; idx++) {
+            value.push(memory[idx + offset])
+        }
+
+        return value
+    }
+
+    parseArrayValues(dimensions, memory, type, typeSize, stringStart, stringMemory, programStart, programEnd, programMemory) {
+        if (typeSize == null) {
+            switch (type) {
+                case 'num': typeSize = 5; break;
+                case 'int': typeSize = 2; break;
+                case 'str': typeSize = 3; break;
+            }
+        }
+        let values = new Array(dimensions[0])
+        const subDimensions = dimensions.length > 1 ? dimensions.slice(1) : []
+        const offset = subDimensions.length > 0 ? subDimensions.reduce((a, v) => a * v, 1) * typeSize : 0
+        for (let i = 0; i < dimensions[0]; i++) {
+            if (dimensions.length === 1) {
+                const valMemory = memory.slice(i*typeSize, (i+1)*typeSize)
+                let value = 0
+                switch (type) {
+                    case 'num': value = this.parseNumberValue(valMemory); break;
+                    case 'int': value = this.parseIntegerValue(valMemory); break;
+                    case 'str': value = this.parseStringValue(valMemory, stringStart, stringMemory, programStart, programEnd, programMemory)
+                }
+                values[i] = value
+            } else {
+                const sliceOffset = offset * i
+                values[i] = this.parseArrayValues(
+                    dimensions.slice(1), memory.slice(sliceOffset, sliceOffset+offset), type, typeSize,
+                    stringStart, stringMemory, programStart, programEnd, programMemory
+                )
+            }
+        }
+        return values
+    }
+
+    async getVariableValues(programStart, programBytes) {
+        const varInfo = await this.getVariableMemory()
+        if (varInfo == null) { return {} }
+        const { startOfVars, startOfArrays, startOfStrings, varMemory, stringMemory } = varInfo
+        let ptr = 0
+        let variables = {}
+        const arrayOffset = startOfArrays - startOfVars
+        while (ptr < arrayOffset) {
+            if (varMemory.length < 7) { console.log('invalid variable memory'); varMemory = []; break }
+            const memory = varMemory.splice(0, 7)
+            const { name, type } = this.parseVariableName(memory[0], memory[1])
+            let value = null
+            switch (type) {
+                case 'num': value = this.parseNumberValue(memory.slice(2)); break;
+                case 'int': value = this.parseIntegerValue(memory.slice(2, 4)); break;
+                case 'str': 
+                    value = this.parseStringValue(memory.slice(2, 6), startOfStrings, stringMemory, programStart, startOfVars, programBytes)
+                    break;
+            }
+            variables[name] = value
+            ptr += 7
+        }
+        while (varMemory.length > 0) {
+            if (varMemory.length < 2) { console.log('invalid array memory'); varMemory = []; break; }
+            let memory = varMemory.splice(0, 2)
+            const { name, type } = this.parseVariableName(memory[0], memory[1])
+            if (varMemory.length < 2) { console.log('invalid array memory'); varMemory = []; break; }
+            memory = varMemory.splice(0, 2)
+            const valueBytes = ViceResponse.parseInt(memory) - 4 // subtract out name and offset bytes
+            if (varMemory.length < valueBytes) { console.log('invalid array memory'); varMemory = []; break; }
+            memory = varMemory.splice(0, valueBytes)
+            const dimCount = memory.splice(0, 1)[0]
+            let dimensions = []
+            for (let d = 0; d < dimCount; d++) {
+                const dimension = memory.splice(0, 2)
+                dimensions.push((dimension[0] << 8) + dimension[1])
+            }
+            variables[`${name}(`] = { dimensions, values: this.parseArrayValues(
+                dimensions, memory, type, null,
+                startOfStrings, stringMemory, programStart, startOfVars, programBytes
+            ) }
+        }
+        return variables
     }
 }

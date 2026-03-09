@@ -373,13 +373,14 @@ class Editor {
     setProgram(program, machineReady = false) {
         program = this.parseNotationsHeader(program)
         if (!machineReady) { program = window.petscii.petsciiStringToString(program) }
+        if (this.debugger) { this.debugger.clearBreakPointMarkers(this.bufferedProgram != null) }
         this.editor.setValue(program)
         if (this.initialized) {
             window.localStorage.setItem('currentProgram', this.editor.getValue())
         }
         this.parseLines()
         this.notateLines()
-        if (this.debugger) { this.debugger.contentReplaced() }
+        if (this.debugger) { this.debugger.contentReplaced(this.bufferedProgram != null) }
     }
 
     setProgramBytes(bytes) {
