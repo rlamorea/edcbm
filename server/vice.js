@@ -34,14 +34,16 @@ export class ViceConnection {
                 startOfBasic: 0x2d,
                 startOfVars: 0x2f, // pointing to bank 1
                 startOfArrays: 0x31, // pointing to bank 1
-                bottomOfStrings: 0x33, // pointing to bank 1
-                topOfStrings: 0x35, // pointing to bank 1
+                endOfArrays: 0x33, // pointing to bank 1
+                startOfStrings: 0x35, // pointing to bank 1
+                endOfStrings: 0x39, // pointing to bank 1
                 keyboardBuffer: 0x034a,
                 keyboardBufferCount: 0xd0,
             },
             banks: {
-                variables: 1,
-                strings: 1,
+                program: 4, // ram00
+                variables: 5, // ram01
+                strings: 5, // ram01
             },
             basicPrep: false
         },
@@ -78,11 +80,17 @@ export class ViceConnection {
             pointers: {
                 startOfBasic: 0x2b,
                 startOfVars: 0x2d,
-                startOfArrays: 0x2e,
-                bottomOfStrings: 0x31,
-                topOfStrings: 0x33,
+                startOfArrays: 0x2f,
+                endOfArrays: 0x31,
+                startOfStrings: 0x33,
+                endOfStrings: 0x37,
                 keyboardBuffer: 0x527,
                 keyboardBufferCount: 0xef,
+            },
+            banks: {
+                program: 1,
+                variables: 1,
+                strings: 1
             },
             basicPrep: { start: 0x2d, end: 0x32 }
          },
@@ -98,11 +106,17 @@ export class ViceConnection {
             pointers: {
                 startOfBasic: 0x2b,
                 startOfVars: 0x2d,
-                startOfArrays: 0x2e,
-                bottomOfStrings: 0x31,
-                topOfStrings: 0x33,
+                startOfArrays: 0x2f,
+                endOfArrays: 0x31,
+                startOfStrings: 0x33,
+                endOfStrings: 0x37,
                 keyboardBuffer: 0x527,
                 keyboardBufferCount: 0xef,
+            },
+            banks: {
+                program: 1,
+                variables: 1,
+                strings: 1
             },
             basicPrep: { start: 0x2d, end: 0x32 },
         },
@@ -119,8 +133,9 @@ export class ViceConnection {
                 startOfBasic: 0x2b,
                 startOfVars: 0x2d,
                 startOfArrays: 0x2f,
-                bottomOfStrings: 0x31,
-                topOfStrings: 0x33,
+                endOfArrays: 0x31,
+                startOfStrings: 0x33,
+                endOfStrings: 0x37,
                 keyboardBuffer: 0x277,
                 keyboardBufferCount: 0xc6,
             },
@@ -138,8 +153,9 @@ export class ViceConnection {
                 startOfBasic: 0x28,
                 startOfVars: 0x2a,
                 startOfArrays: 0x2c,
-                bottomOfStrings: 0x2e,
-                topOfStrings: 0x30,
+                endOfArrays: 0x2e,
+                startOfStrings: 0x30,
+                endOfStrings: 0x34,
                 keyboardBuffer: 0x270,
                 keyboardBufferCount: 0x9e,
             },
@@ -160,8 +176,9 @@ export class ViceConnection {
                 startOfBasic: 0x28,
                 startOfVars: 0x2a,
                 startOfArrays: 0x2c,
-                bottomOfStrings: 0x2e,
-                topOfStrings: 0x30,
+                endOfArrays: 0x2e,
+                startOfStrings: 0x30,
+                endOfStrings: 0x34,
                 keyboardBuffer: 0x270,
                 keyboardBufferCount: 0x9e,
             },
@@ -174,9 +191,8 @@ export class ViceConnection {
         },
         'cbm2': {
             launcher: 'xcbm2',
-            startupDelay: 3500,
+            startupDelay: 4500,
             check: { addresses: [ 0xbb96, 0xbb98 ], bank: 17, values: [ 0x31, 0x32, 0x38 ] },
-            basicProgram: { bank: 1 },
             basicRun: { bank: 17 },
             exec: { break: 0x87aa, lookup: { line: 0x42, addr: 0x86, bank: 17 } },
             stop: { 
@@ -187,14 +203,20 @@ export class ViceConnection {
                 bank: 17,
                 startOfBasic: 0x2d, // pointing to bank ram01 (id 1)
                 endOfBasic: 0x2f, // pointing to bank ram01 (id 1)
-                startOfVars: 0x31, // pointing to bank ram03 (id 3)
-                endOfVars: 0x33, // pointing to bank ram03 (id 3)
-                startOfArrays: 0x35, // pointing to bank ram02 (id 2)
-                endOfArrays: 0x37, // pointing to bank ram02 (id 2)
-                bottomOfStrings: 0x3b, // pointing to bank ram04 (id 4)
-                topOfStrings: 0x3f, // pointing to bank ram04 (id 4)
+                startOfVars: 0x31, // pointing to bank ram02
+                endOfVars: 0x33, // pointing to bank ram02
+                startOfArrays: 0x35, // pointing to bank ram02
+                endOfArrays: 0x39, // pointing to bank ram02
+                startOfStrings: 0x3b, // pointing to bank ram02 (default, but see endOfStrings)
+                endOfStrings: 0x3f, // pointing to bank ram02 (default, but actual bank in 0x41)
                 keyboardBuffer: 0x03ab,
                 keyboardBufferCount: 0xd1,
+            },
+            banks: {
+                program: 1,
+                variables: 2,
+                arrays: 2,
+                strings: 2, // { lookup: 0x41 },
             },
             basicPrep: { start: 0x2f, end: 0x30 }
         }
@@ -556,7 +578,7 @@ export class ViceConnection {
             await this.sendCommand(new ViceCommand('memset', {
                 startAddress: start,
                 endAddress: end,
-                dataBytes: bytes
+                dataBytes: bytes,
             }))
         }
         // load in program bytes
@@ -564,7 +586,7 @@ export class ViceConnection {
             startAddress: startAddress,
             endAddress: endAddress - 1, // 0-based count
             dataBytes: programBytes,
-            bankId: this.machineData.basicProgram?.bank ?? 0
+            bankId: this.machineData?.banks?.program ?? 0
         }))
     }
 
@@ -618,14 +640,18 @@ export class ViceConnection {
 
     async getVariableMemory() {
         const machine = this.machineData
+        // // temporary -- pull in banks
+        // const bankResponse = await this.sendCommand(new ViceCommand('infobanks'))
+
         const pointerMemResponse = await this.sendCommand(new ViceCommand('memget', {
             startAddress: machine.pointers.startOfVars,
             endAddress: machine.pointers.endOfStrings + 1,
-            bank: machine.pointers.bank ?? 0
+            bankId: machine.pointers.bank ?? 0
         }))
         const pointerMemory = pointerMemResponse.response().memory
         const pointerOffset = machine.pointers.startOfVars
         const startOfVars = this.getPointerValue(machine.pointers.startOfVars, pointerMemory, pointerOffset)
+        // CBM2 has a separate endOfVars pointer, but by default this ends up being startOfArrays
         const startOfArrays = this.getPointerValue(machine.pointers.startOfArrays, pointerMemory, pointerOffset)
         const endOfArrays = this.getPointerValue(machine.pointers.endOfArrays, pointerMemory, pointerOffset)
         if ((endOfArrays - startOfVars) <= 0) { return null }
@@ -638,6 +664,7 @@ export class ViceConnection {
 
         const startOfStrings = this.getPointerValue(machine.pointers.startOfStrings, pointerMemory, pointerOffset)
         const endOfStrings = this.getPointerValue(machine.pointers.endOfStrings, pointerMemory, pointerOffset)
+        // CBM2 string bank is a lookup from 0x41, but just using default for forseeable future
         let stringMemory = []
         if (endOfStrings > startOfStrings) {
             const strMemoryResponse = await this.sendCommand(new ViceCommand('memget', {
@@ -701,6 +728,7 @@ export class ViceConnection {
     parseStringValue(bytes, stringStart, stringMemory, programStart, programEnd, programMemory) {
         const length = bytes[0]
         const address = bytes[1] + (bytes[2] << 8)
+        // NOTE: technically, CBM2 has a third byte which is the bank - simply not supporting that now
 
         let offset = address - stringStart
         let memory = stringMemory
