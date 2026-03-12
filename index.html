@@ -111,7 +111,11 @@
       </ul>
     </span>
   </div>
-  <div id="container"></div>
+  <div id="editor-pane">
+    <div id="container"></div>
+    <dl id="debug-variables"></dl>
+  </div>
+
   <div id="debug-bar" class="menubar">
       <button id="run">
         <svg width="18" height="18" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" stroke="#000" fill="none" stroke-width="2" stroke-linejoin="round"><path d="m5 4 7 4-7 4z"/></svg>
@@ -147,7 +151,7 @@
       </span>
       <span id="run-status"></span>
   </div>
-
+  
   <dialog id="catalog" closedby="any">
     <span class="close"><svg width="18" height="18" viewBox="0 0 0.36 0.36" xmlns="http://www.w3.org/2000/svg"><path fill="#444" d="M.34.07.29.02.18.133.07.02.02.07l.112.11L.02.29l.05.05.11-.112.11.112.05-.05L.228.18z"/></svg></span>
     <h3>0 <span></span></h3>

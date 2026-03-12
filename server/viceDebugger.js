@@ -53,6 +53,8 @@ export class ViceDebugger {
             const { execCheckpoint, stopCheckpoints } = await this.vice.setUpforBASICBreak()
             this.execCheckpoint = execCheckpoint
             this.stopCheckpoints = stopCheckpoints
+            this.programStartAddress = data.startAddress
+            this.programBytes = programBytes
         }
         this.breakPointLines = data.breakPoints
         if (this.breakPointLines.length > 0) {
@@ -71,7 +73,9 @@ export class ViceDebugger {
     async basicCheckpointHit(checkpoint, response) {
         const machine = this.vice.machineData
         if (checkpoint !== this.execCheckpoint) {
-            this.socket.send(JSON.stringify({ status: 'ended' }))
+            let message = { status: 'ended' }
+            message.variables = await this.vice.getVariableValues(this.programStartAddress, this.programBytes)
+            this.socket.send(JSON.stringify(message))
             await this.vice.sendCommand(new ViceCommand('execrun'))
             this.vice.startWaiting()
             return
@@ -97,7 +101,11 @@ export class ViceDebugger {
         }))
         const address = ViceResponse.parseInt(addrData.response().memory)
         if (this.breakPointLines.includes(lineNo)) { this.freeRunning = false }
-        this.socket.send(JSON.stringify({ status: 'checkpoint', reason: 'step', lineNo, address, info: this.freeRunning }))
+        let message = { status: 'checkpoint', reason: 'step', lineNo, address, info: this.freeRunning }
+        if (!this.freeRunning) {
+            message.variables = await this.vice.getVariableValues(this.programStartAddress, this.programBytes)
+        }
+        this.socket.send(JSON.stringify(message))
         if (this.freeRunning) {
             await this.vice.sendCommand(new ViceCommand('execrun'))
             this.vice.startWaiting()

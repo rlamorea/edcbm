@@ -32,6 +32,8 @@ class Debugger {
         this.runStatusIcon = document.getElementById('run-status-icon')
         this.runStatusText = document.getElementById('run-status')
 
+        this.variablePanel = document.getElementById('debug-variables')
+
         this.debugAddresses = null
         this.runMode = 'stopped'
         this.setState('disconnected')
@@ -195,8 +197,8 @@ class Debugger {
         const range = new monaco.Range(lineIndex, 1, lineIndex, lineLength)
         const breakPoint = this.setBreakPoints[lineNumber]
         const disable = (state === 'toggle') ? (breakPoint != null) : (state === 'clear')
-        if (disable || state === 'hide') {   
-            this.editor.deltaDecorations(breakPoint.decoration, [])
+        if (disable || state === 'hide') {
+            if (breakPoint.decoration) { this.editor.deltaDecorations(breakPoint.decoration, []) }
             if (state === 'hide') { 
                 breakPoint.decoration = null
             } else {
@@ -300,6 +302,7 @@ class Debugger {
             lineIndex += 1
         }
         console.log(this.breakPointLocations)
+        // console.trace() -- come back to this, there is a double-call here that is problematic due to setCharChange triggering twice
     }
 
     startDebug() {
@@ -314,6 +317,7 @@ class Debugger {
         }
         this.setState('starting')
         this.setBreakPointLocations(true)
+        this.variablePanel.innerHTML = ''
 
         const breakPointLines = Object.values(this.setBreakPoints).map((b) => b.lineNumber)
 
@@ -383,10 +387,13 @@ class Debugger {
         this.socket.send(JSON.stringify({ command: 'step' }))
     }
 
-    ended() {
+    ended(data) {
         if (!this.socket) { return }
         this.showExecutionPoint()
         this.setState('ended')
+        if (data.variables) {
+            this.displayVariables(data.variables)
+        }
         this.runMode = 'ended'
     }
 
@@ -407,6 +414,9 @@ class Debugger {
         const breakPoint = debug.breakPoints[data.address]
         this.showExecutionPoint(debug.lineIndex, data.lineNo, debug.lineLength, breakPoint)
         if (!data.info) { this.setState('paused') }
+        if (data.variables) {
+            this.displayVariables(data.variables)
+        }
     }
 
     editorMouseDown(event) {
@@ -423,13 +433,48 @@ class Debugger {
         }
     }
 
-    contentReplaced() {
+    clearBreakPointMarkers(preserve = false) {
         // clear all breakpoints
+        const existingDecorationIds = this.editor.getModel().getAllDecorations().map((d) => d.id)
+        let removeDecorations = []
         for (const breakPoint of Object.values(this.setBreakPoints)) {
-            this.editor.deltaDecorations(breakPoint.decoration)
+            for (const decId of breakPoint.decoration ?? []) {
+                if (existingDecorationIds.includes(decId)) {
+                    removeDecorations.push(decId)
+                }
+            }
+            delete breakPoint.decoration
         }
-        this.setBreakPoints = []
+        this.editor.deltaDecorations(removeDecorations, [])
+        if (!preserve) { this.setBreakPoints = [] }
+    }
+
+    resetBreakPoints(breakLines) {
+        breakLines = breakLines ?? Object.keys(this.setBreakPoints)
+        if (breakLines.length === 0) { return }
         this.setBreakPointLocations()
+        const lineNos = Object.keys(this.breakPointLocations)
+        const changedLines = breakLines.filter((e) => lineNos.includes(e))
+        const removedLines = breakLines.filter((e) => !changedLines.includes(e))
+        for (const lineNo of changedLines) {
+            let breakPoint = this.setBreakPoints[lineNo]
+            breakPoint.lineIndex = this.breakPointLocations[lineNo].lineIndex
+            breakPoint.lineLength = this.breakPointLocations[lineNo].lineLength
+            const range = new monaco.Range(breakPoint.lineIndex, 1, breakPoint.lineIndex, breakPoint.lineLength)
+            breakPoint.decoration = this.editor.deltaDecorations(breakPoint.decoration ?? [], [ { range, options: { glyphMarginClassName: 'breakPoint' } } ])
+        }
+        for (const delLineNo of removedLines) {
+            this.deleteBreakPoint(this.setBreakPoints[delLineNo])
+        }
+    }
+
+    contentReplaced(restoreBreakpoints = false) {
+        if (restoreBreakpoints) {
+            this.resetBreakPoints()
+        } else {
+            this.setBreakPoints = []
+            this.setBreakPointLocations()
+        }
     }
 
     lineChanged(lineIndex, lineNumber, content, tokens, bytes) {
@@ -474,19 +519,80 @@ class Debugger {
             anyMultilineChanges = true
         }
         if (!anyMultilineChanges) { return }
-        this.setBreakPointLocations()
-        const lineNos = Object.keys(this.breakPointLocations)
-        const changedLines = breakLines.filter((e) => lineNos.includes(e))
-        const removedLines = breakLines.filter((e) => !changedLines.includes(e))
-        for (const lineNo of changedLines) {
-            let breakPoint = this.setBreakPoints[lineNo]
-            breakPoint.lineIndex = this.breakPointLocations[lineNo].lineIndex
-            breakPoint.lineLength = this.breakPointLocations[lineNo].lineLength
-            const range = new monaco.Range(breakPoint.lineIndex, 1, breakPoint.lineIndex, breakPoint.lineLength)
-            breakPoint.decoration = this.editor.deltaDecorations(breakPoint.decoration, [ { range, options: { glyphMarginClassName: 'breakPoint' } } ])
+        this.resetBreakPoints(breakLines)
+    }
+
+    displayVariables(variables) {
+        for (const variable in variables) {
+            let varEl = this.variablePanel.querySelector(`dt[data-var="${variable}"]`)
+            let valEl = this.variablePanel.querySelector(`dd[data-var="${variable}"]`)
+            const value = variables[variable]
+            const isArray = variable.endsWith('(')
+            if (!varEl) {
+                varEl = document.createElement('dt')
+                varEl.dataset.var = variable
+                varEl.innerText = variable
+                this.variablePanel.appendChild(varEl)
+                valEl = document.createElement('dd')
+                valEl.dataset.var = variable
+                this.variablePanel.appendChild(valEl)
+                if (isArray) {
+                    varEl.className = 'v-arr'
+                    valEl.className = 'v-arr'
+                    for (let idx = 0; idx < value.dimensions.length; idx++) {
+                        if (idx > 0) { varEl.appendChild(document.createTextNode(',')) }
+                        const dimension = value.dimensions[idx]
+                        const dimInput = document.createElement('input')
+                        dimInput.dataset.dimension = idx
+                        dimInput.setAttribute('type', 'number')
+                        dimInput.setAttribute('min', 0)
+                        dimInput.setAttribute('max', dimension)
+                        dimInput.style.width = `${Math.max(Math.ceil(Math.log10(dimension)),1)+1}em`
+                        dimInput.value = 1
+                        varEl.appendChild(dimInput)
+                        dimInput.addEventListener('change', (e) => { this.arrayDimensionChanged(e) })
+                    }
+                    varEl.appendChild(document.createTextNode(')'))
+                    valEl.dataset.values = JSON.stringify(value.values)
+                }
+            }
+            let type = 'num'
+            if (variable.endsWith('$') || variable.endsWith('$(')) {
+                type = 'str'
+            }
+            if (isArray) {
+                valEl.dataset.type = type
+                this.arrayDimensionChanged(null, varEl)
+            } else {
+                let text = value.toString()
+                if (type === 'str') { text = window.petscii.petsciiBytesToString(value) }
+                valEl.innerText = text
+            }
         }
-        for (const delLineNo of removedLines) {
-            this.deleteBreakPoint(this.setBreakPoints[delLineNo])
+    }
+
+    arrayDimensionChanged(event, variableElement) {
+        const varEl = variableElement ?? event.target.closest('dt.v-arr')
+        const valEl = this.variablePanel.querySelector(`dd[data-var="${varEl.dataset.var}"]`)
+        let value = JSON.parse(valEl.dataset.values)
+        const type = valEl.dataset.type
+        const inputs = varEl.querySelectorAll('input')
+        for (let dim = 0; dim < inputs.length; dim++) {
+            let subscript = 1
+            try {
+                subscript = parseInt(inputs[dim].value)
+            } catch (e) {
+                subscript = 1 // just force it!
+            }
+            const min = parseInt(inputs[dim].getAttribute('min'))
+            const max = parseInt(inputs[dim].getAttribute('max'))
+            if (subscript < min) { subscript = min }
+            if (subscript > max) { subscript = max }
+            inputs[dim].value = subscript // put it back no matter what
+            value = value[subscript]
         }
+        let text = value.toString()
+        if (type === 'str') { text = window.petscii.petsciiBytesToString(value) }
+        valEl.innerText = text
     }
 }
