@@ -464,15 +464,30 @@ class Tokenizer {
 
         let varName = null
         let varStart = 0
+        let dataStart = 0
         for (let linesplit of petsciiLine.split(/("|:|DATA|REM)/)) {
             if (!inRem) {
-                if (linesplit === '"') {
+                if (linesplit === '"' && !inQuote) {
                     ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
                     inQuote = !inQuote
                     tokenBytes.push(0x22) // '"'
                     lineIdx += 1
                     continue
-                } else if (linesplit === 'REM') {
+                } else if (linesplit === '"') {
+                    inQuote = !inQuote
+                    tokenBytes.push(0x22) // '"'
+                    lineIdx += 1
+                    continue
+                }
+                if (inQuote) {
+                    for (const char of linesplit) {
+                        const petsciiChar = window.petscii.lookup[char] ?? char.codePointAt(0)
+                        tokenBytes.push(petsciiChar)
+                        lineIdx += 1
+                    }
+                    continue
+                }
+                if (linesplit === 'REM') {
                     ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
                     inRem = true // everything from here on is literal
                     inQuote = true // use inQute state to get literal chars
@@ -491,6 +506,7 @@ class Tokenizer {
                     ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
                     tokenBytes.push(0x83) // DATA
                     lineIdx += 4
+                    dataStart = lineIdx + 1
                     continue
                 }
             }
@@ -544,21 +560,28 @@ class Tokenizer {
                     nextToken = (lineTokens.length > 0) ? lineTokens.shift() : null
                 } else {
                     let char = linesplit[0]
-                    if (!inQuote && !varName && /[A-Z]/.test(char)) {
-                        varName = char
-                        varStart = lineIdx
-                    } else if (varName && /[A-Z0-9]/.test(char)) {
-                        varName += char
-                    } else if (varName && (char === '$' || char === '%')) {
-                        varName += char
-                        if (linesplit.length <= 1 || linesplit[1] !== '(') {
+                    if (inData) {
+                        if (!inQuote && char === ',') {
+                            tokens.push({ token: 'data-val', start: dataStart, end: lineIdx + 1, byteOffset: tokenBytes.length - 2 })
+                            dataStart = lineIdx + 2
+                        }
+                    } else if (!inRem) {
+                        if (!inQuote && !inData && !varName && /[A-Z]/.test(char)) {
+                            varName = char
+                            varStart = lineIdx
+                        } else if (varName && /[A-Z0-9]/.test(char)) {
+                            varName += char
+                        } else if (varName && (char === '$' || char === '%')) {
+                            varName += char
+                            if (linesplit.length <= 1 || linesplit[1] !== '(') {
+                                ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
+                            }
+                        } else if (varName && char === '(') {
+                            varName += char
+                            ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
+                        } else if (varName) {
                             ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
                         }
-                    } else if (varName && char === '(') {
-                        varName += char
-                        ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
-                    } else if (varName) {
-                        ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
                     }
                     linesplit = linesplit.substring(1)
                     const petsciiChar = window.petscii.lookup[char] ?? char.codePointAt(0)
@@ -567,7 +590,12 @@ class Tokenizer {
                 }
             }
         }
-        if (varName) { this.addVariable(variables, varName, varStart, tokens) }
+        if (inData) {
+            tokens.push({ token: 'data-val', start: dataStart, end: lineIdx + 1, byteOffset: tokenBytes.length - 2 })
+            inData = false
+        } else if (varName) { 
+            ;({ varName, varStart } = this.addVariable(variables, varName, varStart, tokens))
+        }
 
         const byteArray = new Uint8Array(tokenBytes.length)
         for (let i = 0; i < tokenBytes.length; i++) {

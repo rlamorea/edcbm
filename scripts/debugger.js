@@ -42,8 +42,10 @@ class Debugger {
         this.machine = null
         this.setBreakPoints = {}
         this.breakPointLocations = null
+        this.redoBreakLocations = false
         this.debuggerLine = null
         this.debuggerLineDecoration = null
+        this.dataLineDecoration = null
     }
 
     setMachine(machine) {
@@ -55,6 +57,7 @@ class Debugger {
             this.runColumnsButton.style.display = 'none'
         }
         this.setBreakPointLocations(true)
+        this.variablePanel.innerHTML = ''
     }
 
     static states = {
@@ -114,6 +117,7 @@ class Debugger {
                 this.editor.deltaDecorations(this.debuggerLineDecoration, [])
                 this.debuggerLineDecoration = null
             }
+            this.showDataLine()
         }
     }
 
@@ -184,6 +188,29 @@ class Debugger {
         this.debuggerLineDecoration = this.editor.deltaDecorations(prevDebug, newDebug)
         if (this.debuggerLine) { this.restoreBreakpointMarker() }
         this.debuggerLine = lineNumber
+    }
+
+    showDataLine(lineNumber, dataAddress) {
+        if (this.dataLineDecoration) {
+            this.editor.deltaDecorations(this.dataLineDecoration, [])
+            this.dataLineDecoration = null
+        }
+        if (lineNumber == null) { return }
+        const lineInfo = this.breakPointLocations[lineNumber]
+        if (!lineInfo) { return }
+        let dataPoint = lineInfo.dataPoints ? lineInfo.dataPoints[dataAddress] : null
+        if (dataPoint == null) { dataPoint = lineInfo.dataPoints ? Object.values(lineInfo.dataPoints)[0] : null }
+        let colStart = (dataPoint ?? {}).start || 1
+        let colEnd = (dataPoint ?? {}).end
+        if (colEnd == null) { colEnd = lineInfo.lineLength }
+        const newDataLine = [ {
+            range: new monaco.Range(lineInfo.lineIndex, colStart, lineInfo.lineIndex, colEnd),
+            options: { 
+                glyphMarginClassName: 'dataPoint',
+                inlineClassName: 'dataHighlight'
+            }
+        } ]
+        this.dataLineDecoration = this.editor.deltaDecorations([], newDataLine)
     }
 
     restoreBreakpointMarker() {
@@ -268,10 +295,15 @@ class Debugger {
     getLineDebugAddresses(lineAddr, lineLength, tokens) {
         lineAddr += 4 // skip next address and line number
         let breakPoints = { }
+        let dataPoints = { }
         let lastBreakPoint = null
         for (const token of tokens) {
+            const addr = lineAddr + (token.byteOffset ?? 0)
+            if (token.token === 'data-val') {
+                dataPoints[addr] = { address: addr, start: token.start, end: token.end }
+                continue
+            }
             if (![ 'line-number', 'colon', 'then-split', 'else-split' ].includes(token.token)) { continue }
-            const addr = lineAddr + token.byteOffset
             if (lastBreakPoint) { 
                 if (token.token === 'else-split') { // destroy the breakpoint for the preceding colon
                     delete breakPoints[lastBreakPoint.address]
@@ -283,11 +315,15 @@ class Debugger {
             lastBreakPoint = breakPoints[addr]
         }
         lastBreakPoint.end = lineLength + 1
-        return breakPoints
+        return { breakPoints, dataPoints }
     }
 
     setBreakPointLocations(skipIfSet) {
         if (!this.editor || !this.machine) { return }
+        if (this.redoBreakLocations) {
+            skipIfSet = false
+            this.redoBreakLocations = false
+        }
         if (skipIfSet && this.breakPointLocations) { return }
         this.breakPointLocations = {}
         let lineAddr = this.machine.startAddress
@@ -295,8 +331,8 @@ class Debugger {
         for (const line of this.editor.getValue().split('\n')) {
             const {  byteArray, lineNumber, tokens } = window.tokenizer.tokenizeLine(line)
             if (byteArray.length > 0) {
-                const breakPoints = this.getLineDebugAddresses(lineAddr, line.length, tokens)
-                this.breakPointLocations[lineNumber] = { lineIndex, lineLength: line.length, breakPoints }
+                const { breakPoints, dataPoints } = this.getLineDebugAddresses(lineAddr, line.length, tokens)
+                this.breakPointLocations[lineNumber] = { lineIndex, lineLength: line.length, breakPoints, dataPoints }
                 lineAddr += byteArray.length + 3 // I think this should be 3
             }
             lineIndex += 1
@@ -394,6 +430,9 @@ class Debugger {
         if (data.variables) {
             this.displayVariables(data.variables)
         }
+        if (data.dataLine) {
+            this.showDataLine(data.dataLine, data.dataAddress)
+        }
         this.runMode = 'ended'
     }
 
@@ -416,6 +455,9 @@ class Debugger {
         if (!data.info) { this.setState('paused') }
         if (data.variables) {
             this.displayVariables(data.variables)
+        }
+        if (data.dataLine) {
+            this.showDataLine(data.dataLine, data.dataAddress)
         }
     }
 
@@ -505,6 +547,7 @@ class Debugger {
     }
 
     contentChanged(event) {
+        this.redoBreakLocations = true
         const breakLines = Object.keys(this.setBreakPoints)
         if (breakLines.length === 0) { return }
         let anyMultilineChanges = false
