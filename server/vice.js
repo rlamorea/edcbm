@@ -37,6 +37,8 @@ export class ViceConnection {
                 endOfArrays: 0x33, // pointing to bank 1
                 startOfStrings: 0x35, // pointing to bank 1
                 endOfStrings: 0x39, // pointing to bank 1
+                dataLine: 0x41,
+                dataAddress: 0x43,
                 keyboardBuffer: 0x034a,
                 keyboardBufferCount: 0xd0,
             },
@@ -63,6 +65,8 @@ export class ViceConnection {
                 endOfArrays: 0x31,
                 startOfStrings: 0x33,
                 endOfStrings: 0x37,
+                dataLine: 0x3f,
+                dataAddress: 0x41,
                 keyboardBuffer: 0x277,
                 keyboardBufferCount: 0x00c6,
             },
@@ -84,6 +88,8 @@ export class ViceConnection {
                 endOfArrays: 0x31,
                 startOfStrings: 0x33,
                 endOfStrings: 0x37,
+                dataLine: 0x3f,
+                dataAddress: 0x41,
                 keyboardBuffer: 0x527,
                 keyboardBufferCount: 0xef,
             },
@@ -98,7 +104,7 @@ export class ViceConnection {
             launcher: 'xplus4', args: [ '--model', 'plus4' ],
             startupDelay: 1000,
             check: { addresses: [ 0x80df, 0x80e3 ], values: [ 0x56, 0x33, 0x2e, 0x35, 0x20 ] },
-            exec: { break: 0x8c27, lookup: { line: 0x39, addr: 0x3c } },
+            exec: { break: 0x8c27, lookup: { line: 0x39, addr: 0x3b } },
             stop: { 
                 common: 0x8cdb,
                 runout: 0x8c17,
@@ -110,6 +116,8 @@ export class ViceConnection {
                 endOfArrays: 0x31,
                 startOfStrings: 0x33,
                 endOfStrings: 0x37,
+                dataLine: 0x3f,
+                dataAddress: 0x41,
                 keyboardBuffer: 0x527,
                 keyboardBufferCount: 0xef,
             },
@@ -124,7 +132,7 @@ export class ViceConnection {
             launcher: 'xvic',
             startupDelay: 1500,
             check: { addresses: [ 0xe446, 0xe447 ], values: [ 0x56, 0x32 ] },
-            exec: { break: 0xc7ef, lookup: { line: 0x39, addr: 0x7b } },
+            exec: { break: 0xc7ef, lookup: { line: 0x39, addr: 0x7a } },
             stop: { 
                 common: 0xc84f,
                 reset: 0xfed2,
@@ -136,6 +144,8 @@ export class ViceConnection {
                 endOfArrays: 0x31,
                 startOfStrings: 0x33,
                 endOfStrings: 0x37,
+                dataLine: 0x3f,
+                dataAddress: 0x41,
                 keyboardBuffer: 0x277,
                 keyboardBufferCount: 0xc6,
             },
@@ -145,7 +155,7 @@ export class ViceConnection {
             launcher: 'xpet', args: [ '--model', '3032' ],
             startupDelay: 1500,
             check: { addresses: [ 0xe1d2, 0xe1d4 ], values: [ 0x42, 0x41, 0x53 ] },
-            exec: { break: 0xc702, lookup: { line: 0x36, addr: 0x78 } },
+            exec: { break: 0xc702, lookup: { line: 0x36, addr: 0x77 } },
             stop: { 
                 common: 0xc763
             },
@@ -156,6 +166,8 @@ export class ViceConnection {
                 endOfArrays: 0x2e,
                 startOfStrings: 0x30,
                 endOfStrings: 0x34,
+                dataLine: 0x3c,
+                dataAddress: 0x3e,
                 keyboardBuffer: 0x270,
                 keyboardBufferCount: 0x9e,
             },
@@ -170,7 +182,7 @@ export class ViceConnection {
             launcher: 'xpet', args: [ '--model', '8032' ], 
             startupDelay: 2000,
             check: { addresses: [ 0xdeb8, 0xdeba ], values: [ 0x34, 0x2e, 0x30 ] },
-            exec: { break: 0xb787, lookup: { line: 0x36, addr: 0x7b } },
+            exec: { break: 0xb787, lookup: { line: 0x36, addr: 0x77 } },
             stop: { common: 0xb7e6 },
             pointers: {
                 startOfBasic: 0x28,
@@ -179,6 +191,8 @@ export class ViceConnection {
                 endOfArrays: 0x2e,
                 startOfStrings: 0x30,
                 endOfStrings: 0x34,
+                dataLine: 0x3c,
+                dataAddress: 0x3e,
                 keyboardBuffer: 0x270,
                 keyboardBufferCount: 0x9e,
             },
@@ -194,7 +208,7 @@ export class ViceConnection {
             startupDelay: 4500,
             check: { addresses: [ 0xbb96, 0xbb98 ], bank: 17, values: [ 0x31, 0x32, 0x38 ] },
             basicRun: { bank: 17 },
-            exec: { break: 0x87aa, lookup: { line: 0x42, addr: 0x86, bank: 17 } },
+            exec: { break: 0x87aa, lookup: { line: 0x42, addr: 0x85, bank: 17 } },
             stop: { 
                 common: 0x8bdc, // pointing to bank cpu
                 runout: 0x876c, // pointing to bank cpu
@@ -209,6 +223,8 @@ export class ViceConnection {
                 endOfArrays: 0x39, // pointing to bank ram02
                 startOfStrings: 0x3b, // pointing to bank ram02 (default, but see endOfStrings)
                 endOfStrings: 0x3f, // pointing to bank ram02 (default, but actual bank in 0x41)
+                dataLine: 0x49,
+                dataAddress: 0x4b,
                 keyboardBuffer: 0x03ab,
                 keyboardBufferCount: 0xd1,
             },
@@ -645,7 +661,7 @@ export class ViceConnection {
 
         const pointerMemResponse = await this.sendCommand(new ViceCommand('memget', {
             startAddress: machine.pointers.startOfVars,
-            endAddress: machine.pointers.endOfStrings + 1,
+            endAddress: machine.pointers.dataAddress + 1,
             bankId: machine.pointers.bank ?? 0
         }))
         const pointerMemory = pointerMemResponse.response().memory
@@ -675,12 +691,17 @@ export class ViceConnection {
             stringMemory = strMemoryResponse.response().memory
         }
 
+        const dataLine = this.getPointerValue(machine.pointers.dataLine, pointerMemory, pointerOffset)
+        const dataAddress = this.getPointerValue(machine.pointers.dataAddress, pointerMemory, pointerOffset)
+
         return {
             startOfVars,
             startOfArrays,
             startOfStrings,
             varMemory: varMemoryResponse.response().memory,
-            stringMemory
+            stringMemory,
+            dataLine,
+            dataAddress
         }
     }
 
@@ -779,7 +800,7 @@ export class ViceConnection {
     async getVariableValues(programStart, programBytes) {
         const varInfo = await this.getVariableMemory()
         if (varInfo == null) { return {} }
-        const { startOfVars, startOfArrays, startOfStrings, varMemory, stringMemory } = varInfo
+        const { startOfVars, startOfArrays, startOfStrings, varMemory, stringMemory, dataLine, dataAddress } = varInfo
         let ptr = 0
         let variables = {}
         const arrayOffset = startOfArrays - startOfVars
@@ -818,6 +839,6 @@ export class ViceConnection {
                 startOfStrings, stringMemory, programStart, startOfVars, programBytes
             ) }
         }
-        return variables
+        return { variables, dataLine, dataAddress }
     }
 }
