@@ -84,6 +84,7 @@ class Editor {
                 }
             }
             this.language[version].tokenizer.root.splice(5, 0, [ new RegExp(Tokenizer.keywordRegex[version]), 'keyword' ])
+            this.language[version].tokenizer.then.splice(2, 0, [ new RegExp(Tokenizer.keywordRegex[version]), 'keyword', '@pop' ])
             const reserved = Tokenizer.reserved[version].map((r) => r.replace('$', '\\$'))
             this.language[version].tokenizer.root.splice(6, 0, [ new RegExp(`(${reserved.join('|')})`), 'reserved' ])
             const lineNumbered = Tokenizer.lineNumberTokens[version].map((r) => r.replace('$', '\\$'))
