@@ -349,8 +349,6 @@ class Debugger {
             }
             lineIndex += 1
         }
-        console.log(this.breakPointLocations)
-        // console.trace() -- come back to this, there is a double-call here that is problematic due to setCharChange triggering twice
     }
 
     startDebug() {
@@ -386,10 +384,8 @@ class Debugger {
             }
         })
         this.socket.addEventListener('message', (event) => {
-            console.log('from socket:', event.data)
             if (event.data === 'pong') { // handshake complete, let's get running!
                 const startAddress = this.machine.startAddress
-                console.log(window.editor.getProgramBytes(startAddress))
                 const payload = {
                     command: 'start',
                     executeMachine: this.machine.executeMachine || this.machine.name,
@@ -457,7 +453,6 @@ class Debugger {
     }
 
     hitCheckpoint(data) {
-        console.log('on line', data.lineNo, 'at address', data.address)
         const debug = this.breakPointLocations[data.lineNo]
         if (debug == null) {
             console.log('unknown line number', data.lineNo)
