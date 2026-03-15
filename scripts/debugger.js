@@ -32,6 +32,10 @@ class Debugger {
         this.runStatusIcon = document.getElementById('run-status-icon')
         this.runStatusText = document.getElementById('run-status')
 
+        this.warpModeButton = document.getElementById('warp-mode')
+        this.warpModeButton.addEventListener('click', () => { this.toggleWarpMode() })
+        this.warpMode = false
+
         this.variablePanel = document.getElementById('debug-variables')
 
         this.debugAddresses = null
@@ -79,7 +83,8 @@ class Debugger {
         'pause': [ 'disconnected', 'connected', 'starting', 'running', 'ended', 'stopped', 'alert', ],
         'step': [ 'disconnected', 'connected', 'starting', 'running', 'continued', 'ended', 'stepping', 'stopped', 'alert' ],
         'stop': [ 'disconnected', 'connected', 'starting', 'stopped', 'alert' ],
-        'cols': [ 'disconnected', 'starting', 'running', 'debugging', 'paused', 'continued', 'stepping', 'ended' ]
+        'cols': [ 'disconnected', 'starting', 'running', 'debugging', 'paused', 'continued', 'stepping', 'ended' ],
+        'warp': [ 'disconnected', 'starting', 'running', 'debugging', 'paused', 'continued', 'stepping', 'ended' ],
     }
     setState(newState, message) {
         // debug mode
@@ -95,6 +100,7 @@ class Debugger {
         this.stepButton.disabled = Debugger.buttonDisabledStates.step.includes(newState)
         this.stopButton.disabled = Debugger.buttonDisabledStates.stop.includes(newState)
         this.runColumnsButton.disabled = Debugger.buttonDisabledStates.cols.includes(newState)
+        this.warpModeButton.disabled = Debugger.buttonDisabledStates.warp.includes(newState)
 
         // now deal with pause/continue
         this.pauseContButton.classList.toggle('cont', newState === 'paused')
@@ -119,6 +125,11 @@ class Debugger {
             }
             this.showDataLine()
         }
+    }
+
+    toggleWarpMode() {
+        this.warpMode = !this.warpMode
+        this.warpModeButton.classList.toggle('warp', this.warpMode)
     }
 
     toggleDebugMode(newMode = 'toggle') {
@@ -247,7 +258,8 @@ class Debugger {
             executeMachine: this.machine.executeMachine || this.machine.name,
             startAddress: startAddress,
             programBytes: window.editor.getProgramBytes(startAddress).toBase64(),
-            columns: this.runColumns
+            columns: this.runColumns,
+            warp: this.warpMode,
         }
         try {
             const response = await window.fetch(`http://localhost:${this.port}/vice/run`, {
@@ -384,7 +396,8 @@ class Debugger {
                     startAddress: startAddress,
                     programBytes: window.editor.getProgramBytes(startAddress).toBase64(),
                     breakPoints: breakPointLines,
-                    columns: this.runColumns
+                    columns: this.runColumns,
+                    warp: this.warpMode,
                 }
                 this.socket.send(JSON.stringify(payload))
                 return

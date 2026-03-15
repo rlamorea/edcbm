@@ -163,6 +163,16 @@ export class ViceCommand {
             ]
         },
         'infovice': 0x85,
+        'speedset': {
+            commandByte: 0x52,
+            payload: [
+                { name: 'valtype', type: 'int8', default: 1 },
+                { name: 'rlen', type: 'int8', default: 5 },
+                { name: 'resource', type: 'string', default: 'Speed' },
+                { name: 'vlen', type: 'int8', default: 2 },
+                { name: 'value', type: 'int16', required: true }
+            ]
+        },
         'quit': 0xbb,
         'reset': {
             commandByte: 0xcc,
@@ -518,6 +528,7 @@ export class ViceResponse {
                 { name: 'svnrev', type: 'varray', length: 'slength' },
             ]
         },
+        'speedset': 0x52,
         'quit': 0xbb,
         'reset': 0xcc,
         'invalid': 0x00,

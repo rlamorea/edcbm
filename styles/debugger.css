@@ -57,6 +57,11 @@ body[data-debug=true] #debug-bar { display: block; }
 #debug-pause-cont.cont svg.pause { display: none; }
 #debug-pause-cont.cont svg.cont { display: inline; }
 
+#warp-mode svg { width: 18px; height: 18px; }
+#warp-mode svg.warp { display: none }
+#warp-mode.warp svg.slow { display: none }
+#warp-mode.warp svg.warp { display: inline }
+
 #trace-mode svg { display: none; width: 18px; height: 18px; }
 #trace-mode.tracing svg.tracing { display: inline; }
 #trace-mode.running svg.running { display: inline; }
