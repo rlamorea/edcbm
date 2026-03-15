@@ -36,6 +36,7 @@ export class ViceDebugger {
             case 'step': this.doStep(data); break;
             case 'pause': this.doPause(data); break;
             case 'continue': this.doContinue(data); break;
+            case 'breakpoints': this.updateBreakPoints(data); break;
         }
 
         return JSON.stringify(result)
@@ -130,6 +131,7 @@ export class ViceDebugger {
     }
 
     async doStep(data) {
+        this.updateBreakPoints(data)
         this.freeRunning = false
         await this.vice.sendCommand(new ViceCommand('execrun'))
         this.vice.startWaiting()
@@ -140,8 +142,15 @@ export class ViceDebugger {
     }
 
     async doContinue(data) {
+        this.updateBreakPoints(data)
         this.freeRunning = true
         await this.vice.sendCommand(new ViceCommand('execrun'))
         this.vice.startWaiting()
+    }
+
+    updateBreakPoints(data) {
+        if ('breakPoints' in data) {
+            this.breakPointLines = data.breakPoints
+        }
     }
 }

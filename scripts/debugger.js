@@ -45,6 +45,7 @@ class Debugger {
         this.editor = null
         this.machine = null
         this.setBreakPoints = {}
+        this.breakPointsSent = false
         this.breakPointLocations = null
         this.redoBreakLocations = false
         this.debuggerLine = null
@@ -246,6 +247,13 @@ class Debugger {
             const decoration = this.editor.deltaDecorations([], [ { range, options: { glyphMarginClassName: 'breakPoint' } } ])
             this.setBreakPoints[lineNumber] = { lineNumber, lineIndex, lineLength, decoration }
         }
+        if (this.runMode === 'debugging') {
+            const breakPointLines = Object.values(this.setBreakPoints).map((b) => b.lineNumber)
+            this.socket.send(JSON.stringify({ command: 'breakpoints', breakPoints: breakPointLines }))
+            this.breakPointsSent = true
+        } else {
+            this.breakPointsSent = false
+        }
     }
 
     async runProgram() {
@@ -365,8 +373,6 @@ class Debugger {
         this.setBreakPointLocations(true)
         this.variablePanel.innerHTML = ''
 
-        const breakPointLines = Object.values(this.setBreakPoints).map((b) => b.lineNumber)
-
         this.socket = new WebSocket(`ws://localhost:${this.port}`, 'JSON')
         this.socket.addEventListener('open', (event) => {
             this.socket.send('ping')
@@ -386,6 +392,9 @@ class Debugger {
         this.socket.addEventListener('message', (event) => {
             if (event.data === 'pong') { // handshake complete, let's get running!
                 const startAddress = this.machine.startAddress
+                const breakPointLines = Object.values(this.setBreakPoints).map((b) => b.lineNumber)
+                this.breakPointsSent = true
+
                 const payload = {
                     command: 'start',
                     executeMachine: this.machine.executeMachine || this.machine.name,
@@ -422,14 +431,21 @@ class Debugger {
         const isPaused = this.pauseContButton.classList.contains('cont')
         const command =  isPaused ? 'continue' : 'pause'
         this.setState(command + 'd')
-        this.socket.send(JSON.stringify({ command }))
+        let payload = { command }
+        if (command === 'continue') {
+            payload.breakPoints = Object.values(this.setBreakPoints).map((b) => b.lineNumber)
+            this.breakPointsSent = true
+        }
+        this.socket.send(JSON.stringify(payload))
     }
 
     step() {
         if (!this.socket) { return }
         this.setState('stepping')
         this.stepButton.disabled = true
-        this.socket.send(JSON.stringify({ command: 'step' }))
+        const breakPointLines = Object.values(this.setBreakPoints).map((b) => b.lineNumber)
+        this.breakPointsSent = true
+        this.socket.send(JSON.stringify({ command: 'step', breakPoints: breakPointLines }))
     }
 
     ended(data) {
