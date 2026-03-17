@@ -84,6 +84,7 @@ class Editor {
                 }
             }
             this.language[version].tokenizer.root.splice(5, 0, [ new RegExp(Tokenizer.keywordRegex[version]), 'keyword' ])
+            this.language[version].tokenizer.then.splice(2, 0, [ new RegExp(Tokenizer.keywordRegex[version]), 'keyword', '@pop' ])
             const reserved = Tokenizer.reserved[version].map((r) => r.replace('$', '\\$'))
             this.language[version].tokenizer.root.splice(6, 0, [ new RegExp(`(${reserved.join('|')})`), 'reserved' ])
             const lineNumbered = Tokenizer.lineNumberTokens[version].map((r) => r.replace('$', '\\$'))
@@ -373,7 +374,7 @@ class Editor {
     setProgram(program, machineReady = false) {
         program = this.parseNotationsHeader(program)
         if (!machineReady) { program = window.petscii.petsciiStringToString(program) }
-        if (this.debugger) { this.debugger.clearBreakPointMarkers(this.bufferedProgram != null) }
+        if (this.debugger) { this.debugger.clearBreakpointMarkers(this.bufferedProgram != null) }
         this.editor.setValue(program)
         if (this.initialized) {
             window.localStorage.setItem('currentProgram', this.editor.getValue())

@@ -75,6 +75,16 @@ dialog::backdrop {
     position: fixed;
     top: 0;    
 }
+#menu #menu-blocker {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 27px;
+    background: var(--blocker-color);
+    display: none;
+    z-index: 10;    
+}
 #menu h1 {
     margin: 0;
     padding: 0;

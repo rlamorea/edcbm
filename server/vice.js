@@ -22,7 +22,7 @@ export class ViceConnection {
     static machines = {
         'c128': { 
             launcher: 'x128', 
-            startupDelay: 2500,
+            startupDelay: { normal: 2500, warp: 750 },
             check: { addresses: [ 0x41cf, 0x41d2 ], values: [ 0x56, 0x37, 0x2e, 0x30] },
             exec: { break: 0x4b41, lookup: { line: 0x3b, addr: 0x3d } },
             stop: {
@@ -51,7 +51,7 @@ export class ViceConnection {
         },
         'c64': {
             launcher: 'x64sc',
-            startupDelay: 2000,
+            startupDelay: { normal: 2000, warp: 750 },
             check: { addresses: [ 0xe488, 0xe489 ], values: [ 0x36, 0x34 ] },
             exec: { break: 0xa7ef, lookup: { line: 0x39, addr: 0x7a } },
             stop: { 
@@ -74,7 +74,7 @@ export class ViceConnection {
         },
         'c16': { 
             launcher: 'xplus4', args: [ '--model', 'c16' ],
-            startupDelay: 1000,
+            startupDelay: { normal: 1000, warp: 600 },
             check: { addresses: [ 0x80df, 0x80e3 ], values: [ 0x56, 0x33, 0x2e, 0x35, 0x20 ] },
             exec: { break: 0x8c27, lookup: { line: 0x39, addr: 0x3b } },
             stop: { 
@@ -102,7 +102,7 @@ export class ViceConnection {
          },
         'plus4': { 
             launcher: 'xplus4', args: [ '--model', 'plus4' ],
-            startupDelay: 1000,
+            startupDelay: { normal: 1000, warp: 600 },
             check: { addresses: [ 0x80df, 0x80e3 ], values: [ 0x56, 0x33, 0x2e, 0x35, 0x20 ] },
             exec: { break: 0x8c27, lookup: { line: 0x39, addr: 0x3b } },
             stop: { 
@@ -130,7 +130,7 @@ export class ViceConnection {
         },
         'vic20': {
             launcher: 'xvic',
-            startupDelay: 1500,
+            startupDelay: { normal: 1500, warp: 600 },
             check: { addresses: [ 0xe446, 0xe447 ], values: [ 0x56, 0x32 ] },
             exec: { break: 0xc7ef, lookup: { line: 0x39, addr: 0x7a } },
             stop: { 
@@ -153,7 +153,7 @@ export class ViceConnection {
         },
         'pet-g': { 
             launcher: 'xpet', args: [ '--model', '3032' ],
-            startupDelay: 1500,
+            startupDelay: { normal: 1500, warp: 750 },
             check: { addresses: [ 0xe1d2, 0xe1d4 ], values: [ 0x42, 0x41, 0x53 ] },
             exec: { break: 0xc702, lookup: { line: 0x36, addr: 0x77 } },
             stop: { 
@@ -180,7 +180,7 @@ export class ViceConnection {
          },
         'pet-b': { 
             launcher: 'xpet', args: [ '--model', '8032' ], 
-            startupDelay: 2000,
+            startupDelay: { normal: 2000, warp: 750 },
             check: { addresses: [ 0xdeb8, 0xdeba ], values: [ 0x34, 0x2e, 0x30 ] },
             exec: { break: 0xb787, lookup: { line: 0x36, addr: 0x77 } },
             stop: { common: 0xb7e6 },
@@ -205,7 +205,7 @@ export class ViceConnection {
         },
         'cbm2': {
             launcher: 'xcbm2',
-            startupDelay: 4500,
+            startupDelay: { normal: 4500, warp: 1000 },
             check: { addresses: [ 0xbb96, 0xbb98 ], bank: 17, values: [ 0x31, 0x32, 0x38 ] },
             basicRun: { bank: 17 },
             exec: { break: 0x87aa, lookup: { line: 0x42, addr: 0x85, bank: 17 } },
@@ -368,17 +368,28 @@ export class ViceConnection {
         if (keymapFile != null) {
             args.push((keymapType === 2) ? '--symkeymap' : '--poskeymap', keymapFile)
         }
+        if (options.warp) {
+            args.push('--warp')
+        }
         this.debug('Spawning:', `${this.viceRoot}/${launcher} ${args.join(' ')}`)
         this.viceProcess = spawn(`${this.viceRoot}/${launcher}`, args)
+        let started = false
 
         this.viceProcess.stdout.on('data', (data) => {
             this.debug('process got data on stdout', data)
-            this.startupDelay = Math.max(machineData.startupDelay ?? 0, config.STARTUP_DELAY)
-            this.commandDelay = Math.max(machineData.commandDelay ?? 0, config.COMMAND_DELAY)
-            this.debugDelay = Math.max(machineData.debugDelayt ?? 0, config.DEBUG_DELAY)
-            this.maxRetries = Math.max(machineData.retries ?? 0, config.VICE_RETRIES)
+            if (!started) {
+                started = true
+                let startupDelay = machineData.startupDelay
+                if (startupDelay instanceof Object) {
+                    startupDelay = machineData.startupDelay[options.warp ? 'warp' : 'normal']
+                }
+                this.startupDelay = Math.max(startupDelay ?? 0, config.STARTUP_DELAY)
+                this.commandDelay = Math.max(machineData.commandDelay ?? 0, config.COMMAND_DELAY)
+                this.debugDelay = Math.max(machineData.debugDelayt ?? 0, config.DEBUG_DELAY)
+                this.maxRetries = Math.max(machineData.retries ?? 0, config.VICE_RETRIES)
 
-            this.establishConnection()
+                this.establishConnection()
+            }
         })
         this.viceProcess.stderr.on('data', (data) => {
             this.debug('process got data on stderr', data)

@@ -246,6 +246,8 @@ class DropMenu {
 
 class Controls {
     constructor() {
+        this.menuBlocker = document.getElementById('menu-blocker')
+
         this.machine = null
 
         this.machineName = document.getElementById('machine')
@@ -280,6 +282,8 @@ class Controls {
         this.currentKeyHandler = null
         this.menuFocused = false
 
+        this.menuEnabled = true
+
         this.waitToLoad()
     }
 
@@ -308,6 +312,11 @@ class Controls {
             return
         }
         setTimeout(() => { this.waitToLoad() }, 100)
+    }
+
+    enableMenu(enable = true) {
+        this.menuEnabled = enable
+        this.menuBlocker.style.display = enable ? 'none' : 'block'
     }
 
     setMachine(machine) {
@@ -367,12 +376,14 @@ class Controls {
     }
 
     handleHotkey(event, newFocus) {
+        if (!this.menuEnabled) { return }
         event.preventDefault()
         event.stopPropagation()
         if (newFocus) { this.activateMenuBar(true, false, newFocus) }
     }
 
     keyPressed(event) {
+        if (!this.menuEnabled) { return }
         if (this.currentKeyHandler) {
             this.currentKeyHandler(event)
             return

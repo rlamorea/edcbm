@@ -7,7 +7,7 @@ export class ViceDebugger {
         this.vice = connection
         this.socket = socket
 
-        this.breakPointLines = []
+        this.breakpointLines = []
 
         this.freeRunning = false
     }
@@ -36,6 +36,7 @@ export class ViceDebugger {
             case 'step': this.doStep(data); break;
             case 'pause': this.doPause(data); break;
             case 'continue': this.doContinue(data); break;
+            case 'breakpoints': this.updateBreakPoints(data); break;
         }
 
         return JSON.stringify(result)
@@ -56,8 +57,8 @@ export class ViceDebugger {
             this.programStartAddress = data.startAddress
             this.programBytes = programBytes
         }
-        this.breakPointLines = data.breakPoints
-        if (this.breakPointLines.length > 0) {
+        this.breakpointLines = data.breakpoints
+        if (this.breakpointLines.length > 0) {
             this.freeRunning = true
         }
         await this.vice.runBASICProgram()
@@ -101,7 +102,7 @@ export class ViceDebugger {
             bankId: machine.exec.lookup.bank ?? 0
         }))
         const address = ViceResponse.parseInt(addrData.response().memory)
-        if (this.breakPointLines.includes(lineNo)) { this.freeRunning = false }
+        if (this.breakpointLines.includes(lineNo)) { this.freeRunning = false }
         let message = { status: 'checkpoint', reason: 'step', lineNo, address, info: this.freeRunning }
         if (!this.freeRunning) {
             const { variables, dataLine, dataAddress } = await this.vice.getVariableValues(this.programStartAddress, this.programBytes)
@@ -130,6 +131,7 @@ export class ViceDebugger {
     }
 
     async doStep(data) {
+        this.updateBreakPoints(data)
         this.freeRunning = false
         await this.vice.sendCommand(new ViceCommand('execrun'))
         this.vice.startWaiting()
@@ -140,8 +142,15 @@ export class ViceDebugger {
     }
 
     async doContinue(data) {
+        this.updateBreakPoints(data)
         this.freeRunning = true
         await this.vice.sendCommand(new ViceCommand('execrun'))
         this.vice.startWaiting()
+    }
+
+    updateBreakPoints(data) {
+        if ('breakpoints' in data) {
+            this.breakpointLines = data.breakpoints
+        }
     }
 }

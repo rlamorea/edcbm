@@ -32,6 +32,10 @@ class Debugger {
         this.runStatusIcon = document.getElementById('run-status-icon')
         this.runStatusText = document.getElementById('run-status')
 
+        this.warpModeButton = document.getElementById('warp-mode')
+        this.warpModeButton.addEventListener('click', () => { this.toggleWarpMode() })
+        this.warpMode = false
+
         this.variablePanel = document.getElementById('debug-variables')
 
         this.debugAddresses = null
@@ -40,11 +44,14 @@ class Debugger {
 
         this.editor = null
         this.machine = null
-        this.setBreakPoints = {}
-        this.breakPointLocations = null
-        this.redoBreakLocations = false
-        this.debuggerLine = null
-        this.debuggerLineDecoration = null
+
+        this.setBreakpoints = {}
+        this.breakpointsSent = false
+
+        this.stepLocations = null
+        this.redoStepLocations = false
+        this.executionLineDecoration = null
+
         this.dataLineDecoration = null
     }
 
@@ -56,7 +63,7 @@ class Debugger {
         } else {
             this.runColumnsButton.style.display = 'none'
         }
-        this.setBreakPointLocations(true)
+        this.setStepLocations(true)
         this.variablePanel.innerHTML = ''
     }
 
@@ -79,7 +86,8 @@ class Debugger {
         'pause': [ 'disconnected', 'connected', 'starting', 'running', 'ended', 'stopped', 'alert', ],
         'step': [ 'disconnected', 'connected', 'starting', 'running', 'continued', 'ended', 'stepping', 'stopped', 'alert' ],
         'stop': [ 'disconnected', 'connected', 'starting', 'stopped', 'alert' ],
-        'cols': [ 'disconnected', 'starting', 'running', 'debugging', 'paused', 'continued', 'stepping', 'ended' ]
+        'cols': [ 'disconnected', 'starting', 'running', 'debugging', 'paused', 'continued', 'stepping', 'ended' ],
+        'warp': [ 'disconnected', 'starting', 'running', 'debugging', 'paused', 'continued', 'stepping', 'ended' ],
     }
     setState(newState, message) {
         // debug mode
@@ -95,6 +103,7 @@ class Debugger {
         this.stepButton.disabled = Debugger.buttonDisabledStates.step.includes(newState)
         this.stopButton.disabled = Debugger.buttonDisabledStates.stop.includes(newState)
         this.runColumnsButton.disabled = Debugger.buttonDisabledStates.cols.includes(newState)
+        this.warpModeButton.disabled = Debugger.buttonDisabledStates.warp.includes(newState)
 
         // now deal with pause/continue
         this.pauseContButton.classList.toggle('cont', newState === 'paused')
@@ -113,12 +122,17 @@ class Debugger {
             window.editor.enableEditor(false)
         } else if (newState === 'stopped') {
             window.editor.enableEditor()
-            if (this.debuggerLineDecoration) {
-                this.editor.deltaDecorations(this.debuggerLineDecoration, [])
-                this.debuggerLineDecoration = null
+            if (this.executionLineDecoration) {
+                this.editor.deltaDecorations(this.executionLineDecoration, [])
+                this.executionLineDecoration = null
             }
             this.showDataLine()
         }
+    }
+
+    toggleWarpMode() {
+        this.warpMode = !this.warpMode
+        this.warpModeButton.classList.toggle('warp', this.warpMode)
     }
 
     toggleDebugMode(newMode = 'toggle') {
@@ -150,44 +164,30 @@ class Debugger {
             this.editor.onMouseDown((e) => { this.editorMouseDown(e) })
             window.editor.setDebugger(this)
             this.setEditorToDebuggerMode(newMode)
-            this.setBreakPointLocations(true)
+            this.setStepLocations(true)
         } else if (newMode) {
             setTimeout(() => { this.setEditorToDebuggerMode(newMode)}, 50)
         }
     }
 
-    showExecutionPoint(lineIndex, lineNumber, lineLength, breakPoint) {
+    showExecutionPoint(lineIndex, lineNumber, lineLength, breakpoint) {
         if (lineIndex == null) {
-            if (this.debuggerLineDecoration) {
-                this.editor.deltaDecorations(this.debuggerLineDecoration, [])
-                this.debuggerLineDecoration = null
+            if (this.executionLineDecoration) {
+                this.editor.deltaDecorations(this.executionLineDecoration, [])
+                this.executionLineDecoration = null
             }
-            this.restoreBreakpointMarker()
-            this.debuggerLine = null
             return
         }
-        const prevDebug = this.debuggerLineDecoration ?? []
-        let colStart = (breakPoint ?? {}).start || 1
-        let colEnd = (breakPoint ?? {}).end
+        const prevDebug = this.executionLineDecoration ?? []
+        let colStart = (breakpoint ?? {}).start || 1
+        let colEnd = (breakpoint ?? {}).end
         if (colEnd == null) { colEnd = lineLength }
-        const range = new monaco.Range(lineIndex, colStart, lineIndex, colEnd)
-        let glyphClass = 'executionPoint'
-        const existingBreakpoint = this.setBreakPoints[lineNumber]
-        if (existingBreakpoint) {
-            this.toggleBreakPointMarker(lineNumber, existingBreakpoint.lineIndex, existingBreakpoint.lineLength, 'hide')
-            glyphClass = 'executionBreakPoint'
-        }
-        let newDebug = []
-        newDebug.push({ 
-            range, options: { 
-                glyphMarginClassName: glyphClass,
-                inlineClassName: 'debugHighlight'
-            }
-        })
+        let newDebug = [ {  
+            range: new monaco.Range(lineIndex, colStart, lineIndex, colEnd), 
+            options: { glyphMarginClassName: 'executionPoint', inlineClassName: 'debugHighlight' } 
+        } ]
         this.editor.revealLine(lineIndex)
-        this.debuggerLineDecoration = this.editor.deltaDecorations(prevDebug, newDebug)
-        if (this.debuggerLine) { this.restoreBreakpointMarker() }
-        this.debuggerLine = lineNumber
+        this.executionLineDecoration = this.editor.deltaDecorations(prevDebug, newDebug)
     }
 
     showDataLine(lineNumber, dataAddress) {
@@ -196,7 +196,7 @@ class Debugger {
             this.dataLineDecoration = null
         }
         if (lineNumber == null) { return }
-        const lineInfo = this.breakPointLocations[lineNumber]
+        const lineInfo = this.stepLocations[lineNumber]
         if (!lineInfo) { return }
         let dataPoint = lineInfo.dataPoints ? lineInfo.dataPoints[dataAddress] : null
         if (dataPoint == null) { dataPoint = lineInfo.dataPoints ? Object.values(lineInfo.dataPoints)[0] : null }
@@ -213,27 +213,24 @@ class Debugger {
         this.dataLineDecoration = this.editor.deltaDecorations([], newDataLine)
     }
 
-    restoreBreakpointMarker() {
-        const existingBreakPoint = this.setBreakPoints[this.debuggerLine]
-        if (existingBreakPoint) {
-            this.toggleBreakPointMarker(this.debuggerLine, existingBreakPoint.lineIndex, existingBreakPoint.lineLength, 'set')
-        }
-    }
-
-    toggleBreakPointMarker(lineNumber, lineIndex, lineLength, state = 'toggle') {
-        const range = new monaco.Range(lineIndex, 1, lineIndex, lineLength)
-        const breakPoint = this.setBreakPoints[lineNumber]
-        const disable = (state === 'toggle') ? (breakPoint != null) : (state === 'clear')
-        if (disable || state === 'hide') {
-            if (breakPoint.decoration) { this.editor.deltaDecorations(breakPoint.decoration, []) }
-            if (state === 'hide') { 
-                breakPoint.decoration = null
-            } else {
-                delete this.setBreakPoints[lineNumber] 
-            }
+    toggleBreakpointMarker(lineNumber, lineIndex, lineLength) {
+        const breakpoint = this.setBreakpoints[lineNumber]
+        if (breakpoint) {
+            if (breakpoint.decoration) { this.editor.deltaDecorations(breakpoint.decoration, []) }
+            delete this.setBreakpoints[lineNumber] 
         } else {
-            const decoration = this.editor.deltaDecorations([], [ { range, options: { glyphMarginClassName: 'breakPoint' } } ])
-            this.setBreakPoints[lineNumber] = { lineNumber, lineIndex, lineLength, decoration }
+            const decoration = this.editor.deltaDecorations([], [ { 
+                range: new monaco.Range(lineIndex, 1, lineIndex, lineLength), 
+                options: { glyphMarginClassName: 'breakpoint' } 
+            } ])
+            this.setBreakpoints[lineNumber] = { lineNumber, lineIndex, lineLength, decoration }
+        }
+        if (this.runMode === 'debugging') {
+            const breakpointLines = Object.values(this.setBreakpoints).map((b) => b.lineNumber)
+            this.socket.send(JSON.stringify({ command: 'breakpoints', breakpoints: breakpointLines }))
+            this.breakpointsSent = true
+        } else {
+            this.breakpointsSent = false
         }
     }
 
@@ -241,13 +238,15 @@ class Debugger {
         if (this.runMode !== 'stopped') { return }
         this.setState('starting')
         this.runMode = 'running'
+        window.menu.enableMenu(false)
         
         const startAddress = this.machine.startAddress
         const payload = {
             executeMachine: this.machine.executeMachine || this.machine.name,
             startAddress: startAddress,
             programBytes: window.editor.getProgramBytes(startAddress).toBase64(),
-            columns: this.runColumns
+            columns: this.runColumns,
+            warp: this.warpMode,
         }
         try {
             const response = await window.fetch(`http://localhost:${this.port}/vice/run`, {
@@ -262,12 +261,14 @@ class Debugger {
                 console.log('invalid run response from server:', result)
                 this.setState('alert', 'Error: unexpected run response')
                 this.runMode = 'stopped'
+                window.menu.enableMenu()
             }
         } catch (error) {
             console.log('error running program')
             console.error(error)
             this.setState('alert', `Error: ${error.message}`)
             this.runMode = 'stopped'
+            window.menu.enableMenu()
         }
     }
 
@@ -290,13 +291,14 @@ class Debugger {
         }
         this.setState('stopped')
         this.runMode = 'stopped'
+        window.menu.enableMenu()
     }
 
-    getLineDebugAddresses(lineAddr, lineLength, tokens) {
+    getLineStepAddresses(lineAddr, lineLength, tokens) {
         lineAddr += 4 // skip next address and line number
-        let breakPoints = { }
+        let breakpoints = { }
         let dataPoints = { }
-        let lastBreakPoint = null
+        let lastBreakpoint = null
         for (const token of tokens) {
             const addr = lineAddr + (token.byteOffset ?? 0)
             if (token.token === 'data-val') {
@@ -304,41 +306,39 @@ class Debugger {
                 continue
             }
             if (![ 'line-number', 'colon', 'then-split', 'else-split' ].includes(token.token)) { continue }
-            if (lastBreakPoint) { 
+            if (lastBreakpoint) { 
                 if (token.token === 'else-split') { // destroy the breakpoint for the preceding colon
-                    delete breakPoints[lastBreakPoint.address]
+                    delete breakpoints[lastBreakpoint.address]
                 } else {
-                    lastBreakPoint.end = token.start + 1 
+                    lastBreakpoint.end = token.start + 1 
                 }
             }
-            breakPoints[addr] = { address: addr, start: token.end + 2 } // +1 to move past token, +1 due to 1-based column indexes in editor
-            lastBreakPoint = breakPoints[addr]
+            breakpoints[addr] = { address: addr, start: token.end + 2 } // +1 to move past token, +1 due to 1-based column indexes in editor
+            lastBreakpoint = breakpoints[addr]
         }
-        lastBreakPoint.end = lineLength + 1
-        return { breakPoints, dataPoints }
+        lastBreakpoint.end = lineLength + 1
+        return { breakpoints, dataPoints }
     }
 
-    setBreakPointLocations(skipIfSet) {
+    setStepLocations(skipIfSet) {
         if (!this.editor || !this.machine) { return }
-        if (this.redoBreakLocations) {
+        if (this.redoStepLocations) {
             skipIfSet = false
-            this.redoBreakLocations = false
+            this.redoStepLocations = false
         }
-        if (skipIfSet && this.breakPointLocations) { return }
-        this.breakPointLocations = {}
+        if (skipIfSet && this.stepLocations) { return }
+        this.stepLocations = {}
         let lineAddr = this.machine.startAddress
         let lineIndex = 1
         for (const line of this.editor.getValue().split('\n')) {
             const {  byteArray, lineNumber, tokens } = window.tokenizer.tokenizeLine(line)
             if (byteArray.length > 0) {
-                const { breakPoints, dataPoints } = this.getLineDebugAddresses(lineAddr, line.length, tokens)
-                this.breakPointLocations[lineNumber] = { lineIndex, lineLength: line.length, breakPoints, dataPoints }
+                const { breakpoints, dataPoints } = this.getLineStepAddresses(lineAddr, line.length, tokens)
+                this.stepLocations[lineNumber] = { lineIndex, lineLength: line.length, breakpoints, dataPoints }
                 lineAddr += byteArray.length + 3 // I think this should be 3
             }
             lineIndex += 1
         }
-        console.log(this.breakPointLocations)
-        // console.trace() -- come back to this, there is a double-call here that is problematic due to setCharChange triggering twice
     }
 
     startDebug() {
@@ -352,10 +352,9 @@ class Debugger {
             return
         }
         this.setState('starting')
-        this.setBreakPointLocations(true)
+        this.setStepLocations(true)
         this.variablePanel.innerHTML = ''
-
-        const breakPointLines = Object.values(this.setBreakPoints).map((b) => b.lineNumber)
+        window.menu.enableMenu(false)
 
         this.socket = new WebSocket(`ws://localhost:${this.port}`, 'JSON')
         this.socket.addEventListener('open', (event) => {
@@ -372,19 +371,22 @@ class Debugger {
                 this.runMode = 'stopped'
                 this.debugAddresses = null
             }
+            window.menu.enableMenu()
         })
         this.socket.addEventListener('message', (event) => {
-            console.log('from socket:', event.data)
             if (event.data === 'pong') { // handshake complete, let's get running!
                 const startAddress = this.machine.startAddress
-                console.log(window.editor.getProgramBytes(startAddress))
+                const breakpointLines = Object.values(this.setBreakpoints).map((b) => b.lineNumber)
+                this.breakpointsSent = true
+
                 const payload = {
                     command: 'start',
                     executeMachine: this.machine.executeMachine || this.machine.name,
                     startAddress: startAddress,
                     programBytes: window.editor.getProgramBytes(startAddress).toBase64(),
-                    breakPoints: breakPointLines,
-                    columns: this.runColumns
+                    breakpoints: breakpointLines,
+                    columns: this.runColumns,
+                    warp: this.warpMode,
                 }
                 this.socket.send(JSON.stringify(payload))
                 return
@@ -400,12 +402,14 @@ class Debugger {
             console.log('websocket error', e)
             this.setState('alert', `Error: ${e}`) 
             this.runMode = 'stopped'
+            window.menu.enableMenu()
         })
     }
 
     stopped() {
         this.setState('stopped')
         this.runMode = 'stopped'
+        window.menu.enableMenu()
     }
 
     pauseContinue() {
@@ -413,14 +417,21 @@ class Debugger {
         const isPaused = this.pauseContButton.classList.contains('cont')
         const command =  isPaused ? 'continue' : 'pause'
         this.setState(command + 'd')
-        this.socket.send(JSON.stringify({ command }))
+        let payload = { command }
+        if (command === 'continue') {
+            payload.breakpoints = Object.values(this.setBreakpoints).map((b) => b.lineNumber)
+            this.breakpointsSent = true
+        }
+        this.socket.send(JSON.stringify(payload))
     }
 
     step() {
         if (!this.socket) { return }
         this.setState('stepping')
         this.stepButton.disabled = true
-        this.socket.send(JSON.stringify({ command: 'step' }))
+        const breakpointLines = Object.values(this.setBreakpoints).map((b) => b.lineNumber)
+        this.breakpointsSent = true
+        this.socket.send(JSON.stringify({ command: 'step', breakpoints: breakpointLines }))
     }
 
     ended(data) {
@@ -444,14 +455,13 @@ class Debugger {
     }
 
     hitCheckpoint(data) {
-        console.log('on line', data.lineNo, 'at address', data.address)
-        const debug = this.breakPointLocations[data.lineNo]
+        const debug = this.stepLocations[data.lineNo]
         if (debug == null) {
             console.log('unknown line number', data.lineNo)
             return
         }
-        const breakPoint = debug.breakPoints[data.address]
-        this.showExecutionPoint(debug.lineIndex, data.lineNo, debug.lineLength, breakPoint)
+        const breakpoint = debug.breakpoints[data.address]
+        this.showExecutionPoint(debug.lineIndex, data.lineNo, debug.lineLength, breakpoint)
         if (!data.info) { this.setState('paused') }
         if (data.variables) {
             this.displayVariables(data.variables)
@@ -470,52 +480,52 @@ class Debugger {
             const lno = lineValue.match(/^(\d+)/)
             if (lno) {
                 const lineNumber = parseInt(lno[1])
-                this.toggleBreakPointMarker(lineNumber, lineIndex, lineValue.length)
+                this.toggleBreakpointMarker(lineNumber, lineIndex, lineValue.length)
             }
         }
     }
 
-    clearBreakPointMarkers(preserve = false) {
+    clearBreakpointMarkers(preserve = false) {
         // clear all breakpoints
         const existingDecorationIds = this.editor.getModel().getAllDecorations().map((d) => d.id)
         let removeDecorations = []
-        for (const breakPoint of Object.values(this.setBreakPoints)) {
-            for (const decId of breakPoint.decoration ?? []) {
+        for (const breakpoint of Object.values(this.setBreakpoints)) {
+            for (const decId of breakpoint.decoration ?? []) {
                 if (existingDecorationIds.includes(decId)) {
                     removeDecorations.push(decId)
                 }
             }
-            delete breakPoint.decoration
+            delete breakpoint.decoration
         }
         this.editor.deltaDecorations(removeDecorations, [])
-        if (!preserve) { this.setBreakPoints = [] }
+        if (!preserve) { this.setBreakpoints = [] }
     }
 
-    resetBreakPoints(breakLines) {
-        breakLines = breakLines ?? Object.keys(this.setBreakPoints)
+    resetBreakpoints(breakLines) {
+        breakLines = breakLines ?? Object.keys(this.setBreakpoints)
         if (breakLines.length === 0) { return }
-        this.setBreakPointLocations()
-        const lineNos = Object.keys(this.breakPointLocations)
+        this.setStepLocations()
+        const lineNos = Object.keys(this.stepLocations)
         const changedLines = breakLines.filter((e) => lineNos.includes(e))
         const removedLines = breakLines.filter((e) => !changedLines.includes(e))
         for (const lineNo of changedLines) {
-            let breakPoint = this.setBreakPoints[lineNo]
-            breakPoint.lineIndex = this.breakPointLocations[lineNo].lineIndex
-            breakPoint.lineLength = this.breakPointLocations[lineNo].lineLength
-            const range = new monaco.Range(breakPoint.lineIndex, 1, breakPoint.lineIndex, breakPoint.lineLength)
-            breakPoint.decoration = this.editor.deltaDecorations(breakPoint.decoration ?? [], [ { range, options: { glyphMarginClassName: 'breakPoint' } } ])
+            let breakpoint = this.setBreakpoints[lineNo]
+            breakpoint.lineIndex = this.stepLocations[lineNo].lineIndex
+            breakpoint.lineLength = this.stepLocations[lineNo].lineLength
+            const range = new monaco.Range(breakpoint.lineIndex, 1, breakpoint.lineIndex, breakpoint.lineLength)
+            breakpoint.decoration = this.editor.deltaDecorations(breakpoint.decoration ?? [], [ { range, options: { glyphMarginClassName: 'breakpoint' } } ])
         }
         for (const delLineNo of removedLines) {
-            this.deleteBreakPoint(this.setBreakPoints[delLineNo])
+            this.deleteBreakpoint(this.setBreakpoints[delLineNo])
         }
     }
 
     contentReplaced(restoreBreakpoints = false) {
         if (restoreBreakpoints) {
-            this.resetBreakPoints()
+            this.resetBreakpoints()
         } else {
-            this.setBreakPoints = []
-            this.setBreakPointLocations()
+            this.setBreakpoints = []
+            this.setStepLocations()
         }
     }
 
@@ -523,32 +533,32 @@ class Debugger {
         // do nothing for now, use contentChanged
     }
 
-    deleteBreakPoint(breakPoint) {
-        this.editor.deltaDecorations(breakPoint.decoration, [])
-        delete this.setBreakPoints[breakPoint.lineNumber]
+    deleteBreakpoint(breakpoint) {
+        this.editor.deltaDecorations(breakpoint.decoration, [])
+        delete this.setBreakpoints[breakpoint.lineNumber]
     }
 
-    checkBreakPointLine(lineIndex, doDelete = null) {
-        if (this.setBreakPoints.length === 0) { return }
-        const breakPoint = Object.values(this.setBreakPoints).find((e) => e.lineIndex === lineIndex)
-        if (!breakPoint) { return }
+    checkBreakpointLine(lineIndex, doDelete = null) {
+        if (this.setBreakpoints.length === 0) { return }
+        const breakpoint = Object.values(this.setBreakpoints).find((e) => e.lineIndex === lineIndex)
+        if (!breakpoint) { return }
         if (doDelete === null) {
             const model = this.editor.getModel()
             const lineValue = model.getLineContent(lineIndex).trim()
             const lno = lineValue.match(/^(\d+)/)
             if (lno) {
                 const lineNumber = parseInt(lno[1])
-                if (breakPoint.lineNumber !== lineNumber) {
+                if (breakpoint.lineNumber !== lineNumber) {
                     doDelete = true
                 }
             }
         }
-        if (doDelete) { this.deleteBreakPoint(breakPoint) }
+        if (doDelete) { this.deleteBreakpoint(breakpoint) }
     }
 
     contentChanged(event) {
-        this.redoBreakLocations = true
-        const breakLines = Object.keys(this.setBreakPoints)
+        this.redoStepLocations = true
+        const breakLines = Object.keys(this.setBreakpoints)
         if (breakLines.length === 0) { return }
         let anyMultilineChanges = false
         for (const change of event.changes) {
@@ -556,13 +566,13 @@ class Debugger {
             let nlCount = (change.text.indexOf('\n') >= 0) ? change.text.match(/\n/g).length : 0
             range.endLineNumber += nlCount
             if (range.startLineNumber === range.endLineNumber) { 
-                this.checkBreakPointLine(range.startLineNumber)
+                this.checkBreakpointLine(range.startLineNumber)
                 continue 
             }
             anyMultilineChanges = true
         }
         if (!anyMultilineChanges) { return }
-        this.resetBreakPoints(breakLines)
+        this.resetBreakpoints(breakLines)
     }
 
     displayVariables(variables) {
