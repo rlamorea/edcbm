@@ -238,6 +238,7 @@ class Debugger {
         if (this.runMode !== 'stopped') { return }
         this.setState('starting')
         this.runMode = 'running'
+        window.menu.enableMenu(false)
         
         const startAddress = this.machine.startAddress
         const payload = {
@@ -260,12 +261,14 @@ class Debugger {
                 console.log('invalid run response from server:', result)
                 this.setState('alert', 'Error: unexpected run response')
                 this.runMode = 'stopped'
+                window.menu.enableMenu()
             }
         } catch (error) {
             console.log('error running program')
             console.error(error)
             this.setState('alert', `Error: ${error.message}`)
             this.runMode = 'stopped'
+            window.menu.enableMenu()
         }
     }
 
@@ -288,6 +291,7 @@ class Debugger {
         }
         this.setState('stopped')
         this.runMode = 'stopped'
+        window.menu.enableMenu()
     }
 
     getLineStepAddresses(lineAddr, lineLength, tokens) {
@@ -350,6 +354,7 @@ class Debugger {
         this.setState('starting')
         this.setStepLocations(true)
         this.variablePanel.innerHTML = ''
+        window.menu.enableMenu(false)
 
         this.socket = new WebSocket(`ws://localhost:${this.port}`, 'JSON')
         this.socket.addEventListener('open', (event) => {
@@ -366,6 +371,7 @@ class Debugger {
                 this.runMode = 'stopped'
                 this.debugAddresses = null
             }
+            window.menu.enableMenu()
         })
         this.socket.addEventListener('message', (event) => {
             if (event.data === 'pong') { // handshake complete, let's get running!
@@ -396,12 +402,14 @@ class Debugger {
             console.log('websocket error', e)
             this.setState('alert', `Error: ${e}`) 
             this.runMode = 'stopped'
+            window.menu.enableMenu()
         })
     }
 
     stopped() {
         this.setState('stopped')
         this.runMode = 'stopped'
+        window.menu.enableMenu()
     }
 
     pauseContinue() {
