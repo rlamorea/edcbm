@@ -90,6 +90,18 @@ class Palette {
     }
 
     setCssRoot() {
+        // set global styling attributes
+        let fontWidth = 'f40'
+        let fontWidthModifier = 1;
+        if (this.editorFont.endsWith('-80')) {
+            fontWidth = 'f80'
+            fontWidthModifier = 0.5;
+        } else if (this.editorFont.endsWith('-22')) {
+            fontWidth = 'f22'
+            fontWidthModifier = 2;
+        }
+        document.body.dataset.font = fontWidth
+
         let style = document.getElementById(Palette.CSS_ROOT_ID)
         if (!style) {
             style = document.createElement('style')
@@ -98,10 +110,15 @@ class Palette {
         }           
         let css = ':root {';
         for (const [key, value] of Object.entries(this.cssRoot)) {
-            css += `${key}: ${value};`;
+            css += `${key}: ${value};`
         }
-        css += '}';
-        style.textContent = css;
+        css += `--editor-font-width-modifier: ${fontWidthModifier};`
+        css += '}'
+        style.textContent = css
+
+        const borderBrightness = Palette.brightness(Palette.rgb(this.cssRoot['--menu-border']))
+        //console.log('border brightness is', borderBrightness)
+        document.body.dataset.border = (borderBrightness < 100) ? 'dark' : 'light'
     }
 
     editorPalette() {

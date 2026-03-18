@@ -1,0 +1,30 @@
+<svg 
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="72"
+  viewBox="0 0 24 168"
+  fill="none"
+  stroke="#000000"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <!-- breakpoint - open circle -->
+  <circle fill="#888" cx="8" cy="12" r="6"/>
+  <!-- execution point - red tag -->
+  <path fill="red" d="M15 36 l -5 -6 h-8 v 12 h 8 z"/>
+  <!-- data point - d> -->
+  <path fill="#888" d="M8 54 v12a6 6 0 0 0 0 -12"/>
+  <path d="M17 57 l 3 3-3 3"/>
+  <!-- break point + execution point - red circle -->
+  <circle fill="red" cx="8" cy="84" r="6"/>
+  <!-- break point + data point - circle > -->
+  <circle fill="#888" cx="8" cy="108" r="6"/>
+  <path d="M17 105 l 3 3-3 3"/>
+  <!-- execution point + data point red tag > -->
+  <path fill="red" d="M15 132 l -5 -6 h-8 v 12 h 8 z"/>
+  <path d="M17 129 l 3 3-3 3"/>
+  <!-- exectution point + break point + data point - red circle > -->
+  <circle fill="red" cx="8" cy="156" r="6"/>
+  <path d="M17 153 l 3 3-3 3"/>
+</svg>
