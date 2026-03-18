@@ -21,6 +21,7 @@
 
     --menu-font: cbmthick-40, monospace;
     --editor-font: cbmthick-40, monospace;
+    --editor-font-width-modifier: 1;
 
     --button-background: #dddddd;
     --button-background-hover: #e8e8e8;

@@ -57,7 +57,7 @@ export class ViceDebugger {
             this.programStartAddress = data.startAddress
             this.programBytes = programBytes
         }
-        this.breakpointLines = data.breakpoints
+        this.breakpointLines = data.breakpoints || []
         if (this.breakpointLines.length > 0) {
             this.freeRunning = true
         }

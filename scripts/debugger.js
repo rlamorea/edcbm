@@ -1,4 +1,22 @@
 class Debugger {
+    static cbmNumberFormat(value) {
+        if (isNaN(value)) { return '' }
+        let numText = value.toPrecision(9).toUpperCase()
+        // deal with CBM style of no leading 0, and space for positive
+        if (numText.startsWith('0.')) {
+            numText = ' ' + numText.substring(1)
+        } else if (numText.startsWith('-0.')) {
+            numText = '-' + numText.substring(2)
+        } else if (numText.match(/^\d/)) {
+            numText = ' ' + numText
+        }
+        // deal with cbm style of no trailing decimal 0s
+        numText = numText.replace(/\.0+($|E)/, '$1')
+        numText = numText.replace(/(\.[1-9]+)0+($|E)/, '$1$2')
+
+        return numText
+    }
+
     constructor(server) {
         this.socket = null
         this.port = server.port
@@ -575,6 +593,15 @@ class Debugger {
         this.resetBreakpoints(breakLines)
     }
 
+    displayVariableValue(valEl, value, type) {
+        if (type === 'str') {
+            valEl.innerText = window.petscii.petsciiBytesToString(value)
+        } else { // num
+            value = parseFloat(value)
+            valEl.innerText = Debugger.cbmNumberFormat(value)
+        }
+    }
+
     displayVariables(variables) {
         for (const variable in variables) {
             let varEl = this.variablePanel.querySelector(`dt[data-var="${variable}"]`)
@@ -609,17 +636,12 @@ class Debugger {
                     valEl.dataset.values = JSON.stringify(value.values)
                 }
             }
-            let type = 'num'
-            if (variable.endsWith('$') || variable.endsWith('$(')) {
-                type = 'str'
-            }
+            let type = (variable.endsWith('$') || variable.endsWith('$(')) ? 'str' : 'num'
             if (isArray) {
                 valEl.dataset.type = type
                 this.arrayDimensionChanged(null, varEl)
             } else {
-                let text = value.toString()
-                if (type === 'str') { text = window.petscii.petsciiBytesToString(value) }
-                valEl.innerText = text
+                this.displayVariableValue(valEl, value, type)
             }
         }
     }
@@ -644,8 +666,6 @@ class Debugger {
             inputs[dim].value = subscript // put it back no matter what
             value = value[subscript]
         }
-        let text = value.toString()
-        if (type === 'str') { text = window.petscii.petsciiBytesToString(value) }
-        valEl.innerText = text
+        this.displayVariableValue(valEl, value, type)
     }
 }
