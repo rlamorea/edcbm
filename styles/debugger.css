@@ -11,6 +11,11 @@ body[data-debug=true] #container {
     height: calc(99vh - 2*var(--menu-height));
 }
 
+/* menu dimmer */
+#menu.blocked * {
+    filter: grayscale(50%);
+}
+
 /* monaco */
 .glyph-margin {
     background: var(--menu-border);
@@ -111,8 +116,10 @@ body[data-debug=true] #debug-bar { display: block; }
     overflow-y: auto;
     background: var(--dialog-background);
     font-family: var(--editor-font);
-    color: var(--dialog-foreground)
+    color: var(--dialog-foreground);
 }
+body[data-debug=true] #debug-variables { display: block; }
+
 #debug-variables dt {
     display: inline-block;
     width: calc(4 * var(--editor-font-width-modifier) * 1em);
@@ -142,7 +149,6 @@ body[data-debug=true] #debug-bar { display: block; }
     border-top: solid 1px var(--dialog-border);
     padding-top: 2px;
 }
-body[data-debug=true] #debug-variables { display: block; }
 
 #debug-variables dt.v-arr {
     display: block;

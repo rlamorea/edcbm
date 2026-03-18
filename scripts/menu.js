@@ -317,6 +317,9 @@ class Controls {
     enableMenu(enable = true) {
         this.menuEnabled = enable
         this.menuBlocker.style.display = enable ? 'none' : 'block'
+        const menu = document.getElementById('menu')
+        menu.classList.toggle('blocked', !enable)
+        menu.querySelectorAll('button').forEach((b) => { b.disabled = !enable })
     }
 
     setMachine(machine) {
