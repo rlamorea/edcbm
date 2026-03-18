@@ -2,38 +2,33 @@
 #editor-pane { position: relative; }
 body[data-debug=true] #container {
     display: inline-block;
-    width: calc(80vw - 1em);
+    width: calc(75vw - 1em);
     height: calc(99vh - 2*var(--menu-height));
 }
+body[data-debug=true][data-font=f80] #container { width:  calc(84vw - 1em); }
+body[data-debug=true][data-font=f22] #container { width: calc(64vw - 1em); }
 
 /* monaco */
-#container {
-    width: 98vw;
-    height: calc(99vh - 25px);
-    margin-top: 25px;
-    margin-left: 1vw;
-}
 .glyph-margin {
     background: var(--menu-border);
     border-left: solid 1px var(--dialog-background);
     border-right: solid 1px var(--dialog-background);
 }
-.dataPoint::before {
-    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 15 15' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 2v10A5 5 0 0 0 2 2m8 2 3 3-3 3'/%3E%3C/svg%3E");
-    text-align: center;
+.glyph-margin-widgets .codicon {
+    background: url("/assets/debug-glyphs.svg") center no-repeat;
+    background-size: 200%;
 }
-.breakpoint::before {
-    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 15 15' stroke='black' stroke-width='2' fill='none'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3C/svg%3E");
-    text-align: center;
+body[data-border=dark] .glyph-margin-widgets .codicon {
+    background: url("/assets/debug-glyphs-dark.svg") center no-repeat;
+    background-size: 200%;
 }
-.executionPoint::before {
-    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 15 15' stroke='black' stroke-width='2' fill='red'%3E%3Cpath d='M14 7 9 2H1v10h8z'/%3E%3C/svg%3E");
-    text-align: center;
-}
-.executionPoint.breakpoint::before {
-    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 15 15' stroke='black' stroke-width='2' fill='red'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3C/svg%3E");
-    text-align: center;
-}
+.breakpoint { background-position: 50% -0.5% !important; }
+.executionPoint { background-position: 50% 16% !important; }
+.dataPoint { background-position: 50% 33.33% !important; }
+.breakpoint.executionPoint { background-position: 50% 50.5% !important; }
+.breakpoint.dataPoint { background-position: 50% 68% !important; }
+.executionPoint.dataPoint { background-position: 50% 84.5% !important; }
+.breakpoint.executionPoint.dataPoint { background-position: 50% 102% !important; }
 
 .debugHighlight {
     text-decoration: underline 3px dashed var(--dialog-foreground);
@@ -108,13 +103,15 @@ body[data-debug=true] #debug-bar { display: block; }
     position: absolute;
     right: 1em;
     top: 0;
-    width: calc(18vw);
+    width: 23vw;
     height: calc(99vh - 55px);
     overflow-y: auto;
     background: var(--dialog-background);
     font-family: var(--editor-font);
     color: var(--dialog-foreground)
 }
+body[data-debug=true][data-font=f80] #debug-variables, .pet-b #debug-variables, .cbm2 #debug-variables { width: 14vw; }
+body[data-debug=true][data-font=f22] #debug-variables { width: 34vw; }
 #debug-variables dt {
     display: inline-block;
     width: 4em;
@@ -125,6 +122,7 @@ body[data-debug=true] #debug-bar { display: block; }
     text-align: right;
     vertical-align: top;
 }
+body[data-debug=true][data-font=f22] #debug-variables dt { width: 8em; margin-right: 2em; }
 #debug-variables dd {
     display: inline-block;
     width: calc(100% - 5em);
@@ -135,6 +133,7 @@ body[data-debug=true] #debug-bar { display: block; }
     vertical-align: top;
     position: relative;
 }
+body[data-debug=true][data-font=f22] #debug-variables dd { width: calc(100% - 10em); }
 #debug-variables dd::before {
     content: "=";
     position: absolute;
@@ -143,6 +142,7 @@ body[data-debug=true] #debug-bar { display: block; }
     border-top: solid 1px var(--dialog-border);
     padding-top: 2px;
 }
+body[data-debug=true][data-font=f22] #debug-variables dd:before { left: -2em; }
 body[data-debug=true] #debug-variables { display: block; }
 
 #debug-variables dt.v-arr {
@@ -162,6 +162,7 @@ body[data-debug=true] #debug-variables { display: block; }
     border-top: none;
     margin-left: 5em;
 }
+body[data-debug=true][data-font=f22] #debug-variables dd.v-arr { margin-left: 10em; }
 #debug-variables dd.v-arr::before {
     border-top: none;
     top: 0px;

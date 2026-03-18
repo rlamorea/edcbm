@@ -101,7 +101,20 @@ class Palette {
             css += `${key}: ${value};`;
         }
         css += '}';
-        style.textContent = css;
+        style.textContent = css
+
+        // set global styling attributes
+        let fontWidth = 'f40'
+        if (this.editorFont.endsWith('-80')) {
+            fontWidth = 'f80'
+        } else if (this.editorFont.endsWith('-22')) {
+            fontWidth = 'f22'
+        }
+        document.body.dataset.font = fontWidth
+
+        const borderBrightness = Palette.brightness(Palette.rgb(this.cssRoot['--menu-border']))
+        //console.log('border brightness is', borderBrightness)
+        document.body.dataset.border = (borderBrightness < 100) ? 'dark' : 'light'
     }
 
     editorPalette() {
