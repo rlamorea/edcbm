@@ -132,6 +132,10 @@ dialog button:disabled, dialog button:disabled:hover,
     background: var(--button-background-hover);
     color: var(--menu-foreground-strong);
 }
+.menubar button svg { 
+    width: 18px; 
+    height: 18px;
+}
 #menu button#assembler {
     font-family: monospace;
     font-size: 8px;
@@ -177,7 +181,7 @@ dialog button:disabled, dialog button:disabled:hover,
     opacity: 1;
 }
 
-#menu ul {
+.menubar ul {
     position: fixed;
     z-index: 20;
     top: 25px;
@@ -189,23 +193,33 @@ dialog button:disabled, dialog button:disabled:hover,
     color: var(--menu-foreground);
     font-size: 14px;
 }
-#menu ul li {
+.menubar ul.top-menu {
+    top: unset;
+    bottom: 30px;
+}
+.menubar ul li {
     list-style-type: none;
     cursor: pointer;
 }
-#menu ul li:hover {
+.menubar ul li svg {
+    width: 18px; 
+    height: 18px;
+    stroke: var(--dialog-foreground);
+    vertical-align: middle;
+}
+.menubar ul li:hover {
     background: var(--menu-foreground);
     color: var(--menu-border);
 }
-#menu ul li.keyfocus {
+.menubar ul li.keyfocus {
     outline: var(--menu-foreground) auto 1px;
 }
-#menu ul li input[type=file] { display: none; }
-#menu ul li.disabled {
+.menubar ul li input[type=file] { display: none; }
+.menubar ul li.disabled {
     opacity: 0.5;
     cursor: default;
 }
-#menu ul li.disabled:hover {
+.menubar ul li.disabled:hover {
     opacity: 0.5;
     background: inherit !important;
     color: inherit !important;

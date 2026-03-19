@@ -82,6 +82,7 @@ class DropMenu {
             const hotkey = li.dataset.hotkey
             if (hotkey) {
                 let textContainer = label || li
+                let svg = textContainer.querySelector('svg')
                 const itemText = textContainer.textContent
                 let itemHtml = ''
                 let foundHotKey = false
@@ -95,6 +96,7 @@ class DropMenu {
                     }
                 }
                 textContainer.innerHTML = itemHtml
+                if (svg) { textContainer.prepend(svg) }
                 hotKeys[`Key${hotkey.toUpperCase()}`] = li
             }
         })
@@ -102,7 +104,7 @@ class DropMenu {
     }
 
     constructor(menuContainer, options = {}) {
-        this.menuBarWidth = document.getElementById('menu').offsetWidth
+        this.menubar = options.menubar ?? document.getElementById('menu')
         this.menuLeft = null
 
         this.menu = menuContainer
@@ -131,7 +133,7 @@ class DropMenu {
             const label = li.querySelector('label')
             const name = li.dataset[datasetNameKey]
             if (!name) {
-                li.dataset[datasetNameKey] = (label ? label.textContent : li.textContent).toLowerCase().replaceAll(' ', '-')
+                li.dataset[datasetNameKey] = (label ? label.textContent : li.textContent).trim().toLowerCase().replaceAll(' ', '-')
             }
             if (label) {
                 li.querySelector('input').addEventListener('change', (e) => { this.itemChanged(e) })
@@ -142,6 +144,13 @@ class DropMenu {
         this.hotKeys = DropMenu.setHotKeyText(this.menu)
 
         this.menu.style.display = 'none'
+    }
+
+    getMenubarWidth() {
+        if (!this.menubarWidth) { 
+            this.menubarWidth = this.menubar.offsetWidth
+        }
+        return this.menubarWidth
     }
 
     toggleMenu(show = 'toggle', fromBlocker = false) {
@@ -157,7 +166,7 @@ class DropMenu {
                 if (this.menuLeft !== locLeft) {
                     this.menuLeft = locLeft
                     this.menuLeft = Math.max(this.menuLeft, 0)
-                    this.menuLeft = Math.min(this.menuLeft, this.menuBarWidth - this.menu.offsetWidth)
+                    this.menuLeft = Math.min(this.menuLeft, this.getMenubarWidth() - this.menu.offsetWidth)
                     this.menu.style.left = `${this.menuLeft}px`
                 }
             }

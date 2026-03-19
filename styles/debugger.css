@@ -7,8 +7,11 @@
 #editor-pane { position: relative; }
 body[data-debug=true] #container {
     display: inline-block;
-    width: calc(98vw - ((var(--variable-pane-width) * var(--editor-font-width-modifier) * 1em) + var(--variable-pane-border-width)));
+    width: calc(98vw);
     height: calc(99vh - 2*var(--menu-height));
+}
+body[data-debug=true][data-show-vars=true] #container {
+    width: calc(98vw - ((var(--variable-pane-width) * var(--editor-font-width-modifier) * 1em) + var(--variable-pane-border-width)));
 }
 
 /* menu dimmer */
@@ -53,8 +56,9 @@ body[data-border=dark] .glyph-margin-widgets .codicon {
     padding-left: 22px;
     border-left: solid 1px var(--dialog-background);
     border-bottom: solid 1px var(--dialog-background);
+    width: 97%;
 }
-body[data-debug=true] #debug-bar { display: block; }
+body[data-debug=true] #debug-bar { display: flex; }
 
 #debug-pause-cont svg.cont { display: none; }
 #debug-pause-cont.cont svg.pause { display: none; }
@@ -103,6 +107,17 @@ body[data-debug=true] #debug-bar { display: block; }
     text-transform: capitalize;
 }
 
+#var-sort svg { display: none; }
+#var-sort.by-recent svg.by-recent { display: inline; }
+#var-sort.by-memory svg.by-memory { display: inline; }
+#var-sort.by-a-to-z svg.by-a-to-z { display: inline; }
+#var-sort.by-z-to-a svg.by-z-to-a { display: inline; }
+#var-sort-menu { width: 36em; }
+
+#var-show svg.show-watch { display: none; }
+#var-show.show-watch svg.show-all { display: none; }
+#var-show.show-watch svg.show-watch { display: inline; }
+
 /* variable panel */
 #debug-variables {
     margin: 0;
@@ -129,6 +144,7 @@ body[data-debug=true] #debug-variables { display: block; }
     margin-bottom: 2px;
     text-align: right;
     vertical-align: top;
+    filter: brightness(70%);
 }
 #debug-variables dd {
     display: inline-block;
@@ -140,6 +156,7 @@ body[data-debug=true] #debug-variables { display: block; }
     vertical-align: top;
     position: relative;
     white-space: pre-wrap;
+    filter: brightness(70%);
 }
 #debug-variables dd::before {
     content: "=";
