@@ -1,6 +1,6 @@
 :root {
     --variable-pane-width: 22;
-    --variable-pane-border-width: 12px;
+    --variable-pane-border-width: 20px;
 }
 
 /* page */
@@ -132,13 +132,29 @@ body[data-debug=true] #debug-bar { display: flex; }
     background: var(--dialog-background);
     font-family: var(--editor-font);
     color: var(--dialog-foreground);
-}
-body[data-debug=true] #debug-variables { display: block; }
-
-#debug-variables {
-    display: flex;
     flex-direction: column;
 }
+body[data-debug=true] #debug-variables { display: flex; }
+#debug-var-sizer {
+    position: absolute;
+    right: calc(((var(--variable-pane-width) * var(--editor-font-width-modifier) * 1em) + var(--variable-pane-border-width)) - 3px);
+    top: calc(50% - 18px);
+    width: 18px;
+}
+#debug-var-sizer svg { 
+    width: 18px; 
+    height: 18px; 
+    margin-top: 2px; 
+    opacity: 0.7;
+    cursor: pointer;
+}
+#debug-var-sizer svg:hover { opacity: 1; }
+#debug-var-sizer svg.disabled {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+}
+
 #debug-variables .debug-var {
     display: flex;
     width: 100%;

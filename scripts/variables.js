@@ -1,4 +1,10 @@
 class VariablePanel {
+    static MIN_PANEL_WIDTH = 12
+    static MAX_PANEL_WIDTH_PERCENT = 0.48
+    static MAX_PANEL_WIDTH = null
+
+    static CSS_ROOT_ID = 'edcbm-debug'
+
     static cbmNumberFormat(value) {
         if (isNaN(value)) { return '' }
         let numText = value.toPrecision(9).toUpperCase()
@@ -40,18 +46,26 @@ class VariablePanel {
 
         this.variableRecency = []
         this.variableMemory = []
-        this.watchVariables = window.localStorage.getItem('variable-watch')
+        this.watchVariables = window.localStorage.getItem('variableWatch')
         if (this.watchVariables) {
             this.watchVariables = JSON.parse(this.watchVariables)
         } else {
             this.watchVariables = []
         }
 
-        this.togglePanel(window.localStorage.getItem('variable-panel') === 'show')
-        this.setSortMode(window.localStorage.getItem('variable-sort') ?? 'by-recent')
-        this.toggleShowMode(window.localStorage.getItem('variable-show') ?? 'all')
-
         this.panel.addEventListener('click', (e) => { this.panelClicked(e) })
+
+        this.sizer = document.getElementById('debug-var-sizer')
+        this.sizerLeft = this.sizer.querySelector('.size-left')
+        this.sizerLeft.addEventListener('click', (e) => { this.resizePanel(e) })
+        this.sizerRight = this.sizer.querySelector('.size-right')
+        this.sizerRight.addEventListener('click', (e) => { this.resizePanel(e) })
+        this.panelSize = parseInt(window.localStorage.getItem('variablePanelSize') ?? 22)
+
+        this.togglePanel(window.localStorage.getItem('variablePanel') === 'show')
+        this.setSortMode(window.localStorage.getItem('variableSort') ?? 'by-recent')
+        this.toggleShowMode(window.localStorage.getItem('variableShow') ?? 'all')
+        this.sizePanel()
     }
 
     clear(clearWatch = false) {
@@ -61,14 +75,22 @@ class VariablePanel {
         if (clearWatch) { this.watchVariables = [] }
     }
 
+    machineChanged() {
+        VariablePanel.MAX_PANEL_WIDTH = null
+    }
+
     togglePanel(show = 'toggle') {
         this.panelShowing = (show === 'toggle') ? !this.panelShowing : show
         this.panel.style.display = this.panelShowing ? 'flex' : 'none'
+        this.sizer.style.display = this.panelShowing ? 'block' : 'none'
         document.body.dataset.showVars = this.panelShowing
         this.toggleButton.classList.toggle('enabled', this.panelShowing)
         this.sortButton.style.display = this.panelShowing ? 'inline' : 'none'
         this.showButton.style.display = this.panelShowing ? 'inline' : 'none'
-        window.localStorage.setItem('variable-panel', this.panelShowing ? 'show' : 'hide')
+        window.localStorage.setItem('variablePanel', this.panelShowing ? 'show' : 'hide')
+        if (this.panelShowing && VariablePanel.MAX_PANEL_WIDTH == null) {
+            setTimeout(() => { this.sizePanel() }, 50) // wait a bit to get panel size
+        }
     }
 
     setSortMode(newMode) {
@@ -82,13 +104,13 @@ class VariablePanel {
         this.sortButton.classList.toggle('by-z-to-a', newMode === 'by-z-to-a')
         this.sortMenu.querySelector(`li[data-sort="${newMode}"`).classList.add('disabled')
         this.sortVariables()
-        window.localStorage.setItem('variable-sort', this.sortMode)
+        window.localStorage.setItem('variableSort', this.sortMode)
     }
 
     toggleShowMode(mode = 'toggle') {
         this.showMode = (mode === 'toggle') ? (this.showMode === 'all' ? 'watch' : 'all') : mode
         this.showButton.classList.toggle('show-watch', this.showMode === 'watch')
-        window.localStorage.setItem('variable-show', this.showMode)
+        window.localStorage.setItem('variableShow', this.showMode)
         this.showVariables()
     }
 
@@ -249,9 +271,48 @@ class VariablePanel {
                 this.watchVariables.splice(varIdx, 1)
                 this.showVariables()
             }
-            window.localStorage.setItem('variable-watch', JSON.stringify(this.watchVariables))
+            window.localStorage.setItem('variableWatch', JSON.stringify(this.watchVariables))
         } else if (event.target.className.contains('val')) {
             // TODO: value display
         }
+    }
+
+    resizePanel(event) {
+        const target = event.target.closest('svg')
+        if (target.classList.contains('size-left')) {
+            this.panelSize = this.panelSize + 1
+        } else { // right
+            this.panelSize = this.panelSize - 1
+        }
+        this.sizePanel()
+    }
+
+    sizePanel() {
+        let style = document.getElementById(VariablePanel.CSS_ROOT_ID)
+        if (!style) {
+            style = document.createElement('style')
+            style.id = VariablePanel.CSS_ROOT_ID
+            document.head.appendChild(style)
+        }           
+        let css = ':root {';
+        css += `--variable-pane-width: ${this.panelSize};`
+        css += '}'
+        style.textContent = css
+
+        if (VariablePanel.MAX_PANEL_WIDTH == null) {
+            const panelWidth = this.panel.offsetWidth
+            if (panelWidth === 0) { return } // come back later
+            const editorPane = document.getElementById('editor-pane')
+            const editorPaneWidth = editorPane.offsetWidth * VariablePanel.MAX_PANEL_WIDTH_PERCENT
+            const emWidth = panelWidth / this.panelSize
+            VariablePanel.MAX_PANEL_WIDTH = Math.floor(editorPaneWidth / emWidth)
+            if (this.panelSize > VariablePanel.MAX_PANEL_WIDTH) {
+                this.panelSize = VariablePanel.MAX_PANEL_WIDTH
+                return this.sizePanel() // reset the css
+            }
+        }
+        this.sizerLeft.classList.toggle('disabled', this.panelSize === VariablePanel.MAX_PANEL_WIDTH)
+        this.sizerRight.classList.toggle('disabled', this.panelSize === VariablePanel.MIN_PANEL_WIDTH)
+        window.localStorage.setItem('variablePanelSize', this.panelSize)
     }
 }

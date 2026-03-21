@@ -257,7 +257,7 @@ dialog button:disabled, dialog button:disabled:hover,
 #menu #charset.lU svg.lU { display: inline; }
 
 /* Editor Window(s) */
-
+#editor-pane { position: relative; }
 #container {
     width: 98vw;
     height: calc(99vh - var(--menu-height));
