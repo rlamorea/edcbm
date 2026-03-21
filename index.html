@@ -114,7 +114,12 @@
   </div>
   <div id="editor-pane">
     <div id="container"></div>
-    <dl id="debug-variables"></dl>
+    <div id="debug-variables">
+      <div class="debug-var">
+        <span class="var">A</span>
+        <span class="val">10</span>
+      </div>
+    </div>
   </div>
 
   <div id="debug-bar" class="menubar">
@@ -159,7 +164,7 @@
     </span>
     <span class="m-right">
       <button id="var-show">
-        <svg class="show-all" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" xml:space="preserve"><path fill="none" stroke="#000" stroke-width="2" stroke-miterlimit="10" d="M32.001.887C49.185.887 63.114 14.816 63.113 32 63.114 49.185 49.184 63.115 32 63.113 14.815 63.114.887 49.185.888 32.001.885 14.816 14.815.887 32.001.887zM32 1v62m31-31H1"/><path fill="none" stroke="#000" stroke-width="2" stroke-miterlimit="10" d="M30 1S16 12 16 32s14 31 14 31m4-62s14 11 14 31-14 31-14 31"/><path fill="none" stroke="#000" stroke-width="2" stroke-miterlimit="10" d="M8 12s5 10 24 10 24-10 24-10M8 52s5-10 24-10 24 10 24 10"/></svg>
+        <svg class="show-all" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path stroke-width="1" d="M4 12h16m-8-8v16a4 8 0 0 0 0-16 4 8 0 0 0 0 16m-6-3a4 1 0 0 1 12 0m0-10A4 1 0 0 1 6 7"/></svg> 
         <svg class="show-watch" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
       <button id="var-sort" class="menu-button" data-menu="var-sort-menu">

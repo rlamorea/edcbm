@@ -204,13 +204,14 @@ dialog button:disabled, dialog button:disabled:hover,
 .menubar ul li svg {
     width: 18px; 
     height: 18px;
-    stroke: var(--dialog-foreground);
+    stroke: var(--menu-foreground);
     vertical-align: middle;
 }
 .menubar ul li:hover {
     background: var(--menu-foreground);
     color: var(--menu-border);
 }
+.menubar ul li:hover svg { stroke: var(--menu-border); }
 .menubar ul li.keyfocus {
     outline: var(--menu-foreground) auto 1px;
 }
@@ -224,6 +225,7 @@ dialog button:disabled, dialog button:disabled:hover,
     background: inherit !important;
     color: inherit !important;
 }
+.menubar ul li.disabled:hover svg { stroke: var(--menu-foreground); }
 
 #menu #machine {
     display: inline-block;

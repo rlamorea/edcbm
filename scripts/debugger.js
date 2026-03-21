@@ -341,6 +341,14 @@ class Debugger {
         }
     }
 
+    getLineVariables(lineIndex) {
+        const model = this.editor.getModel()
+        const lineValue = model.getLineContent(lineIndex).trim()
+        if (lineValue === '' || lineValue.startsWith("`")) { return [] }
+        const { variables } = window.tokenizer.tokenizeLine(lineValue)
+        return Object.keys(variables ?? {})
+    }
+
     startDebug() {
         if (this.runMode !== 'ended' && this.runMode !== 'stopped') { return }
         if (!this.port) { return }
@@ -459,7 +467,7 @@ class Debugger {
         const breakpoint = debug.breakpoints[data.address]
         this.showExecutionPoint(debug.lineIndex, data.lineNo, debug.lineLength, breakpoint)
         if (!data.info) { this.setState('paused') }
-        if (data.variables) { this.variablePanel.displayVariables(data.variables) }
+        if (data.variables) { this.variablePanel.displayVariables(data.variables, this.getLineVariables(debug.lineIndex)) }
         if (data.dataLine) { this.showDataLine(data.dataLine, data.dataAddress) }
     }
 
@@ -474,6 +482,11 @@ class Debugger {
                 const lineNumber = parseInt(lno[1])
                 this.toggleBreakpointMarker(lineNumber, lineIndex, lineValue.length)
             }
+        } else if (event.target.type === monaco.editor.MouseTargetType.CONTENT_TEXT ||
+                   event.target.type === monaco.editor.MouseTargetType.CONTENT_EMPTY)
+        {
+            const lineIndex = event.target.position.lineNumber
+            this.variablePanel.highlightVariables(this.getLineVariables(lineIndex))
         }
     }
 
@@ -518,6 +531,7 @@ class Debugger {
         } else {
             this.setBreakpoints = []
             this.setStepLocations()
+            this.variablePanel.clear(true)
         }
     }
 
