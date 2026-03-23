@@ -65,7 +65,7 @@ class Debugger {
         }
         this.setStepLocations(true)
         this.variablePanel.clear()
-        this.variablePanel.machineChanged()
+        this.variablePanel.machineChanged(machine)
     }
 
     static states = {

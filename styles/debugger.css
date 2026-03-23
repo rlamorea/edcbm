@@ -227,3 +227,57 @@ body[data-debug=true] #debug-variables { display: flex; }
     float: left;
     cursor: pointer;
 }
+
+/* value dialog */
+#variable-value {
+    min-width: 15vw;
+}
+#variable-value h2 {
+    width: calc(100% - 8px);
+    font-family: var(--menu-font);
+}
+#variable-value .whitespace { 
+    padding-left: 1em;
+    float: right; 
+}
+#variable-value .value-container {
+    width: 100%;
+    text-align: right;
+    font-family: var(--menu-font);
+}
+#variable-value .value-container.str { text-align: left; }
+#variable-value .value-container span {
+    display: inline-block;
+    border: solid 2px var(--dialog-border);
+    padding: 2px;
+    font-family: var(--editor-font);
+    white-space: pre-wrap;
+    max-width: calc(var(--screen-columns) * var(--editor-font-width-modifier) * 1em);
+    overflow-wrap: break-word;
+    word-break: break-all;
+}
+#variable-value .value-container svg {
+    stroke: var(--dialog-foreground);
+    width: 18px;
+    height: 18px;
+    vertical-align: top;
+}
+#variable-value .value-container svg.copied { display: none; }
+#variable-value .value-container.copied svg.copy { display: none; }
+#variable-value .value-container.copied svg.copied { display: inline; }
+
+#variable-value .sizing {
+    padding: 2px 4px;
+}
+#variable-value .sizing span {
+    display: inline-block;
+    font-family: var(--editor-font);
+    width: calc(var(--editor-font-width-modifier) * 1em);
+    text-align: center;
+    vertical-align: top;
+}
+#variable-value .sizing span i {
+    font-size: 8pt;
+    font-family: monospace;
+    font-style: normal;
+}

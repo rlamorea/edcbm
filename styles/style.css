@@ -296,6 +296,7 @@ dialog span.close {
     height: 18px;
     opacity: 0.75;
     cursor: pointer;
+    z-index: 2;
 }
 dialog span.close:hover {
     opacity: 1;

@@ -1,3 +1,107 @@
+class VariableValueDialog {
+    static TYPE_STRING = {
+        'str': 'STRING',
+        'num': 'NUMBER',
+        'int': 'INTEGER'
+    }
+    static CONFIRM_DELAY = 750
+
+    constructor() {
+        this.dialog = document.getElementById('variable-value')
+
+        this.dialog.querySelector('.close').addEventListener('click', () => { this.dialog.close() })
+        this.title = this.dialog.querySelector('h2')
+        this.value = this.dialog.querySelector('.value')
+        this.valueContainer = this.value.parentElement
+        this.hexValue = this.dialog.querySelector('.hex-value')
+        this.hexContainer = this.hexValue.parentElement
+        this.sizing = this.dialog.querySelector('.sizing')
+        this.type = this.dialog.querySelector('.type')
+        this.length = this.dialog.querySelector('.length')
+        this.whitespace = this.dialog.querySelector('.whitespace')
+
+        this.dialog.querySelectorAll('.copy').forEach((e) => { e.addEventListener('click', (e) => { this.copyValue(e) }) })
+
+        this.whitespaceSelect = this.dialog.querySelector('#varval-ws')
+        this.whitespaceSelect.addEventListener('click', () => { this.toggleWhitespace() })
+
+        this.rawValue = ''
+        this.currentColumns = null
+    }
+
+    setMachine(machine) {
+        if (machine.screenColumns === this.currentColumns) { return }
+        this.sizing.innerHTML = ''
+        this.currentColumns = machine.screenColumns
+        for (let col = 1; col <= this.currentColumns; col++) {
+            const span = document.createElement('span')
+            if (col === 1 || (col % 5 === 0) || col === this.currentColumns) {
+                const i = document.createElement('i')
+                i.innerText = col.toString()
+                span.append(i)
+            }
+            this.sizing.append(span)
+        }
+    }
+
+    toggleWhitespace() {
+        const ws = this.whitespaceSelect.checked
+        if (ws) {
+            const middot = String.fromCharCode(0xb7)
+            this.value.innerText = this.rawValue.replaceAll(' ', middot)
+        } else {
+            this.value.innerText = this.rawValue
+        }
+    }
+
+    setValue(variable, value, type) {
+        this.title.innerText = variable
+        this.valueContainer.classList.remove('str', 'num', 'int')
+        this.valueContainer.classList.add(type)
+        this.value.innerText = value
+        this.rawValue = value
+        if (type === 'str') { this.toggleWhitespace() }
+
+        this.hexContainer.style.display = (type === 'int') ? 'block' : 'none'
+        if (type === 'int') { 
+            const val = parseInt(value)
+            let hexVal = val.toString(16)
+            if (hexVal.length % 2 === 1) { hexVal = `0${hexVal}`}
+            this.hexValue.innerText = hexVal
+        }
+        
+        this.sizing.style.display = (type === 'str') ? 'block' : 'none'
+
+        this.type.innerText = VariableValueDialog.TYPE_STRING[type]
+
+        this.length.style.display = (type === 'str') ? 'inline' : 'none'
+        if (type === 'str') { 
+            this.length.innerText = `LENGTH: ${value.length}` 
+            const sizingSpans = this.sizing.querySelectorAll('span')
+            for (let col = 0; col < sizingSpans.length; col++) {
+                sizingSpans[col].style.display = (col < value.length) ? 'inline-block' : 'none'
+            }
+        }
+
+        this.whitespace.style.display = (type === 'str') ? 'inline' : 'none'
+
+        this.dialog.showModal()
+        setTimeout(() => { document.activeElement.blur() }) 
+    }
+
+    async copyValue(event) {
+        const valueContainer = event.target.closest('.value-container')
+        const value = valueContainer.querySelector('span').innerText 
+        try {
+            await navigator.clipboard.writeText(value)
+            valueContainer.classList.add('copied')
+            setTimeout(() => { valueContainer.classList.remove('copied') }, VariableValueDialog.CONFIRM_DELAY)
+        } catch (e) {
+            console.log('unable to copy to clipboard', e.message)
+        }
+    }
+}
+
 class VariablePanel {
     static MIN_PANEL_WIDTH = 12
     static MAX_PANEL_WIDTH_PERCENT = 0.48
@@ -62,6 +166,8 @@ class VariablePanel {
         this.sizerRight.addEventListener('click', (e) => { this.resizePanel(e) })
         this.panelSize = parseInt(window.localStorage.getItem('variablePanelSize') ?? 22)
 
+        this.valueDialog = new VariableValueDialog()
+
         this.togglePanel(window.localStorage.getItem('variablePanel') === 'show')
         this.setSortMode(window.localStorage.getItem('variableSort') ?? 'by-recent')
         this.toggleShowMode(window.localStorage.getItem('variableShow') ?? 'all')
@@ -72,11 +178,15 @@ class VariablePanel {
         this.panel.innerHTML = ''
         this.variableMemory = []
         this.variableRecency = []
-        if (clearWatch) { this.watchVariables = [] }
+        if (clearWatch) { 
+            this.watchVariables = [] 
+            window.localStorage.setItem('variableWatch', '[]')
+        }
     }
 
-    machineChanged() {
+    machineChanged(machine) {
         VariablePanel.MAX_PANEL_WIDTH = null
+        this.valueDialog.setMachine(machine)
     }
 
     togglePanel(show = 'toggle') {
@@ -146,11 +256,14 @@ class VariablePanel {
             let varEl = this.panel.querySelector(`.debug-var[data-var="${variable}"]`)
             const value = variables[variable]
             const isArray = variable.endsWith('(')
+            let type = (variable.indexOf('$') > 0) ? 'str' : 'num'
+            type = (variable.indexOf('%') > 0) ? 'int' : type
             if (!varEl) {
                 varEl = document.createElement('div')
                 varEl.className = 'debug-var'
                 varEl.classList.toggle('watched', (this.watchVariables.indexOf(variable) >= 0))
                 varEl.dataset.var = variable
+                varEl.dataset.type = type      
                 const nameEl = document.createElement('span')
                 nameEl.className = 'var'
                 nameEl.dataset.var = variable
@@ -180,9 +293,7 @@ class VariablePanel {
                 }
                 this.panel.append(varEl)
             }
-            let type = (variable.endsWith('$') || variable.endsWith('$(')) ? 'str' : 'num'
             if (isArray) {
-                varEl.dataset.type = type
                 this.arrayDimensionChanged(null, varEl)
             } else {
                 this.displayVariableValue(varEl, value, type)
@@ -272,8 +383,8 @@ class VariablePanel {
                 this.showVariables()
             }
             window.localStorage.setItem('variableWatch', JSON.stringify(this.watchVariables))
-        } else if (event.target.className.contains('val')) {
-            // TODO: value display
+        } else if (event.target.classList.contains('val')) {
+            this.valueDialog.setValue(varTarget.dataset.var, event.target.innerText, varTarget.dataset.type)
         }
     }
 

@@ -6,12 +6,14 @@ const Machines = {
         hotkey: '6',
         language: 'v2',
         startAddress: 0x801,
+        screenColumns: 40,
     },
     'c128' : {
         name: 'c128',
         hotkey: '2',
         language: 'v7',
         startAddress: 0x1c01,
+        screenColumns: 40,
     },
     'c128-80' : {
         name: 'c128-80',
@@ -22,6 +24,7 @@ const Machines = {
         kb: 'c128',
         executeMachine: 'c128',
         startAddress: 0x1c01,
+        screenColumns: 80, 
     },
     'vic20' : {
         name: 'vic20',
@@ -29,6 +32,7 @@ const Machines = {
         language: 'v2',
         startAddress: 0x1001, // NOTE: could be 0x1201 if memory expansion in place
         menuPetscii: 'vic20',
+        screenColumns: 22,
     },
     'plus4': {
         name: 'plus4',
@@ -36,6 +40,7 @@ const Machines = {
         palette: 'ted',
         language: 'v3.5',
         startAddress: 0x1001,
+        screenColumns: 40,
     },
     'c16': {
         name: 'c16',
@@ -43,6 +48,7 @@ const Machines = {
         palette: 'ted',
         language: 'v3.5',
         startAddress: 0x1001,
+        screenColumns: 40,
     },
     'pet-g': {
         name: 'pet-g',
@@ -52,7 +58,8 @@ const Machines = {
         palette: 'pet-40',
         language: 'v2',
         startAddress: 0x0401,
-        menuPetscii: 'pet-g'
+        menuPetscii: 'pet-g',
+        screenColumns: 40,
     },
     'pet-b': {
         name: 'pet-b',
@@ -62,7 +69,8 @@ const Machines = {
         menu: 'pet-business',
         language: 'v4',
         startAddress: 0x0401,
-        menuPetscii: 'pet-g'
+        menuPetscii: 'pet-g',
+        screenColumns: 80,
     },
     'cbm2': {
         name: 'cbm2',
@@ -71,6 +79,7 @@ const Machines = {
         language: 'v4+',
         startAddress: 0x0003, // bank ram01
         menuPetscii: 'pet-g',
+        screenColumns: 80,
     }
 }
 

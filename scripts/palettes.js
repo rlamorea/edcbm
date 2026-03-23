@@ -89,7 +89,7 @@ class Palette {
         return this.cssRoot
     }
 
-    setCssRoot() {
+    setCssRoot(screenColumns) {
         // set global styling attributes
         let fontWidth = 'f40'
         let fontWidthModifier = 1;
@@ -113,6 +113,7 @@ class Palette {
             css += `${key}: ${value};`
         }
         css += `--editor-font-width-modifier: ${fontWidthModifier};`
+        css += `--screen-columns: ${screenColumns};`
         css += '}'
         style.textContent = css
 
@@ -465,7 +466,7 @@ class PaletteMenu {
             if (li.dataset.palette === 'custom' && !this.customPalette) { disabled = true }
             li.classList.toggle('disabled', disabled)
         })
-        paletteDef.setCssRoot()
+        paletteDef.setCssRoot(this.machine.screenColumns)
         paletteDef.setEditorTheme()
         this.paletteDefinition = paletteDef
 
