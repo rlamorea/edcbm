@@ -233,7 +233,6 @@ body[data-debug=true] #debug-variables { display: flex; }
     min-width: 15vw;
 }
 #variable-value h2 {
-    width: calc(100% - 8px);
     font-family: var(--menu-font);
 }
 #variable-value .whitespace { 
