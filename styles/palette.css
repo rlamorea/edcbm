@@ -16,18 +16,9 @@
     text-transform: uppercase;
     display: none;
 }
-#paletteeditor .close {
-    float: right;
-    margin-top: -4px;
-    opacity: 0.75;
-}
-#paletteeditor .close:hover { opacity: 1; }
 #paletteeditor h2 {
-    margin: 0;
-    padding: 1px 0;
     font-size: 16px;
-    color: var(--dialog-background);
-    background: var(--dialog-foreground);
+    height: 18px;
 }
 #paletteeditor h3 {
     margin: 0;

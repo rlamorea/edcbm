@@ -31,6 +31,9 @@
 
     --special-background: #222222;
     --special-foreground: darkgoldenrod;
+
+    --icon-light: #cccccc;
+    --icon-dark: #333333;
 }
 
 html, body {
@@ -280,7 +283,7 @@ dialog button:disabled, dialog button:disabled:hover,
 }
 
 /* dialogs */
-dialog {
+dialog, .dialog {
     border: solid 4px var(--dialog-border);
     background: var(--dialog-background);
     color: var(--dialog-foreground);
@@ -288,33 +291,38 @@ dialog {
     font-size: 12pt;
     position: relative;
 }
-dialog span.close {
+dialog span.close, .dialog span.close {
     position: absolute;
     right: 4px;
-    top: 0px;
+    top: 2px;
     width: 18px;
     height: 18px;
-    opacity: 0.75;
+    opacity: 0.5;
     cursor: pointer;
     z-index: 2;
 }
-dialog span.close:hover {
-    opacity: 1;
+dialog:has(h2) span.close, .dialog:has(h2) span.close { top: -2px; }
+dialog span.close:hover, .dialog span.close:hover { opacity: 1; }
+dialog span.close svg, .dialog span.close svg {
+    stroke: var(--icon-light);
+    width: 18px;
+    height: 18px;
 }
-dialog:has(h2) {
-    padding-top: calc(14pt + 15px);
-}
-dialog h2 {
+body[data-background=light] dialog span.close svg, body[data-background=light] .dialog span.close svg { stroke: var(--icon-dark); }
+dialog:has(h2) span.close svg, .dialog:has(h2) span.close svg { stroke: var(--icon-dark); }
+body[data-border=dark] dialog:has(h2) span.close svg, body[data-border=dark] .dialog:has(h2) span.close svg { stroke: var(--icon-light); }
+dialog:has(h2), .dialog:has(h2) { padding-top: calc(14pt + 15px); }
+dialog h2, .dialog h2 {
     position: absolute;
     top: -1em;
     left: 0;
-    width: calc(100% + 2em - 8px);
+    width: calc(100% - 8px);
     padding: 2px 4px;
     font-size: 14pt;
     color: var(--dialog-background);
     background: var(--dialog-border);
 }
-dialog .actions {
+dialog .actions, .dialog .actions {
     text-align: right;
 }
 

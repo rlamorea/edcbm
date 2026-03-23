@@ -21,6 +21,8 @@ class KeyboardWindow {
         }
     }
 
+    static DRAG_SNAP_SIZE = 50
+
     constructor() {
         this.keyboardShowing = false
         this.kbButton = document.getElementById('keyboard')
@@ -61,6 +63,18 @@ class KeyboardWindow {
         this.keyboard.querySelector('#rpt-mode-reset').addEventListener('click', () => { this.repeat.value = 1 })
 
         this.toggleKeyboard(false)
+
+        const drag = this.keyboard.querySelector('.drag')
+        drag.addEventListener('mousedown', (e) => { this.startDragKeyboard(e) })
+        this.draggableArea = document.getElementById('editor-pane')
+        this.draggableArea.addEventListener('mousemove', (e) => { this.dragKeyboard(e) })
+        this.draggableArea.addEventListener('mouseup', (e) => { this.dropKeyboard(e) })
+        this.isDragging = false
+        const kbRight = window.localStorage.getItem('vkeyboardRight')
+        if (kbRight != null) {
+            this.keyboard.style.right = kbRight
+            this.keyboard.style.bottom = window.localStorage.getItem('vkeyboardBottom')
+        }
     }
 
     async setMachine(machine) {
@@ -351,6 +365,55 @@ class KeyboardWindow {
         if (cleanLabel !== '{keep}') {
             key.innerHTML = cleanLabel
         }
+    }
+
+    startDragKeyboard(event) {
+        this.isDragging = true
+    }
+
+    dragKeyboard(event) {
+        if (!this.isDragging) { return }
+        const kbWidth = this.keyboard.clientWidth
+        const kbHeight = this.keyboard.clientHeight
+
+        let mouseX = event.clientX
+        let mouseY = event.clientY
+
+        const areaWidth = this.draggableArea.offsetWidth
+        const areaHeight = this.draggableArea.offsetHeight
+
+        console.log(`kb [${kbWidth},${kbHeight}], area [${areaWidth},${areaHeight}], mouse: [${mouseX},${mouseY}]`)
+
+        // snap to edges
+        if (mouseX < KeyboardWindow.DRAG_SNAP_SIZE) {
+            mouseX = 0
+        } else if ((areaWidth - (mouseX + kbWidth)) < KeyboardWindow.DRAG_SNAP_SIZE) {
+            mouseX = areaWidth - kbWidth   
+        }
+
+        if (mouseY < KeyboardWindow.DRAG_SNAP_SIZE) {
+            mouseY = 0
+        } else if ((areaHeight - (mouseY + kbHeight)) < KeyboardWindow.DRAG_SNAP_SIZE) {
+            mouseY = areaHeight - kbHeight
+        }
+
+        console.log(`snapped mouse: [${mouseX},${mouseY}]`)
+
+        // keyboard is references by bottom/right
+        mouseX = areaWidth - (mouseX + kbWidth)
+        mouseY = areaHeight - (mouseY + kbHeight)
+
+        console.log(`to [${mouseX + kbWidth},${mouseY + kbHeight}]`)
+
+        this.keyboard.style.right = `${mouseX}px`
+        this.keyboard.style.bottom = `${mouseY}px`
+    }
+
+    dropKeyboard(event) {
+        if (!this.isDragging) { return }
+        this.isDragging = false
+        window.localStorage.setItem('vkeyboardRight', this.keyboard.style.right)
+        window.localStorage.setItem('vkeyboardBottom', this.keyboard.style.bottom)
     }
 }
 

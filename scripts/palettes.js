@@ -118,8 +118,9 @@ class Palette {
         style.textContent = css
 
         const borderBrightness = Palette.brightness(Palette.rgb(this.cssRoot['--menu-border']))
-        //console.log('border brightness is', borderBrightness)
         document.body.dataset.border = (borderBrightness < 100) ? 'dark' : 'light'
+        const backgroundBrightness = Palette.brightness(Palette.rgb(this.cssRoot['--dialog-background']))
+        document.body.dataset.background = (backgroundBrightness < 100) ? 'dark' : 'light'
     }
 
     editorPalette() {

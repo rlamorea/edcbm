@@ -58,9 +58,9 @@
     opacity: 60%;
     cursor: pointer;
 }
-#vkeyboard h2 button:hover, #vkeyboard .kb-buffer-container button:hover {
-    opacity: 100%;
-}
+#vkeyboard h2 button:hover, #vkeyboard .kb-buffer-container button:hover { opacity: 100%; }
+#vkeyboard h2 button svg { stroke: var(--icon-dark); }
+body[data-border=dark] #vkeyboard h2 button svg { stroke: var(--icon-light); }
 #vkeyboard h2 button.close { float: right; }
 #vkeyboard h2 button.drag { cursor:grab }
 
