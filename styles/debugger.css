@@ -1,14 +1,17 @@
 :root {
-    --variable-pane-width: 21;
-    --variable-pane-border-width: 12px;
+    --variable-pane-width: 22;
+    --variable-pane-border-width: 20px;
 }
 
 /* page */
 #editor-pane { position: relative; }
 body[data-debug=true] #container {
     display: inline-block;
-    width: calc(98vw - ((var(--variable-pane-width) * var(--editor-font-width-modifier) * 1em) + var(--variable-pane-border-width)));
+    width: calc(98vw);
     height: calc(99vh - 2*var(--menu-height));
+}
+body[data-debug=true][data-show-vars=true] #container {
+    width: calc(98vw - ((var(--variable-pane-width) * var(--editor-font-width-modifier) * 1em) + var(--variable-pane-border-width)));
 }
 
 /* menu dimmer */
@@ -53,8 +56,9 @@ body[data-border=dark] .glyph-margin-widgets .codicon {
     padding-left: 22px;
     border-left: solid 1px var(--dialog-background);
     border-bottom: solid 1px var(--dialog-background);
+    width: 97%;
 }
-body[data-debug=true] #debug-bar { display: block; }
+body[data-debug=true] #debug-bar { display: flex; }
 
 #debug-pause-cont svg.cont { display: none; }
 #debug-pause-cont.cont svg.pause { display: none; }
@@ -103,6 +107,17 @@ body[data-debug=true] #debug-bar { display: block; }
     text-transform: capitalize;
 }
 
+#var-sort svg { display: none; }
+#var-sort.by-recent svg.by-recent { display: inline; }
+#var-sort.by-memory svg.by-memory { display: inline; }
+#var-sort.by-a-to-z svg.by-a-to-z { display: inline; }
+#var-sort.by-z-to-a svg.by-z-to-a { display: inline; }
+#var-sort-menu { width: 36em; }
+
+#var-show svg.show-watch { display: none; }
+#var-show.show-watch svg.show-all { display: none; }
+#var-show.show-watch svg.show-watch { display: inline; }
+
 /* variable panel */
 #debug-variables {
     margin: 0;
@@ -117,22 +132,51 @@ body[data-debug=true] #debug-bar { display: block; }
     background: var(--dialog-background);
     font-family: var(--editor-font);
     color: var(--dialog-foreground);
+    flex-direction: column;
 }
-body[data-debug=true] #debug-variables { display: block; }
+body[data-debug=true] #debug-variables { display: flex; }
+#debug-var-sizer {
+    position: absolute;
+    right: calc(((var(--variable-pane-width) * var(--editor-font-width-modifier) * 1em) + var(--variable-pane-border-width)) - 3px);
+    top: calc(50% - 18px);
+    width: 18px;
+}
+#debug-var-sizer svg { 
+    width: 18px; 
+    height: 18px; 
+    margin-top: 2px; 
+    opacity: 0.7;
+    cursor: pointer;
+}
+#debug-var-sizer svg:hover { opacity: 1; }
+#debug-var-sizer svg.disabled {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+}
 
-#debug-variables dt {
+#debug-variables .debug-var {
+    display: flex;
+    width: 100%;
+    filter: brightness(90%);
+}
+#debug-variables .debug-var.current {
+    filter: brightness(100%);
+}
+#debug-variables .debug-var .var {
     display: inline-block;
-    width: calc(4 * var(--editor-font-width-modifier) * 1em);
+    width: calc(5 * var(--editor-font-width-modifier) * 1em);
     margin-right: calc(1 * var(--editor-font-width-modifier) * 1em);
     border-top: solid 1px var(--dialog-border);
     padding-top: 2px;
     margin-bottom: 2px;
     text-align: right;
     vertical-align: top;
+    min-height: 18px;
 }
-#debug-variables dd {
+#debug-variables .debug-var .val {
     display: inline-block;
-    width: calc(100% - (5 * var(--editor-font-width-modifier) * 1em));
+    width: calc(100% - (6 * var(--editor-font-width-modifier) * 1em));
     border-top: solid 1px var(--dialog-border);
     padding-top: 2px;
     margin-bottom: 2px;
@@ -140,8 +184,9 @@ body[data-debug=true] #debug-variables { display: block; }
     vertical-align: top;
     position: relative;
     white-space: pre-wrap;
+    min-height: 18px;
 }
-#debug-variables dd::before {
+#debug-variables .debug-var .val::before {
     content: "=";
     position: absolute;
     left: calc(-1 * var(--editor-font-width-modifier) * 1em);
@@ -150,12 +195,12 @@ body[data-debug=true] #debug-variables { display: block; }
     padding-top: 2px;
 }
 
-#debug-variables dt.v-arr {
+#debug-variables .debug-var.v-arr .var {
     display: block;
     width: 100%;
     text-align: left;
 }
-#debug-variables dt.v-arr input {
+#debug-variables .debug-var.v-arr .var input {
     font-family: var(--editor-font);
     font-size: 12pt;
     color: var(--dialog-foreground);
@@ -163,11 +208,76 @@ body[data-debug=true] #debug-variables { display: block; }
     text-align: right;
     border: none;    
 }
-#debug-variables dd.v-arr {
+#debug-variables .debug-var.v-arr .val {
     border-top: none;
     margin-left: calc(5 * var(--editor-font-width-modifier) * 1em);
 }
-#debug-variables dd.v-arr::before {
+#debug-variables .debg-var.v-arr .val::before {
     border-top: none;
     top: 0px;
+}
+
+/* watches */
+#debug-variables .debug-var .var::before {
+    content: "\00a0";
+    float: left;
+}
+#debug-variables .debug-var:hover .var::before, #debug-variables .debug-var.watched .var::before {
+    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='black'  stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke-width='4' stroke='%23eee' fill='%23eee' d='M3 12a14 28 0 0 1 18 0 14 28 0 0 1-18 0'/%3E%3Cpath d='M3 12a14 28 0 0 1 18 0 14 28 0 0 1-18 0'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
+    float: left;
+    cursor: pointer;
+}
+
+/* value dialog */
+#variable-value {
+    min-width: 15vw;
+}
+#variable-value h2 {
+    width: calc(100% - 8px);
+    font-family: var(--menu-font);
+}
+#variable-value .whitespace { 
+    padding-left: 1em;
+    float: right; 
+}
+#variable-value .value-container {
+    width: 100%;
+    text-align: right;
+    font-family: var(--menu-font);
+}
+#variable-value .value-container.str { text-align: left; }
+#variable-value .value-container span {
+    display: inline-block;
+    border: solid 2px var(--dialog-border);
+    padding: 2px;
+    font-family: var(--editor-font);
+    white-space: pre-wrap;
+    max-width: calc(var(--screen-columns) * var(--editor-font-width-modifier) * 1em);
+    overflow-wrap: break-word;
+    word-break: break-all;
+}
+#variable-value .value-container svg {
+    stroke: var(--dialog-foreground);
+    width: 18px;
+    height: 18px;
+    vertical-align: top;
+}
+#variable-value .value-container svg.copied { display: none; }
+#variable-value .value-container.copied svg.copy { display: none; }
+#variable-value .value-container.copied svg.copied { display: inline; }
+
+#variable-value .sizing {
+    padding: 2px 4px;
+}
+#variable-value .sizing span {
+    display: inline-block;
+    font-family: var(--editor-font);
+    width: calc(var(--editor-font-width-modifier) * 1em);
+    text-align: center;
+    vertical-align: top;
+}
+#variable-value .sizing span i {
+    font-size: 8pt;
+    font-family: monospace;
+    font-style: normal;
 }

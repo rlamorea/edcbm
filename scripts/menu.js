@@ -6,12 +6,14 @@ const Machines = {
         hotkey: '6',
         language: 'v2',
         startAddress: 0x801,
+        screenColumns: 40,
     },
     'c128' : {
         name: 'c128',
         hotkey: '2',
         language: 'v7',
         startAddress: 0x1c01,
+        screenColumns: 40,
     },
     'c128-80' : {
         name: 'c128-80',
@@ -22,6 +24,7 @@ const Machines = {
         kb: 'c128',
         executeMachine: 'c128',
         startAddress: 0x1c01,
+        screenColumns: 80, 
     },
     'vic20' : {
         name: 'vic20',
@@ -29,6 +32,7 @@ const Machines = {
         language: 'v2',
         startAddress: 0x1001, // NOTE: could be 0x1201 if memory expansion in place
         menuPetscii: 'vic20',
+        screenColumns: 22,
     },
     'plus4': {
         name: 'plus4',
@@ -36,6 +40,7 @@ const Machines = {
         palette: 'ted',
         language: 'v3.5',
         startAddress: 0x1001,
+        screenColumns: 40,
     },
     'c16': {
         name: 'c16',
@@ -43,6 +48,7 @@ const Machines = {
         palette: 'ted',
         language: 'v3.5',
         startAddress: 0x1001,
+        screenColumns: 40,
     },
     'pet-g': {
         name: 'pet-g',
@@ -52,7 +58,8 @@ const Machines = {
         palette: 'pet-40',
         language: 'v2',
         startAddress: 0x0401,
-        menuPetscii: 'pet-g'
+        menuPetscii: 'pet-g',
+        screenColumns: 40,
     },
     'pet-b': {
         name: 'pet-b',
@@ -62,7 +69,8 @@ const Machines = {
         menu: 'pet-business',
         language: 'v4',
         startAddress: 0x0401,
-        menuPetscii: 'pet-g'
+        menuPetscii: 'pet-g',
+        screenColumns: 80,
     },
     'cbm2': {
         name: 'cbm2',
@@ -71,6 +79,7 @@ const Machines = {
         language: 'v4+',
         startAddress: 0x0003, // bank ram01
         menuPetscii: 'pet-g',
+        screenColumns: 80,
     }
 }
 
@@ -82,6 +91,7 @@ class DropMenu {
             const hotkey = li.dataset.hotkey
             if (hotkey) {
                 let textContainer = label || li
+                let svg = textContainer.querySelector('svg')
                 const itemText = textContainer.textContent
                 let itemHtml = ''
                 let foundHotKey = false
@@ -95,6 +105,7 @@ class DropMenu {
                     }
                 }
                 textContainer.innerHTML = itemHtml
+                if (svg) { textContainer.prepend(svg) }
                 hotKeys[`Key${hotkey.toUpperCase()}`] = li
             }
         })
@@ -102,7 +113,7 @@ class DropMenu {
     }
 
     constructor(menuContainer, options = {}) {
-        this.menuBarWidth = document.getElementById('menu').offsetWidth
+        this.menubar = options.menubar ?? document.getElementById('menu')
         this.menuLeft = null
 
         this.menu = menuContainer
@@ -131,7 +142,7 @@ class DropMenu {
             const label = li.querySelector('label')
             const name = li.dataset[datasetNameKey]
             if (!name) {
-                li.dataset[datasetNameKey] = (label ? label.textContent : li.textContent).toLowerCase().replaceAll(' ', '-')
+                li.dataset[datasetNameKey] = (label ? label.textContent : li.textContent).trim().toLowerCase().replaceAll(' ', '-')
             }
             if (label) {
                 li.querySelector('input').addEventListener('change', (e) => { this.itemChanged(e) })
@@ -142,6 +153,13 @@ class DropMenu {
         this.hotKeys = DropMenu.setHotKeyText(this.menu)
 
         this.menu.style.display = 'none'
+    }
+
+    getMenubarWidth() {
+        if (!this.menubarWidth) { 
+            this.menubarWidth = this.menubar.offsetWidth
+        }
+        return this.menubarWidth
     }
 
     toggleMenu(show = 'toggle', fromBlocker = false) {
@@ -157,7 +175,7 @@ class DropMenu {
                 if (this.menuLeft !== locLeft) {
                     this.menuLeft = locLeft
                     this.menuLeft = Math.max(this.menuLeft, 0)
-                    this.menuLeft = Math.min(this.menuLeft, this.menuBarWidth - this.menu.offsetWidth)
+                    this.menuLeft = Math.min(this.menuLeft, this.getMenubarWidth() - this.menu.offsetWidth)
                     this.menu.style.left = `${this.menuLeft}px`
                 }
             }

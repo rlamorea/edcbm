@@ -1,22 +1,4 @@
 class Debugger {
-    static cbmNumberFormat(value) {
-        if (isNaN(value)) { return '' }
-        let numText = value.toPrecision(9).toUpperCase()
-        // deal with CBM style of no leading 0, and space for positive
-        if (numText.startsWith('0.')) {
-            numText = ' ' + numText.substring(1)
-        } else if (numText.startsWith('-0.')) {
-            numText = '-' + numText.substring(2)
-        } else if (numText.match(/^\d/)) {
-            numText = ' ' + numText
-        }
-        // deal with cbm style of no trailing decimal 0s
-        numText = numText.replace(/\.0+($|E)/, '$1')
-        numText = numText.replace(/(\.[1-9]+)0+($|E)/, '$1$2')
-
-        return numText
-    }
-
     constructor(server) {
         this.socket = null
         this.port = server.port
@@ -54,7 +36,7 @@ class Debugger {
         this.warpModeButton.addEventListener('click', () => { this.toggleWarpMode() })
         this.warpMode = false
 
-        this.variablePanel = document.getElementById('debug-variables')
+        this.variablePanel = new VariablePanel()
 
         this.debugAddresses = null
         this.runMode = 'stopped'
@@ -82,7 +64,8 @@ class Debugger {
             this.runColumnsButton.style.display = 'none'
         }
         this.setStepLocations(true)
-        this.variablePanel.innerHTML = ''
+        this.variablePanel.clear()
+        this.variablePanel.machineChanged(machine)
     }
 
     static states = {
@@ -359,6 +342,14 @@ class Debugger {
         }
     }
 
+    getLineVariables(lineIndex) {
+        const model = this.editor.getModel()
+        const lineValue = model.getLineContent(lineIndex).trim()
+        if (lineValue === '' || lineValue.startsWith("`")) { return [] }
+        const { variables } = window.tokenizer.tokenizeLine(lineValue)
+        return Object.keys(variables ?? {})
+    }
+
     startDebug() {
         if (this.runMode !== 'ended' && this.runMode !== 'stopped') { return }
         if (!this.port) { return }
@@ -371,7 +362,7 @@ class Debugger {
         }
         this.setState('starting')
         this.setStepLocations(true)
-        this.variablePanel.innerHTML = ''
+        this.variablePanel.clear()
         window.menu.enableMenu(false)
 
         this.socket = new WebSocket(`ws://localhost:${this.port}`, 'JSON')
@@ -456,12 +447,8 @@ class Debugger {
         if (!this.socket) { return }
         this.showExecutionPoint()
         this.setState('ended')
-        if (data.variables) {
-            this.displayVariables(data.variables)
-        }
-        if (data.dataLine) {
-            this.showDataLine(data.dataLine, data.dataAddress)
-        }
+        if (data.variables) { this.variablePanel.displayVariables(data.variables) }
+        if (data.dataLine) { this.showDataLine(data.dataLine, data.dataAddress) }
         this.runMode = 'ended'
     }
 
@@ -481,12 +468,8 @@ class Debugger {
         const breakpoint = debug.breakpoints[data.address]
         this.showExecutionPoint(debug.lineIndex, data.lineNo, debug.lineLength, breakpoint)
         if (!data.info) { this.setState('paused') }
-        if (data.variables) {
-            this.displayVariables(data.variables)
-        }
-        if (data.dataLine) {
-            this.showDataLine(data.dataLine, data.dataAddress)
-        }
+        if (data.variables) { this.variablePanel.displayVariables(data.variables, this.getLineVariables(debug.lineIndex)) }
+        if (data.dataLine) { this.showDataLine(data.dataLine, data.dataAddress) }
     }
 
     editorMouseDown(event) {
@@ -500,6 +483,11 @@ class Debugger {
                 const lineNumber = parseInt(lno[1])
                 this.toggleBreakpointMarker(lineNumber, lineIndex, lineValue.length)
             }
+        } else if (event.target.type === monaco.editor.MouseTargetType.CONTENT_TEXT ||
+                   event.target.type === monaco.editor.MouseTargetType.CONTENT_EMPTY)
+        {
+            const lineIndex = event.target.position.lineNumber
+            this.variablePanel.highlightVariables(this.getLineVariables(lineIndex))
         }
     }
 
@@ -544,6 +532,7 @@ class Debugger {
         } else {
             this.setBreakpoints = []
             this.setStepLocations()
+            this.variablePanel.clear(true)
         }
     }
 
@@ -591,81 +580,5 @@ class Debugger {
         }
         if (!anyMultilineChanges) { return }
         this.resetBreakpoints(breakLines)
-    }
-
-    displayVariableValue(valEl, value, type) {
-        if (type === 'str') {
-            valEl.innerText = window.petscii.petsciiBytesToString(value)
-        } else { // num
-            value = parseFloat(value)
-            valEl.innerText = Debugger.cbmNumberFormat(value)
-        }
-    }
-
-    displayVariables(variables) {
-        for (const variable in variables) {
-            let varEl = this.variablePanel.querySelector(`dt[data-var="${variable}"]`)
-            let valEl = this.variablePanel.querySelector(`dd[data-var="${variable}"]`)
-            const value = variables[variable]
-            const isArray = variable.endsWith('(')
-            if (!varEl) {
-                varEl = document.createElement('dt')
-                varEl.dataset.var = variable
-                varEl.innerText = variable
-                this.variablePanel.appendChild(varEl)
-                valEl = document.createElement('dd')
-                valEl.dataset.var = variable
-                this.variablePanel.appendChild(valEl)
-                if (isArray) {
-                    varEl.className = 'v-arr'
-                    valEl.className = 'v-arr'
-                    for (let idx = 0; idx < value.dimensions.length; idx++) {
-                        if (idx > 0) { varEl.appendChild(document.createTextNode(',')) }
-                        const dimension = value.dimensions[idx]
-                        const dimInput = document.createElement('input')
-                        dimInput.dataset.dimension = idx
-                        dimInput.setAttribute('type', 'number')
-                        dimInput.setAttribute('min', 0)
-                        dimInput.setAttribute('max', dimension)
-                        dimInput.style.width = `${Math.max(Math.ceil(Math.log10(dimension)),1)+1}em`
-                        dimInput.value = 1
-                        varEl.appendChild(dimInput)
-                        dimInput.addEventListener('change', (e) => { this.arrayDimensionChanged(e) })
-                    }
-                    varEl.appendChild(document.createTextNode(')'))
-                    valEl.dataset.values = JSON.stringify(value.values)
-                }
-            }
-            let type = (variable.endsWith('$') || variable.endsWith('$(')) ? 'str' : 'num'
-            if (isArray) {
-                valEl.dataset.type = type
-                this.arrayDimensionChanged(null, varEl)
-            } else {
-                this.displayVariableValue(valEl, value, type)
-            }
-        }
-    }
-
-    arrayDimensionChanged(event, variableElement) {
-        const varEl = variableElement ?? event.target.closest('dt.v-arr')
-        const valEl = this.variablePanel.querySelector(`dd[data-var="${varEl.dataset.var}"]`)
-        let value = JSON.parse(valEl.dataset.values)
-        const type = valEl.dataset.type
-        const inputs = varEl.querySelectorAll('input')
-        for (let dim = 0; dim < inputs.length; dim++) {
-            let subscript = 1
-            try {
-                subscript = parseInt(inputs[dim].value)
-            } catch (e) {
-                subscript = 1 // just force it!
-            }
-            const min = parseInt(inputs[dim].getAttribute('min'))
-            const max = parseInt(inputs[dim].getAttribute('max'))
-            if (subscript < min) { subscript = min }
-            if (subscript > max) { subscript = max }
-            inputs[dim].value = subscript // put it back no matter what
-            value = value[subscript]
-        }
-        this.displayVariableValue(valEl, value, type)
     }
 }
