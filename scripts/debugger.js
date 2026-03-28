@@ -157,7 +157,10 @@ class Debugger {
 
     setEditorToDebuggerMode(newMode) {
         if (this.editor) {
-            this.editor.updateOptions({ glyphMargin: newMode })
+            this.editor.updateOptions({ 
+                glyphMargin: newMode,
+                hover: { enable: newMode ? 'on' : 'off' }
+            })
             return
         }
         if (window.editor) {
@@ -473,22 +476,46 @@ class Debugger {
     }
 
     editorMouseDown(event) {
-        if (event.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
-            const lineIndex = event.target.position.lineNumber
-            const model = this.editor.getModel()
-            const lineValue = model.getLineContent(lineIndex).trim()
-            
+        if (event.event.buttons !== 1) { return }
+
+        const lineIndex = event.target.position.lineNumber
+        const model = this.editor.getModel()
+        const lineValue = model.getLineContent(lineIndex).trim()
+        if (event.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {            
             const lno = lineValue.match(/^(\d+)/)
             if (lno) {
                 const lineNumber = parseInt(lno[1])
                 this.toggleBreakpointMarker(lineNumber, lineIndex, lineValue.length)
             }
-        } else if (event.target.type === monaco.editor.MouseTargetType.CONTENT_TEXT ||
-                   event.target.type === monaco.editor.MouseTargetType.CONTENT_EMPTY)
-        {
-            const lineIndex = event.target.position.lineNumber
-            this.variablePanel.highlightVariables(this.getLineVariables(lineIndex))
         }
+    }
+
+    hoveredOver(model, position) {
+        if (this.runMode !== 'debugging') { return null }
+        const lineValue = model.getLineContent(position.lineNumber).trim()
+        const { variables } = window.tokenizer.tokenizeLine(lineValue)
+        if (variables.length === 0) { return null }
+        this.variablePanel.highlightVariables(this.getLineVariables(position.lineNumber))
+        const column = position.column
+        for (const variable in variables) {
+            const varStarts = variables[variable]
+            for (const varStart of varStarts) {
+                if (column >= varStart && column <= varStart + variable.length) {
+                    // TODO: array variables need special handling and evaluation of parameters -- to do later
+                    if (variable.endsWith('(')) { return null } 
+                    const { value } = this.variablePanel.getVariableValue(variable, true)
+                    if (value != null) {
+                        return { 
+                            range: new monaco.Range(position.lineNumber, column, position.lineNumber, column + variable.length),
+                            contents: [ { value } ] 
+                        }
+                    } else {
+                        return null
+                    }
+                }
+            }
+        }
+        return null
     }
 
     clearBreakpointMarkers(preserve = false) {

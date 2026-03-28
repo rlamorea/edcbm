@@ -369,6 +369,16 @@ class VariablePanel {
         for (const el of els) { el.style.display = 'inline-block' }
     }
 
+    getVariableValue(variable, hardSpaces = false) {
+        const varEl = this.panel.querySelector(`.debug-var[data-var="${variable}"]`)
+        if (!varEl) { return { value: null, type: null } }
+        const valEl = varEl.querySelector('.val')
+        let value = valEl.innerText
+        const type = varEl.dataset.type
+        if (hardSpaces && type === 'str') { value = value.replaceAll(' ', '\xA0') }
+        return { value, type }
+    }
+
     panelClicked(event) {
         let varTarget = event.target.closest('.debug-var')
         if (varTarget && event.offsetX <= 18) {

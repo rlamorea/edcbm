@@ -110,6 +110,9 @@ class Editor {
             monaco.languages.register({ id })
             monaco.languages.setLanguageConfiguration(id, Editor.editorConfig[version])
             monaco.languages.setMonarchTokensProvider(id, Editor.language[version])
+            monaco.languages.registerHoverProvider(id, {
+                provideHover: (model, position) => { return this.hoveredOver(model, position) }
+            })
         }
     }
 
@@ -181,6 +184,8 @@ class Editor {
             parameterHints: { enabled: false },
             lineNumbers: false,
             glyphMargin: false,
+            fixedOverflowWidgets: true,
+            hover: { enabled: "off" },
             folding: false,
             lineDecorationsWidth: 0,
             lineNumbersMinChars: 0,
@@ -210,6 +215,7 @@ class Editor {
 
         this.maximumLineLength = 160
         this.editor.onKeyDown((key) => { this.keyDown(key) })
+        this.editor.onMouseDown((event) => { this.mouseDown(event) })
 
         this.newCursorLocation = null
         this.editor.onDidFocusEditorWidget(() => { this.restoreCursor() })
@@ -712,6 +718,27 @@ class Editor {
         var op = {identifier: id, range, text: str, forceMoveMarkers: true}
         this.editor.executeEdits("", [op])
         this.newCursorLocation = { lineNumber: position.positionLineNumber, column: position.selectionStartColumn + str.length }
+    }
+
+    mouseDown(event) {
+        if (event.event.buttons !== 2) { return } // ignore except right click
+        if (event.target.type !== monaco.editor.MouseTargetType.CONTENT_TEXT) { return }
+        // TODO: maybe also check for annotation decorations?
+
+        const lineIndex = event.target.position.lineNumber
+        const model = this.editor.getModel()
+        const lineValue = model.getLineContent(lineIndex).trim()
+
+        // character (PETSCII, Screen Code, C= Sequence, Local KB Sequence)
+
+        // variable (next/prev reference)
+
+        // line number (next/prev reference)
+    }
+
+    hoveredOver(model, position) {
+        if (this.debugger) { return this.debugger.hoveredOver(model, position) }
+        return null
     }
 }
 
