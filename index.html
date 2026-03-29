@@ -119,6 +119,27 @@
       <svg class="size-left" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"><rect fill="#eee" stroke="#eee" stroke-width="3" x="2" y="2" width="14" height="14" rx="3"/><rect x="2" y="2" width="14" height="14" rx="3"/><path stroke-width="2" d="M12 4 6 9l6 5"/></svg>
       <svg class="size-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"><rect fill="#eee" stroke="#eee" stroke-width="3" x="2" y="2" width="14" height="14" rx="3"/><rect x="2" y="2" width="14" height="14" rx="3"/><path stroke-width="2" d="m6 4 6 5-6 5"/></svg>      
     </div>
+    <div id="context-menu">
+      <dl class="cm-char">
+        <dt>Char:</dt><dd class="cm-charvis"></dd>
+        <dt>P:</dt><dd class="cm-petscii"></dd>
+        <dt>SC:</dt><dd class="cm-screen"></dd>
+        <dt class="cm-inline">Code:</dt><dd class="cm-inline">{<span></span>}</dd>
+        <dt>CBM:</dt><dd class="cm-cbmkey">
+          <span data-key="ctrl">CTRL</span
+          ><span data-key="cbm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="3 3 16 16" fill="#fff" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 6a5 5 0 0 0 0 10" stroke-linecap="square" stroke-width="4" fill="none"/><path d="M13.1 8H17l-1.5 2.15h-2.4Z" stroke-linecap="square" stroke-linejoin="miter"/><path d="M13.1 13.9H17l-1.5-2.15h-2.4Z" stroke-linecap="square" stroke-linejoin="miter"/></svg></span
+          ><span data-key="shift">SHIFT</span
+          ><span data-key="any"> </span>
+        </dd>
+        <dt class="cm-localkey">Mac:</dt><dd class="cm-localkey">
+          <span data-key="fn">fn</span
+          ><span data-key="control">control</span
+          ><span data-key="alt">option</span
+          ><span data-key="shift">shift</span
+          ><span data-key="any"> </span>
+        </dd>
+      </dl>
+    </div>
   </div>
 
   <div id="debug-bar" class="menubar">
@@ -348,6 +369,7 @@
   <script type="text/javascript" src="/scripts/palettes.js"></script>
   <script type="text/javascript" src="/scripts/d64.js"></script>
   <script type="text/javascript" src="/scripts/toker.js"></script>
+  <script type="text/javascript" src="/scripts/context.js"></script>
   <script type="text/javascript" src="/scripts/editor.js"></script>
   <script type="text/javascript" src="/scripts/files.js"></script>
   <script type="text/javascript" src="/scripts/checker.js"></script>

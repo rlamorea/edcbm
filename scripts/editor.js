@@ -216,6 +216,9 @@ class Editor {
         this.maximumLineLength = 160
         this.editor.onKeyDown((key) => { this.keyDown(key) })
         this.editor.onMouseDown((event) => { this.mouseDown(event) })
+        document.addEventListener('contextmenu', (e) => { 
+            if (e.target.closest('div').id === 'blocker') { e.preventDefault() }
+        })
 
         this.newCursorLocation = null
         this.editor.onDidFocusEditorWidget(() => { this.restoreCursor() })
@@ -240,6 +243,8 @@ class Editor {
         this.enabled = false
         this.enableEditor(false)
         this.debugger = null
+
+        this.contextMenu = new ContextMenu(this)
     }
 
     init() {
@@ -261,6 +266,7 @@ class Editor {
 
     setDebugger(observer) {
         this.debugger = observer
+        this.contextMenu.setDebugger(observer)
     }
 
     preFontChange() {
@@ -723,17 +729,18 @@ class Editor {
     mouseDown(event) {
         if (event.event.buttons !== 2) { return } // ignore except right click
         if (event.target.type !== monaco.editor.MouseTargetType.CONTENT_TEXT) { return }
+
+        event.event.preventDefault()
+        event.event.stopPropagation()
+
         // TODO: maybe also check for annotation decorations?
 
         const lineIndex = event.target.position.lineNumber
         const model = this.editor.getModel()
-        const lineValue = model.getLineContent(lineIndex).trim()
+        const lineValue = model.getLineContent(lineIndex)
+        if (lineValue.trim() === '') { return }
 
-        // character (PETSCII, Screen Code, C= Sequence, Local KB Sequence)
-
-        // variable (next/prev reference)
-
-        // line number (next/prev reference)
+        this.contextMenu.show(lineValue, event.target.position)
     }
 
     hoveredOver(model, position) {

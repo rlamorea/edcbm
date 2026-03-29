@@ -280,6 +280,7 @@ class Petscii {
             0x9F: 'cyan',
         }
         this.addCodeNames(this.codeNames['vic20-Ug'], 0xA1, 'cbm-', [ ...'KIT@G+M', 'gb-pound', ...'xNQDZSPAERWHJLYUOxFCXVB' ])
+        this.addCodeNames(this.codeNames['vic20-Ug'], 0xE1, 'cbm-', [ ...'KIT@G+M', 'gb-pound', ...'xNQDZSPAERWHJLYUOxFCXVB' ])
         this.codeNames['vic20-Ug'] = {
             ...this.codeNames['vic20-Ug'],
             0x5C: 'gb-pound',

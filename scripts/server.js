@@ -97,7 +97,7 @@ class Server {
             }
         } catch (error) {
             console.log('error connecting to server at port', this.port)
-            console.error(error)
+            console.log(error.message)
             this.disconnectedFromServer()
         }
     }

@@ -282,6 +282,82 @@ dialog button:disabled, dialog button:disabled:hover,
     display: none !important;
 }
 
+/* context menu */
+#context-menu {
+    margin-top: 1.7em;
+    position: absolute;
+    border: solid 2px var(--dialog-border);
+    padding: 2px;
+    background: var(--dialog-background);
+    color: var(--dialog-foreground);
+    font-family: var(--menu-font);
+    font-size: 10pt;
+    z-index: 10;
+}
+#context-menu dl.cm-char {
+    margin: 0;
+    padding: 0;
+    width: 14.5em;
+}
+#context-menu dl.cm-char dt {
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+    width: 5em;
+    text-align: right;
+    filter: brightness(80%);
+    vertical-align: top;
+}
+#context-menu dl.cm-char dd {
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+    width: 9em;
+}
+#context-menu dl.cm-char dt:has(+ dd.cm-charvis) { padding-top: 7px; }
+#context-menu dl.cm-char dd.cm-charvis { 
+    font-size: 16pt; 
+    width: 1em;
+    border: solid 1px;
+    padding: 1px;
+    margin-right: 3em;
+    margin-bottom: 2px;
+}
+#context-menu dt:has(+ dd.cm-cbmkey), #context-menu dt:has(+ dd.cm-localkey) { padding-top: 4px; }
+#context-menu .cm-cbmkey span, #context-menu .cm-localkey span {
+    display: inline-block;
+    font-family: monospace;
+    font-size: 8pt;
+    width: 18px;
+    height: 18px;
+    align-content: center;
+    background: lightgray;
+    color: black;
+    text-align: center;
+    border: solid 1px gray;
+    border-radius: 4px;
+    vertical-align: top;
+    margin-bottom: 2px;
+}
+#context-menu .cm-cbmkey span.sml, #context-menu .cm-localkey span.sml { font-size: 6pt; }
+#context-menu .cm-cbmkey span.splt, #context-menu .cm-localkey span.splt { font-size: 6pt; line-height: 1em; }
+#context-menu .cm-cbmkey span svg {
+    width: 16px;
+    height: 16px;
+    stroke: #000;
+    fill: #000;
+}
+#context-menu .cm-cbmkey span[data-key=ctrl] { width: 3em; }
+#context-menu .cm-cbmkey span[data-key=shift] { width: 4em; }
+#context-menu .cm-localkey span {
+    background: black;
+    color: white;
+}
+#context-menu .cm-localkey span[data-key=fn] { font-size: 6pt; }
+#context-menu .cm-localkey span[data-key=control] { font-size: 6pt; width: 6em; }
+#context-menu .cm-localkey span[data-key=alt] { font-size: 6pt; width: 5em; }
+#context-menu .cm-localkey span[data-key=shift] { font-size: 6pt; width: 4em; }
+
 /* dialogs */
 dialog, .dialog {
     border: solid 4px var(--dialog-border);
