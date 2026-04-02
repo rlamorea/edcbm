@@ -262,6 +262,7 @@ dialog button:disabled, dialog button:disabled:hover,
 /* Editor Window(s) */
 #editor-pane { position: relative; }
 #container {
+    display: inline-block; /* done to handle show/hide of variable panel */
     width: 98vw;
     height: calc(99vh - var(--menu-height));
     margin-top: 25px;
@@ -284,46 +285,42 @@ dialog button:disabled, dialog button:disabled:hover,
 
 /* context menu */
 #context-menu {
-    margin-top: 1.7em;
+    margin-left: -1px;
     position: absolute;
     border: solid 2px var(--dialog-border);
-    padding: 2px;
     background: var(--dialog-background);
     color: var(--dialog-foreground);
-    font-family: var(--menu-font);
+    font-family: monospace;
     font-size: 10pt;
     z-index: 10;
+    min-width: 10em;
 }
-#context-menu dl.cm-char {
-    margin: 0;
-    padding: 0;
-    width: 14.5em;
-}
-#context-menu dl.cm-char dt {
-    margin: 0;
-    padding: 0;
-    display: inline-block;
-    width: 5em;
-    text-align: right;
-    filter: brightness(80%);
+#context-menu .cm-char {
+    background: var(--dialog-foreground);
+    color: var(--dialog-background);
     vertical-align: top;
 }
-#context-menu dl.cm-char dd {
-    margin: 0;
-    padding: 0;
+#context-menu .cm-char div:first-child {
     display: inline-block;
-    width: 9em;
+    text-align: center;
+    padding-top: 2px;
 }
-#context-menu dl.cm-char dt:has(+ dd.cm-charvis) { padding-top: 7px; }
-#context-menu dl.cm-char dd.cm-charvis { 
-    font-size: 16pt; 
+#context-menu .cm-charvis {
+    font-family: var(--editor-font);
+    font-size: 24px; 
     width: 1em;
-    border: solid 1px;
+    border: solid 1px var(--dialog-background);
     padding: 1px;
-    margin-right: 3em;
-    margin-bottom: 2px;
 }
-#context-menu dt:has(+ dd.cm-cbmkey), #context-menu dt:has(+ dd.cm-localkey) { padding-top: 4px; }
+#context-menu .cm-char div:nth-child(2) {
+    display: inline-block;
+    text-align: left;
+    vertical-align: top;
+}
+#context-menu .cm-cbmkey { margin-top: 4px; }
+#context-menu .cm-cbmkey, #context-menu .cm-localkey {
+    text-align: center;
+}
 #context-menu .cm-cbmkey span, #context-menu .cm-localkey span {
     display: inline-block;
     font-family: monospace;
@@ -357,6 +354,22 @@ dialog button:disabled, dialog button:disabled:hover,
 #context-menu .cm-localkey span[data-key=control] { font-size: 6pt; width: 6em; }
 #context-menu .cm-localkey span[data-key=alt] { font-size: 6pt; width: 5em; }
 #context-menu .cm-localkey span[data-key=shift] { font-size: 6pt; width: 4em; }
+
+#context-menu ul {
+    margin: 0;
+    border-top: solid 1px var(--dialog-foreground);
+    padding: 2px 0;
+    list-style-type: none;
+}
+#context-menu li {
+    margin: 1px;
+    padding: 0 3px;
+    cursor: pointer;
+}
+#context-menu li:hover {
+    background: var(--dialog-foreground);
+    color: var(--dialog-background);
+}
 
 /* dialogs */
 dialog, .dialog {

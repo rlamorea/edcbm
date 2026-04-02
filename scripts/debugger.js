@@ -6,7 +6,7 @@ class Debugger {
         this.debugModeButton = document.getElementById('debug-mode')
         this.debugModeButton.addEventListener('click', () => { this.toggleDebugMode() })
         this.debugModeButton.style.display = 'none'
-        this.inDebugMode = window.localStorage.getItem('debugMode') ?? false
+        this.inDebugMode = window.localStorage.getItem('debugMode') === 'true'
 
         this.lastExecLineNo = null
 
@@ -145,6 +145,7 @@ class Debugger {
         document.body.dataset.debug = newMode
         this.debugModeButton.classList.toggle('enabled', newMode)
         this.setEditorToDebuggerMode(newMode)
+        this.variablePanel.togglePanel('keep', newMode)
     }
 
     toggleRunColumns(newCols = 'toggle') {

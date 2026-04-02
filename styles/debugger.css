@@ -6,7 +6,6 @@
 /* page */
 #editor-pane { position: relative; }
 body[data-debug=true] #container {
-    display: inline-block;
     width: calc(98vw);
     height: calc(99vh - 2*var(--menu-height));
 }
@@ -140,7 +139,9 @@ body[data-debug=true] #debug-variables { display: flex; }
     right: calc(((var(--variable-pane-width) * var(--editor-font-width-modifier) * 1em) + var(--variable-pane-border-width)) - 3px);
     top: calc(50% - 18px);
     width: 18px;
+    display: none;
 }
+body[data-debug=true][data-show-vars=true] #debug-var-sizer { display: block; }
 #debug-var-sizer svg { 
     width: 18px; 
     height: 18px; 

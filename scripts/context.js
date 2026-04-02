@@ -47,12 +47,12 @@ class ContextMenu {
         return code
     }
 
-    static {
-        this.petsciiExclude.push([])
-    }
-
     constructor(editor) {
         this.editor = editor
+        this.container = document.getElementById('container')
+        this.editorArea = this.container.querySelector('.editor-scrollable')
+        this.editorBox = null
+        this.charSize = null
         
         this.menu = document.getElementById('context-menu')
         this.menu.style.display = 'none'
@@ -62,8 +62,7 @@ class ContextMenu {
         this.showChar = this.menu.querySelector('.cm-charvis')
         this.petsciiVal = this.menu.querySelector('.cm-petscii')
         this.screenCodeVal = this.menu.querySelector('.cm-screen')
-        this.inlineCodeEls = this.menu.querySelectorAll('.cm-inline')
-        this.inlineCode = this.inlineCodeEls[1].querySelector('span')
+        this.inlineCode = this.menu.querySelector('.cm-inline')
         this.cbmKeys = {
             ctrl: this.menu.querySelector('.cm-cbmkey span[data-key=ctrl]'),
             cbm: this.menu.querySelector('.cm-cbmkey span[data-key=cbm]'),
@@ -77,10 +76,111 @@ class ContextMenu {
             shift: this.menu.querySelector('.cm-localkey span[data-key=shift]'),
             any: this.menu.querySelector('.cm-localkey span[data-key=any]')
         }
+
+        // edits stuff
+        this.cutAction = this.menu.querySelector('li[data-action=cut]')
+        this.copyAction = this.menu.querySelector('li[data-action=copy]')
     }
 
     setDebugger(debuggr) {
         this.debugger = debuggr
+    }
+
+    machineChanged() {
+        this.charSize = null
+    }
+
+    getCharPos(location) {
+        return {
+            column: Math.floor((location.x - this.editorBox.left) / this.charSize.width) + 1,
+            lineNumber: Math.floor(location.y / this.charSize.height) + 1
+        }
+    }
+
+    show(event, chained) {
+        if (this.editorBox?.left !== this.editorArea.offsetLeft) {
+            this.editorBox = {
+                left: this.editorArea.offsetLeft,
+                top: this.container.offsetTop,
+                width: this.editorArea.offsetWidth,
+                height: this.editorArea.offsetHeight
+            }
+            console.log('editorBox', this.editorBox)
+        }
+        if (this.charSize == null) {
+            const c1 = this.editor.editor.getScrolledVisiblePosition({ column: 1, lineNumber: 1 })
+            const c2 = this.editor.editor.getScrolledVisiblePosition({ column: 2, lineNumber: 1 })
+            this.charSize = {
+                width: c2.left - c1.left,
+                height: c1.height
+            }
+        }
+
+        const charPos = this.getCharPos({ x: event.event.relativePos.x, y: event.event.relativePos.y })
+        const menuPos = {
+            left: this.editorBox.left + charPos.column * this.charSize.width,
+            top: this.editorBox.top + charPos.lineNumber * this.charSize.height
+        }
+
+        const currentSelections = this.editor.editor.getSelections()
+        let inSelection = false
+        for (const selection of currentSelections) {
+            if (selection.containsPosition(charPos)) {
+                inSelection = true
+                break
+            }
+        }
+
+        this.charDisplay.style.display = 'none'
+
+        if (event.target.type === monaco.editor.MouseTargetType.CONTENT_TEXT) {
+            this.textContext(event, charPos, inSelection)
+        }
+        this.editsContext(event, inSelection)
+
+        this.ignoreNext = !chained
+        window.blocker.show(this.menu, 'block', (e) => { return this.menuClosed(e) })
+        this.menu.style.left = `${menuPos.left}px`
+        this.menu.style.top = `${menuPos.top}px`
+
+        const menuSize = {
+            width: this.menu.offsetWidth,
+            height: this.menu.offsetHeight
+        }
+
+        if (menuPos.left + menuSize.width > this.editorBox.width) {
+            this.menu.style.left = `${menuPos.left - menuSize.width}px`
+        }
+        if (menuPos.top + menuSize.height > this.editorBox.height) {
+            this.menu.style.top = `${menuPos.top - this.charSize.height - menuSize.height}px`
+        }
+    }
+
+    textContext(event, charPos, inSelection) {
+        if (event.target.detail.mightBeForeignElement) {
+            // TODO: handle click on inline annotation -- this is a variable thing
+            return
+        }
+
+        const lineIndex = charPos.lineNumber
+        const model = this.editor.editor.getModel()
+
+        const char = model.getValueInRange(new monaco.Range(charPos.lineNumber, charPos.column, charPos.lineNumber, charPos.column + 1))
+        const petscii = window.petscii.stringToPetscii(char)
+
+        if (!inSelection) {
+            this.debugChar(model, charPos, petscii)
+        }
+
+        if ((petscii >= 0x30 && petscii <= 0x39) || (petscii >= 0x40 && petscii <= 0x5a)) {
+            const line = model.getLineContent(lineIndex)
+            // TODO: if over a variable or line number, do the thing
+        }
+    }
+
+    editsContext(event, inSelection) {
+        this.cutAction.style.display = inSelection ? 'block' : 'none'
+        this.copyAction.style.display = inSelection ? 'block' : 'none'
     }
 
     showKeys(keySet, keys) {
@@ -104,19 +204,19 @@ class ContextMenu {
             }
             keyEl.style.display = keys.includes(key) ? 'inline-block' : 'none'
         }
-
     }
 
-    show(line, position) {
-        const trimLine = line.trim()
-        if (trimLine.startsWith("`")) { return }
-
+    debugChar(model, charPos, petscii) {
         const upCase = window.petscii.charSet.endsWith('Ug')
 
-        const char = line.charAt(position.column - 1)
-        const petscii = window.petscii.stringToPetscii(char)
         this.charDisplay.style.display = (petscii == null) ? 'none' : 'block'
         if (petscii != null) {
+            this.editor.editor.setSelection({ 
+                startLineNumber: charPos.lineNumber, endLineNumber: charPos.lineNumber,
+                startColumn: charPos.column, endColumn: charPos.column + 1
+            })
+            this.addedSelection = true
+
             const screenCode = ContextMenu.convertPetsciiToScreenCode(petscii)
             let petsciiHex = petscii.toString(16).padStart(2, '0')
             let screenCodeHex = screenCode.toString(16).padStart(2, '0')
@@ -154,29 +254,39 @@ class ContextMenu {
             this.showKeys(this.localKeys, localKeys)
 
             if (upCase) { inlineCode = inlineCode.toUpperCase() }
-            this.inlineCodeEls.forEach((e) => { e.style.display = hideInline ? 'none' : 'inline-block' })
-            this.inlineCode.innerText = inlineCode
+            this.inlineCode.style.display = hideInline ? 'none' : 'inline-block'
+            this.inlineCode.innerText = `{${inlineCode}}`
 
+            this.menuNeeded = true
         }
+    }
 
-        window.blocker.show(this.menu)
-
-        const coords = this.editor.editor.getScrolledVisiblePosition(position);
-        const editorSize = this.editor.editor.getLayoutInfo();
-
-        this.menu.style.left = `${coords.left}px`
-        this.menu.style.top = `${coords.top + coords.height}px`
-
-        const menuSize = {
-            width: this.menu.offsetWidth,
-            height: this.menu.offsetHeight
+    menuClosed(event) {
+        if (this.ignoreNext) { 
+            this.ignoreNext = false
+            return true 
         }
-
-        if (coords.left + menuSize.width > editorSize.width) {
-            this.menu.style.left = `${coords.left - menuSize.width}px`
+        console.log(event)
+        if (this.addedSelection) {
+            const curPos = this.editor.editor.getPosition()
+            this.editor.editor.setSelection({
+                startLineNumber: curPos.lineNumber, endLineNumber: curPos.lineNumber,
+                startColumn: curPos.column, endColumn: curPos.column
+            })
         }
-        if (coords.top + coords.height + menuSize.height > editorSize.height) {
-            this.menu.style.top = `${coords.top - menuSize.height}px`
+        this.editor.enableEditor()
+        const newLoc = {
+            x: event.pageX - this.container.offsetLeft,
+            y: event.pageY - this.container.offsetTop
         }
+        if (event.type === 'click') {
+            const charPos = this.getCharPos(newLoc)
+            setTimeout(() => { this.editor.editor.setPosition(charPos) }, 150)
+        } else if (event.type === 'contextmenu') {
+            setTimeout(() => {
+                this.show({ event: { relativePos: newLoc } }, true) // mocked up "event"
+            }, 50)
+        }
+        return false
     }
 }

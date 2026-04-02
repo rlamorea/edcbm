@@ -218,6 +218,7 @@ class Editor {
         this.editor.onMouseDown((event) => { this.mouseDown(event) })
         document.addEventListener('contextmenu', (e) => { 
             if (e.target.closest('div').id === 'blocker') { e.preventDefault() }
+            if (e.target.closest('#container')) { e.preventDefault() }
         })
 
         this.newCursorLocation = null
@@ -364,6 +365,7 @@ class Editor {
         // TODO: theme returns char set and maybe a control?
         this.machine = machine
         this.petsciiKeymap = Editor.petsciiKeymap[machine.name]
+        this.contextMenu.machineChanged()
     }
 
     setTheme(name, font) {
@@ -728,19 +730,11 @@ class Editor {
 
     mouseDown(event) {
         if (event.event.buttons !== 2) { return } // ignore except right click
-        if (event.target.type !== monaco.editor.MouseTargetType.CONTENT_TEXT) { return }
-
         event.event.preventDefault()
         event.event.stopPropagation()
 
-        // TODO: maybe also check for annotation decorations?
-
-        const lineIndex = event.target.position.lineNumber
-        const model = this.editor.getModel()
-        const lineValue = model.getLineContent(lineIndex)
-        if (lineValue.trim() === '') { return }
-
-        this.contextMenu.show(lineValue, event.target.position)
+        // for whatever reason the monaco text position is just not correct, so not going to use it
+        this.contextMenu.show(event)
     }
 
     hoveredOver(model, position) {
