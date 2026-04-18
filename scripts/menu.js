@@ -79,7 +79,7 @@ const Machines = {
         language: 'v4+',
         startAddress: 0x0003, // bank ram01
         menuPetscii: 'pet-g',
-        screenColumns: 80,
+        screenColumns: 80,  
     }
 }
 
@@ -123,6 +123,7 @@ class DropMenu {
         this.itemChangeHandler = options.changeHandler
         this.keepBarFocused = options.keepBarFocused
         this.dropToggle = options.drop
+        this.disableToggle = options.disableToggle
 
         if (this.dropToggle) {
             this.dropToggle.addEventListener('click', () => { this.toggleMenu() })
@@ -163,6 +164,7 @@ class DropMenu {
     }
 
     toggleMenu(show = 'toggle', fromBlocker = false) {
+        if (this.disableToggle) { return } // ignore toggle actions
         this.isShowing = (show === 'toggle') ? !this.isShowing : show
         if (this.dropToggle) {
             this.dropToggle.classList.toggle('active', this.isShowing)

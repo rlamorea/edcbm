@@ -200,35 +200,35 @@ dialog button:disabled, dialog button:disabled:hover,
     top: unset;
     bottom: 30px;
 }
-.menubar ul li {
+.menubar ul li, ul.menu li {
     list-style-type: none;
     cursor: pointer;
 }
-.menubar ul li svg {
+.menubar ul li svg, ul.menu li svg {
     width: 18px; 
     height: 18px;
     stroke: var(--menu-foreground);
     vertical-align: middle;
 }
-.menubar ul li:hover {
+.menubar ul li:hover, ul.menu li:hover {
     background: var(--menu-foreground);
     color: var(--menu-border);
 }
-.menubar ul li:hover svg { stroke: var(--menu-border); }
-.menubar ul li.keyfocus {
+.menubar ul li:hover svg, ul.menu li:hover svg { stroke: var(--menu-border); }
+.menubar ul li.keyfocus, ul.menu li.keyfocus {
     outline: var(--menu-foreground) auto 1px;
 }
 .menubar ul li input[type=file] { display: none; }
-.menubar ul li.disabled {
+.menubar ul li.disabled, ul.menu li.disabled {
     opacity: 0.5;
     cursor: default;
 }
-.menubar ul li.disabled:hover {
+.menubar ul li.disabled:hover, ul.menu li.disabled:hover {
     opacity: 0.5;
     background: inherit !important;
     color: inherit !important;
 }
-.menubar ul li.disabled:hover svg { stroke: var(--menu-foreground); }
+.menubar ul li.disabled:hover svg, ul.menu li.disabled:hover svg { stroke: var(--menu-foreground); }
 
 #menu #machine {
     display: inline-block;
@@ -295,6 +295,7 @@ dialog button:disabled, dialog button:disabled:hover,
     z-index: 10;
     min-width: 10em;
 }
+#context-menu:focus { outline: none; }
 #context-menu .cm-char {
     background: var(--dialog-foreground);
     color: var(--dialog-background);
@@ -360,15 +361,6 @@ dialog button:disabled, dialog button:disabled:hover,
     border-top: solid 1px var(--dialog-foreground);
     padding: 2px 0;
     list-style-type: none;
-}
-#context-menu li {
-    margin: 1px;
-    padding: 0 3px;
-    cursor: pointer;
-}
-#context-menu li:hover {
-    background: var(--dialog-foreground);
-    color: var(--dialog-background);
 }
 
 /* dialogs */

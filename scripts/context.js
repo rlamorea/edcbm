@@ -1,5 +1,6 @@
 class ContextMenu {
     static cbmKeyLookup = {
+        0x20: [ ' ' ],
         0x93: [ 'shift', 'CLR\nHOME' ]
     }
 
@@ -10,6 +11,7 @@ class ContextMenu {
         0x13: [ 'control', 'alt', 'S' ],
         0x1d: [ 'control', 'alt', '\u25c0' ],
         0x1b: [ 'control', 'alt', '{\n[' ],
+        0x20: [ ' ' ],
         0x2b: [ 'shift', '+\n=' ],
         0x40: [ 'shift', '@\n2' ],
         0x5c: [ 'shift', 'alt', '?\n/' ],
@@ -77,9 +79,14 @@ class ContextMenu {
             any: this.menu.querySelector('.cm-localkey span[data-key=any]')
         }
 
-        // edits stuff
-        this.cutAction = this.menu.querySelector('li[data-action=cut]')
-        this.copyAction = this.menu.querySelector('li[data-action=copy]')
+        this.dropMenu = new DropMenu(this.menu, {
+            disableToggle: true,
+            selectHandler: (li) => { this.itemSelected(li) },
+            closeHandler: (e) => { window.blocker.hide() }
+        })
+
+        // menu blocks
+        this.cliboardMenu = this.menu.querySelector('.cm-clipboard')
     }
 
     setDebugger(debuggr) {
@@ -98,6 +105,9 @@ class ContextMenu {
     }
 
     show(event, chained) {
+        this.charPos = null
+        this.currentSelection = null
+
         if (this.editorBox?.left !== this.editorArea.offsetLeft) {
             this.editorBox = {
                 left: this.editorArea.offsetLeft,
@@ -105,7 +115,6 @@ class ContextMenu {
                 width: this.editorArea.offsetWidth,
                 height: this.editorArea.offsetHeight
             }
-            console.log('editorBox', this.editorBox)
         }
         if (this.charSize == null) {
             const c1 = this.editor.editor.getScrolledVisiblePosition({ column: 1, lineNumber: 1 })
@@ -116,32 +125,41 @@ class ContextMenu {
             }
         }
 
-        const charPos = this.getCharPos({ x: event.event.relativePos.x, y: event.event.relativePos.y })
+        this.charPos = this.getCharPos({ x: event.event.relativePos.x, y: event.event.relativePos.y })
         const menuPos = {
-            left: this.editorBox.left + charPos.column * this.charSize.width,
-            top: this.editorBox.top + charPos.lineNumber * this.charSize.height
+            left: this.editorBox.left + this.charPos.column * this.charSize.width,
+            top: this.editorBox.top + this.charPos.lineNumber * this.charSize.height
         }
 
         const currentSelections = this.editor.editor.getSelections()
         let inSelection = false
+        let singleCharSelection = false
         for (const selection of currentSelections) {
-            if (selection.containsPosition(charPos)) {
+            if (selection.containsPosition(this.charPos)) {
                 inSelection = true
+                singleCharSelection = (selection.startLineNumber === selection.endLineNumber) && (selection.endColumn === selection.startColumn)
+                this.currentSelection = selection
                 break
             }
         }
+        if (currentSelections.length > 1 && singleCharSelection) { singleCharSelection = false }
 
         this.charDisplay.style.display = 'none'
 
         if (event.target.type === monaco.editor.MouseTargetType.CONTENT_TEXT) {
-            this.textContext(event, charPos, inSelection)
+            this.textContext(event, this.charPos, inSelection, singleCharSelection)
         }
-        this.editsContext(event, inSelection)
+        this.clipboardContext(event, inSelection)
 
         this.ignoreNext = !chained
+        this.editor.enableEditor(false)
         window.blocker.show(this.menu, 'block', (e) => { return this.menuClosed(e) })
+        window.menu.setKeyHandler((e) => { this.dropMenu.keyHandler(e) })
+
         this.menu.style.left = `${menuPos.left}px`
         this.menu.style.top = `${menuPos.top}px`
+
+        this.menu.style.display = 'block'
 
         const menuSize = {
             width: this.menu.offsetWidth,
@@ -154,9 +172,10 @@ class ContextMenu {
         if (menuPos.top + menuSize.height > this.editorBox.height) {
             this.menu.style.top = `${menuPos.top - this.charSize.height - menuSize.height}px`
         }
+        this.menu.focus()
     }
 
-    textContext(event, charPos, inSelection) {
+    textContext(event, charPos, inSelection, singleCharSelection) {
         if (event.target.detail.mightBeForeignElement) {
             // TODO: handle click on inline annotation -- this is a variable thing
             return
@@ -168,7 +187,7 @@ class ContextMenu {
         const char = model.getValueInRange(new monaco.Range(charPos.lineNumber, charPos.column, charPos.lineNumber, charPos.column + 1))
         const petscii = window.petscii.stringToPetscii(char)
 
-        if (!inSelection) {
+        if (!inSelection || singleCharSelection) {
             this.debugChar(model, charPos, petscii)
         }
 
@@ -178,9 +197,11 @@ class ContextMenu {
         }
     }
 
-    editsContext(event, inSelection) {
-        this.cutAction.style.display = inSelection ? 'block' : 'none'
-        this.copyAction.style.display = inSelection ? 'block' : 'none'
+    clipboardContext(event, inSelection) {
+        this.cliboardMenu.querySelectorAll('li').forEach((e) => {
+            if (e.dataset.name === 'paste') { return }
+            e.classList.toggle('disabled', !inSelection)
+        })
     }
 
     showKeys(keySet, keys) {
@@ -266,7 +287,6 @@ class ContextMenu {
             this.ignoreNext = false
             return true 
         }
-        console.log(event)
         if (this.addedSelection) {
             const curPos = this.editor.editor.getPosition()
             this.editor.editor.setSelection({
@@ -274,19 +294,43 @@ class ContextMenu {
                 startColumn: curPos.column, endColumn: curPos.column
             })
         }
+        window.menu.setKeyHandler()
         this.editor.enableEditor()
-        const newLoc = {
-            x: event.pageX - this.container.offsetLeft,
-            y: event.pageY - this.container.offsetTop
+        if (event && event.pageX) {
+            event.preventDefault()
+            event.stopPropagation()
         }
-        if (event.type === 'click') {
-            const charPos = this.getCharPos(newLoc)
-            setTimeout(() => { this.editor.editor.setPosition(charPos) }, 150)
-        } else if (event.type === 'contextmenu') {
+        if (event && event.type === 'contextmenu') {
+            const newLoc = {
+                x: event.pageX - this.container.offsetLeft,
+                y: event.pageY - this.container.offsetTop
+            }
             setTimeout(() => {
                 this.show({ event: { relativePos: newLoc } }, true) // mocked up "event"
             }, 50)
+        } else {
+            setTimeout(() => {
+                if (this.currentSelection) { this.editor.editor.setSelection(this.currentSelection) }
+                else { this.editor.editor.setPosition(this.charPos) }
+            }, 125)
         }
         return false
+    }
+
+    itemSelected(li) {
+        const itemName = li.dataset.name
+        let handled = true
+        switch (itemName) {
+            case 'cut':
+            case 'copy':
+            case 'paste':
+                const action = `editor.action.clipboard${li.innerText}Action`
+                this.editor.editor.focus()
+                this.editor.editor.trigger('keyboard', action)
+                break
+            default:
+                handled = false
+        }
+        if (handled) { window.blocker.hide() }
     }
 }

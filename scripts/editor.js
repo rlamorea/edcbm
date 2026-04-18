@@ -246,6 +246,7 @@ class Editor {
         this.debugger = null
 
         this.contextMenu = new ContextMenu(this)
+        this.programMap = new ProgramMap(this)
     }
 
     init() {
