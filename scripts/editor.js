@@ -216,6 +216,7 @@ class Editor {
         this.maximumLineLength = 160
         this.editor.onKeyDown((key) => { this.keyDown(key) })
         this.editor.onMouseDown((event) => { this.mouseDown(event) })
+        this.editor.onDidPaste((event) => { this.pasted(event) })
         document.addEventListener('contextmenu', (e) => { 
             if (e.target.closest('div').id === 'blocker') { e.preventDefault() }
             if (e.target.closest('#container')) { e.preventDefault() }
@@ -246,7 +247,6 @@ class Editor {
         this.debugger = null
 
         this.contextMenu = new ContextMenu(this)
-        this.programMap = new ProgramMap(this)
     }
 
     init() {
@@ -524,7 +524,7 @@ class Editor {
             }
         }
 
-        this.notateLines(lineNumber)
+        this.notateLines()
     }
 
     notateLine(lineNumber, lineContent, basicLine = null, variables = null) {
@@ -542,6 +542,7 @@ class Editor {
             this.lineDecorations[basicLine].clear()
             this.lineDecorations[basicLine] = 0
         }
+
         const lineNotation = this.notations[basicLine]
         if (lineNotation) {
             lineDecorations.push({
@@ -573,7 +574,6 @@ class Editor {
                 })
             }
         }
-
         if (lineDecorations.length > 0) {
             this.lineDecorations[basicLine] = this.editor.createDecorationsCollection(lineDecorations)
         }
@@ -594,6 +594,7 @@ class Editor {
         const lineNumber = position.lineNumber
         const lines = this.editor.getValue().split('\n')
         let lineContent = lines[lineNumber - 1]
+
         if (lineNumber < lines.length + 1 && position.column === 1 && !forceProcess) {
             this.editor.trigger('keyboard', 'type', { text: '\n' })
             // TODO shuffle decorations list for all lines below this one
@@ -637,41 +638,8 @@ class Editor {
         }
     }
 
-    // cleanProgram() {
-    //     const programLines = {}
-    //     let precedingLines = []
-    //     for (const line of this.editor.getValue().split('\n')) {
-    //         let lineNumber = line.match(/^ *(\d+)/)
-    //         if (lineNumber && lineNumber.length === 2) {
-    //             lineNumber = parseInt(lineNumber[1])
-
-    //             const existingLine = programLines[lineNumber]
-    //             if (existingLine) {
-    //                 programLines[lineNumber].precedingLines.push(existingLine)
-    //             } else {
-    //                 programLines[lineNumber] = { preceding: precedingLines || [] }
-    //                 precedingLines = []
-    //             }
-    //             programLines[lineNumber].line = line
-    //         } else {
-    //             precedingLines.push(line)
-    //         }
-    //     }
-    //     let program = ''
-    //     for (const pline of Object.keys(programLines).sort((a,b) => { return parseInt(a) - parseInt(b) })) {
-    //         const plineContent = programLines[pline]
-    //         for (const precede of plineContent.preceding) {
-    //             program += precede + '\n'
-    //         }
-    //         program += plineContent.line + '\n'
-    //     }
-    //     this.editor.setValue(program)
-    //     this.parseLines()
-    //     this.notateLines()
-    //     if (this.debugger) { this.debugger.contentReplaced() }
-    // }
-
     notationsHeader() {
+        this.notations = this.notations ?? {}
         if (Object.keys(this.notations).length === 0) {
             return ''
         }
@@ -741,6 +709,14 @@ class Editor {
     hoveredOver(model, position) {
         if (this.debugger) { return this.debugger.hoveredOver(model, position) }
         return null
+    }
+
+    pasted(event) {
+        console.log('PASTED')
+        console.log(event.range)
+        const model = this.editor.getModel()
+        const text = model.getValueInRange(event.range)
+        console.log(`|${text}|`)
     }
 }
 

@@ -362,6 +362,16 @@ dialog button:disabled, dialog button:disabled:hover,
     padding: 2px 0;
     list-style-type: none;
 }
+#context-menu ul li svg { 
+    width: 10pt; height: 10pt;
+    stroke: var(--dialog-foreground) 
+}
+#context-menu ul li:hover {
+    background: var(--dialog-foreground);
+    color: var(--dialog-background);
+}
+#context-menu ul li:hover svg { stroke: var(--dialog-background); }
+#context-menu ul li.disabled svg { stroke: var(--dialog-foreground); }
 
 /* dialogs */
 dialog, .dialog {

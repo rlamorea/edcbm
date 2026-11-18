@@ -383,10 +383,8 @@ class Tokenizer {
 
     trimLine(line, lineIdx = 0) {
         let idx = 0
-        while(line[idx] === ' ') {
-            line = line.substring(1)
-            idx += 1
-        }
+        while(line[idx] === ' ') { idx += 1 }
+        line = line.slice(idx)
         lineIdx += idx
         return { line, lineIdx }
     }

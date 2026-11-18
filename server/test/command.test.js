@@ -1,7 +1,7 @@
 import { test } from 'uvu'
 import * as assert from 'uvu/assert'
 
-import { typeBits, boolval, memSpace, checkpointOperations, resetDevice, toPetsciiCode, ViceCommand } from '../viceDebugger.js'
+import { typeBits, boolval, memSpace, checkpointOperations, resetDevice, toPetsciiCode, ViceCommand } from '../viceComm.js'
 
 function getInt32(bytes, startIdx) {
     if (startIdx + 3 >= bytes.length) {
@@ -26,10 +26,10 @@ function getInt16(bytes, startIdx) {
 }
 
 test('exec command payload', () => {
-    const cmd = new ViceCommand('exec')
+    const cmd = new ViceCommand('execrts')
     const bytes = cmd.bytes()
     assert.is(bytes.length, 11)
-    assert.is(bytes[10], ViceCommand.commands['exec'])
+    assert.is(bytes[10], ViceCommand.commands['execrts'])
     assert.is(getInt32(bytes, 2), 0)
     assert.is(getInt32(bytes, 6), cmd.requestId())
 })

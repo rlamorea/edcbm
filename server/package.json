@@ -6,8 +6,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "npx uvu test",
-    "testbed": "node test/viceFromScratch.js"
+    "test": "npx uvu test"
   },
   "author": "Rick Lamoreaux",
   "license": "ISC",

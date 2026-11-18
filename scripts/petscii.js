@@ -41,6 +41,11 @@ class Petscii {
         0x9D: 'left'     
     }
 
+    static rawCodeBraceLeft = '\ufe5b'
+    static rawCodeBraceRight = '\ufe5c'
+    static namedCodeBraceLeft = '\u2774'
+    static namedCodeBraceRight = '\u2775'
+
     static generateCodeSequence(startCode, endCode, startPetscii) {
         let petscii = startPetscii
         let codes = {}
@@ -189,7 +194,11 @@ class Petscii {
         }
 
         for (const table in this.tables) {
-            this.lookup[table] = Object.fromEntries( Object.entries(this.tables[table]).map(([k,v]) => [v,parseInt(k)]))
+            const lookup = {}
+            for (const [k,v] of Object.entries(this.tables[table])) {
+                if (!(v in lookup)) { lookup[v] = parseInt(k) }
+            }
+            this.lookup[table] = lookup
         }
 
         let coreCodeNames = { }
@@ -441,7 +450,7 @@ class Petscii {
                     continue
                 }
                 if (petsciiByte <= 0) {
-                    petsciiStr += raw ? char : `{${char.codePointAt(0).toString(0).padStart(2, '0')}}`
+                    petsciiStr += raw ? char : `${Petscii.rawCodeBraceLeft}${char.codePointAt(0).toString(0).padStart(2, '0')}${Petscii.rawCodeBraceRight}`
                 } else {
                     petsciiStr += String.fromCodePoint(petsciiByte)
                 }
@@ -468,9 +477,9 @@ class Petscii {
             } else if (petsciiChar === '`') {
                 str += '`'
                 raw = true
-            } else if (petsciiChar === '{') {
+            } else if (petsciiChar === Petscii.rawCodeBraceLeft) {
                 inBraces = ' '
-            } else if (petsciiChar === '}') {
+            } else if (petsciiChar === Petscii.rawCodeBraceLeft) {
                 str += String.fromCodePoint(parseInt(inBraces.trim(), 16))
                 inBraces = null
             } else if (inBraces) {

@@ -49,4 +49,4 @@ function arrvals(mem) {
 }
 
 const v = arrvals(arrmem)
-console.dir(v)
+// console.dir(v)
