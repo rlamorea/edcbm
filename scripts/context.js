@@ -104,10 +104,7 @@ class ContextMenu {
         }
     }
 
-    show(event, chained) {
-        this.charPos = null
-        this.currentSelection = null
-
+    getEditorBox() {
         if (this.editorBox?.left !== this.editorArea.offsetLeft) {
             this.editorBox = {
                 left: this.editorArea.offsetLeft,
@@ -124,8 +121,22 @@ class ContextMenu {
                 height: c1.height
             }
         }
+    }
 
-        this.charPos = this.getCharPos({ x: event.event.relativePos.x, y: event.event.relativePos.y })
+    show(event, chained) {
+        this.charPos = null
+        this.currentSelection = null
+
+        this.getEditorBox()
+        const charPos = this.getCharPos({ x: event.event.relativePos.x, y: event.event.relativePos.y })
+        this.showAtPosition(charPos, event, chained)
+    }
+
+    showAtPosition(charPos, event, chained) {
+        this.charPos = charPos
+        // dummy event for key-based calls
+        if (event == null) { event = { event: {}, target: { type: monaco.editor.MouseTargetType.CONTENT_TEXT, detail: {} } } }
+        this.getEditorBox()
         const menuPos = {
             left: this.editorBox.left + this.charPos.column * this.charSize.width,
             top: this.editorBox.top + this.charPos.lineNumber * this.charSize.height
@@ -324,7 +335,7 @@ class ContextMenu {
             case 'cut':
             case 'copy':
             case 'paste':
-                const action = `editor.action.clipboard${li.innerText}Action`
+                const action = `editor.action.clipboard${li.innerText.trim()}Action`
                 this.editor.editor.focus()
                 this.editor.editor.trigger('keyboard', action)
                 break
