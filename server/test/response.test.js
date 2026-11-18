@@ -1,13 +1,13 @@
 import { test } from 'uvu'
 import * as assert from 'uvu/assert'
 
-import { typeBits, boolval, memSpace, checkpointOperations, resetDevice, toPetsciiCode, ViceResponse } from '../viceDebugger.js'
+import { typeBits, boolval, memSpace, checkpointOperations, resetDevice, toPetsciiCode, ViceResponse } from '../viceComm.js'
 
 test('memset response parsing', () => {
     const data = new Uint8Array([ 
         0x02, 0x02, // stx, ver
         0x00, 0x00, 0x00, 0x00, // length
-        ViceResponse.responses['memset'],
+        ViceResponse.responses['memset'].responseByte,
         0x00, // OK
         0x01, 0x00, 0x00, 0x00, // request id
     ])

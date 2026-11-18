@@ -6,7 +6,6 @@
 /* page */
 #editor-pane { position: relative; }
 body[data-debug=true] #container {
-    display: inline-block;
     width: calc(98vw);
     height: calc(99vh - 2*var(--menu-height));
 }
@@ -140,7 +139,9 @@ body[data-debug=true] #debug-variables { display: flex; }
     right: calc(((var(--variable-pane-width) * var(--editor-font-width-modifier) * 1em) + var(--variable-pane-border-width)) - 3px);
     top: calc(50% - 18px);
     width: 18px;
+    display: none;
 }
+body[data-debug=true][data-show-vars=true] #debug-var-sizer { display: block; }
 #debug-var-sizer svg { 
     width: 18px; 
     height: 18px; 
@@ -158,7 +159,7 @@ body[data-debug=true] #debug-variables { display: flex; }
 #debug-variables .debug-var {
     display: flex;
     width: 100%;
-    filter: brightness(90%);
+    filter: brightness(85%);
 }
 #debug-variables .debug-var.current {
     filter: brightness(100%);
@@ -212,7 +213,7 @@ body[data-debug=true] #debug-variables { display: flex; }
     border-top: none;
     margin-left: calc(5 * var(--editor-font-width-modifier) * 1em);
 }
-#debug-variables .debg-var.v-arr .val::before {
+#debug-variables .debug-var.v-arr .val::before {
     border-top: none;
     top: 0px;
 }
@@ -279,4 +280,21 @@ body[data-debug=true] #debug-variables { display: flex; }
     font-size: 8pt;
     font-family: monospace;
     font-style: normal;
+}
+
+/* variable popup */
+.monaco-editor .monaco-hover {
+    border: solid 1px var(--special-foreground) !important;
+}
+.monaco-editor .monaco-hover .monaco-hover-content {
+    font-family: var(--editor-font) !important;
+    font-size: 10pt !important;
+    line-height: 1.0 !important;
+    max-width: calc(var(--editor-font-width-modifier) * var(--screen-columns) * 1em + 1em + 4px) !important;
+    white-space: pre-wrap !important;
+    overflow-wrap: break-word !important;
+    word-break: break-all !important;
+    padding: 1px !important;
+    background: var(--special-background) !important;
+    color: var(--special-foreground) !important;
 }

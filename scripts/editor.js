@@ -110,6 +110,9 @@ class Editor {
             monaco.languages.register({ id })
             monaco.languages.setLanguageConfiguration(id, Editor.editorConfig[version])
             monaco.languages.setMonarchTokensProvider(id, Editor.language[version])
+            monaco.languages.registerHoverProvider(id, {
+                provideHover: (model, position) => { return this.hoveredOver(model, position) }
+            })
         }
     }
 
@@ -181,6 +184,8 @@ class Editor {
             parameterHints: { enabled: false },
             lineNumbers: false,
             glyphMargin: false,
+            fixedOverflowWidgets: true,
+            hover: { enabled: "off" },
             folding: false,
             lineDecorationsWidth: 0,
             lineNumbersMinChars: 0,
@@ -210,6 +215,12 @@ class Editor {
 
         this.maximumLineLength = 160
         this.editor.onKeyDown((key) => { this.keyDown(key) })
+        this.editor.onMouseDown((event) => { this.mouseDown(event) })
+        this.editor.onDidPaste((event) => { this.pasted(event) })
+        document.addEventListener('contextmenu', (e) => { 
+            if (e.target.closest('div').id === 'blocker') { e.preventDefault() }
+            if (e.target.closest('#container')) { e.preventDefault() }
+        })
 
         this.newCursorLocation = null
         this.editor.onDidFocusEditorWidget(() => { this.restoreCursor() })
@@ -234,6 +245,8 @@ class Editor {
         this.enabled = false
         this.enableEditor(false)
         this.debugger = null
+
+        this.contextMenu = new ContextMenu(this)
     }
 
     init() {
@@ -255,6 +268,7 @@ class Editor {
 
     setDebugger(observer) {
         this.debugger = observer
+        this.contextMenu.setDebugger(observer)
     }
 
     preFontChange() {
@@ -352,6 +366,7 @@ class Editor {
         // TODO: theme returns char set and maybe a control?
         this.machine = machine
         this.petsciiKeymap = Editor.petsciiKeymap[machine.name]
+        this.contextMenu.machineChanged()
     }
 
     setTheme(name, font) {
@@ -509,7 +524,7 @@ class Editor {
             }
         }
 
-        this.notateLines(lineNumber)
+        this.notateLines()
     }
 
     notateLine(lineNumber, lineContent, basicLine = null, variables = null) {
@@ -527,6 +542,7 @@ class Editor {
             this.lineDecorations[basicLine].clear()
             this.lineDecorations[basicLine] = 0
         }
+
         const lineNotation = this.notations[basicLine]
         if (lineNotation) {
             lineDecorations.push({
@@ -558,7 +574,6 @@ class Editor {
                 })
             }
         }
-
         if (lineDecorations.length > 0) {
             this.lineDecorations[basicLine] = this.editor.createDecorationsCollection(lineDecorations)
         }
@@ -579,6 +594,7 @@ class Editor {
         const lineNumber = position.lineNumber
         const lines = this.editor.getValue().split('\n')
         let lineContent = lines[lineNumber - 1]
+
         if (lineNumber < lines.length + 1 && position.column === 1 && !forceProcess) {
             this.editor.trigger('keyboard', 'type', { text: '\n' })
             // TODO shuffle decorations list for all lines below this one
@@ -622,41 +638,8 @@ class Editor {
         }
     }
 
-    // cleanProgram() {
-    //     const programLines = {}
-    //     let precedingLines = []
-    //     for (const line of this.editor.getValue().split('\n')) {
-    //         let lineNumber = line.match(/^ *(\d+)/)
-    //         if (lineNumber && lineNumber.length === 2) {
-    //             lineNumber = parseInt(lineNumber[1])
-
-    //             const existingLine = programLines[lineNumber]
-    //             if (existingLine) {
-    //                 programLines[lineNumber].precedingLines.push(existingLine)
-    //             } else {
-    //                 programLines[lineNumber] = { preceding: precedingLines || [] }
-    //                 precedingLines = []
-    //             }
-    //             programLines[lineNumber].line = line
-    //         } else {
-    //             precedingLines.push(line)
-    //         }
-    //     }
-    //     let program = ''
-    //     for (const pline of Object.keys(programLines).sort((a,b) => { return parseInt(a) - parseInt(b) })) {
-    //         const plineContent = programLines[pline]
-    //         for (const precede of plineContent.preceding) {
-    //             program += precede + '\n'
-    //         }
-    //         program += plineContent.line + '\n'
-    //     }
-    //     this.editor.setValue(program)
-    //     this.parseLines()
-    //     this.notateLines()
-    //     if (this.debugger) { this.debugger.contentReplaced() }
-    // }
-
     notationsHeader() {
+        this.notations = this.notations ?? {}
         if (Object.keys(this.notations).length === 0) {
             return ''
         }
@@ -712,6 +695,28 @@ class Editor {
         var op = {identifier: id, range, text: str, forceMoveMarkers: true}
         this.editor.executeEdits("", [op])
         this.newCursorLocation = { lineNumber: position.positionLineNumber, column: position.selectionStartColumn + str.length }
+    }
+
+    mouseDown(event) {
+        if (event.event.buttons !== 2) { return } // ignore except right click
+        event.event.preventDefault()
+        event.event.stopPropagation()
+
+        // for whatever reason the monaco text position is just not correct, so not going to use it
+        this.contextMenu.show(event)
+    }
+
+    hoveredOver(model, position) {
+        if (this.debugger) { return this.debugger.hoveredOver(model, position) }
+        return null
+    }
+
+    pasted(event) {
+        console.log('PASTED')
+        console.log(event.range)
+        const model = this.editor.getModel()
+        const text = model.getValueInRange(event.range)
+        console.log(`|${text}|`)
     }
 }
 

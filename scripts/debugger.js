@@ -6,7 +6,7 @@ class Debugger {
         this.debugModeButton = document.getElementById('debug-mode')
         this.debugModeButton.addEventListener('click', () => { this.toggleDebugMode() })
         this.debugModeButton.style.display = 'none'
-        this.inDebugMode = window.localStorage.getItem('debugMode') ?? false
+        this.inDebugMode = window.localStorage.getItem('debugMode') === 'true'
 
         this.lastExecLineNo = null
 
@@ -124,7 +124,7 @@ class Debugger {
         } else if (newState === 'stopped') {
             window.editor.enableEditor()
             if (this.executionLineDecoration) {
-                this.editor.deltaDecorations(this.executionLineDecoration, [])
+                this.executionLineDecoration.clear()
                 this.executionLineDecoration = null
             }
             this.showDataLine()
@@ -145,6 +145,7 @@ class Debugger {
         document.body.dataset.debug = newMode
         this.debugModeButton.classList.toggle('enabled', newMode)
         this.setEditorToDebuggerMode(newMode)
+        this.variablePanel.togglePanel('keep', newMode)
     }
 
     toggleRunColumns(newCols = 'toggle') {
@@ -157,7 +158,10 @@ class Debugger {
 
     setEditorToDebuggerMode(newMode) {
         if (this.editor) {
-            this.editor.updateOptions({ glyphMargin: newMode })
+            this.editor.updateOptions({ 
+                glyphMargin: newMode,
+                hover: { enable: newMode ? 'on' : 'off' }
+            })
             return
         }
         if (window.editor) {
@@ -174,12 +178,15 @@ class Debugger {
     showExecutionPoint(lineIndex, lineNumber, lineLength, breakpoint) {
         if (lineIndex == null) {
             if (this.executionLineDecoration) {
-                this.editor.deltaDecorations(this.executionLineDecoration, [])
+                this.executionLineDecoration.clear()
                 this.executionLineDecoration = null
             }
             return
         }
-        const prevDebug = this.executionLineDecoration ?? []
+        if (this.executionLineDecoration) {
+            this.executionLineDecoration.clear()
+            this.executionLineDecoration = null
+        }
         let colStart = (breakpoint ?? {}).start || 1
         let colEnd = (breakpoint ?? {}).end
         if (colEnd == null) { colEnd = lineLength }
@@ -188,12 +195,14 @@ class Debugger {
             options: { glyphMarginClassName: 'executionPoint', inlineClassName: 'debugHighlight' } 
         } ]
         this.editor.revealLine(lineIndex)
-        this.executionLineDecoration = this.editor.deltaDecorations(prevDebug, newDebug)
+        if (newDebug.length > 0) {
+            this.executionLineDecoration = this.editor.createDecorationsCollection(newDebug)
+        }
     }
 
     showDataLine(lineNumber, dataAddress) {
         if (this.dataLineDecoration) {
-            this.editor.deltaDecorations(this.dataLineDecoration, [])
+            this.dataLineDecoration.clear()
             this.dataLineDecoration = null
         }
         if (lineNumber == null) { return }
@@ -211,16 +220,19 @@ class Debugger {
                 inlineClassName: 'dataHighlight'
             }
         } ]
-        this.dataLineDecoration = this.editor.deltaDecorations([], newDataLine)
+        this.dataLineDecoration = this.editor.createDecorationsCollection(newDataLine)
     }
 
     toggleBreakpointMarker(lineNumber, lineIndex, lineLength) {
         const breakpoint = this.setBreakpoints[lineNumber]
         if (breakpoint) {
-            if (breakpoint.decoration) { this.editor.deltaDecorations(breakpoint.decoration, []) }
+            if (breakpoint.decoration) { 
+                breakpoint.decoration.clear() 
+                breakpoint.decoration = null
+            }
             delete this.setBreakpoints[lineNumber] 
         } else {
-            const decoration = this.editor.deltaDecorations([], [ { 
+            const decoration = this.editor.createDecorationsCollection([ { 
                 range: new monaco.Range(lineIndex, 1, lineIndex, lineLength), 
                 options: { glyphMarginClassName: 'breakpoint' } 
             } ])
@@ -473,37 +485,56 @@ class Debugger {
     }
 
     editorMouseDown(event) {
-        if (event.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
-            const lineIndex = event.target.position.lineNumber
-            const model = this.editor.getModel()
-            const lineValue = model.getLineContent(lineIndex).trim()
-            
+        if (event.event.buttons !== 1) { return }
+
+        const lineIndex = event.target.position.lineNumber
+        const model = this.editor.getModel()
+        const lineValue = model.getLineContent(lineIndex).trim()
+        if (event.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {            
             const lno = lineValue.match(/^(\d+)/)
             if (lno) {
                 const lineNumber = parseInt(lno[1])
                 this.toggleBreakpointMarker(lineNumber, lineIndex, lineValue.length)
             }
-        } else if (event.target.type === monaco.editor.MouseTargetType.CONTENT_TEXT ||
-                   event.target.type === monaco.editor.MouseTargetType.CONTENT_EMPTY)
-        {
-            const lineIndex = event.target.position.lineNumber
-            this.variablePanel.highlightVariables(this.getLineVariables(lineIndex))
         }
+    }
+
+    hoveredOver(model, position) {
+        if (this.runMode !== 'debugging') { return null }
+        const lineValue = model.getLineContent(position.lineNumber).trim()
+        const { variables } = window.tokenizer.tokenizeLine(lineValue)
+        if (variables.length === 0) { return null }
+        this.variablePanel.highlightVariables(this.getLineVariables(position.lineNumber))
+        const column = position.column
+        for (const variable in variables) {
+            const varStarts = variables[variable]
+            for (const varStart of varStarts) {
+                if (column >= varStart && column <= varStart + variable.length) {
+                    // TODO: array variables need special handling and evaluation of parameters -- to do later
+                    if (variable.endsWith('(')) { return null } 
+                    const { value } = this.variablePanel.getVariableValue(variable, true)
+                    if (value != null) {
+                        return { 
+                            range: new monaco.Range(position.lineNumber, column, position.lineNumber, column + variable.length),
+                            contents: [ { value } ] 
+                        }
+                    } else {
+                        return null
+                    }
+                }
+            }
+        }
+        return null
     }
 
     clearBreakpointMarkers(preserve = false) {
         // clear all breakpoints
-        const existingDecorationIds = this.editor.getModel().getAllDecorations().map((d) => d.id)
-        let removeDecorations = []
         for (const breakpoint of Object.values(this.setBreakpoints)) {
-            for (const decId of breakpoint.decoration ?? []) {
-                if (existingDecorationIds.includes(decId)) {
-                    removeDecorations.push(decId)
-                }
+            if (breakpoint.decoration) {
+                breakpoint.decoration.clear()
+                breakpoint.decoration = null
             }
-            delete breakpoint.decoration
         }
-        this.editor.deltaDecorations(removeDecorations, [])
         if (!preserve) { this.setBreakpoints = [] }
     }
 
@@ -519,7 +550,8 @@ class Debugger {
             breakpoint.lineIndex = this.stepLocations[lineNo].lineIndex
             breakpoint.lineLength = this.stepLocations[lineNo].lineLength
             const range = new monaco.Range(breakpoint.lineIndex, 1, breakpoint.lineIndex, breakpoint.lineLength)
-            breakpoint.decoration = this.editor.deltaDecorations(breakpoint.decoration ?? [], [ { range, options: { glyphMarginClassName: 'breakpoint' } } ])
+            if (breakpoint.decoration) { breakpoint.decoration.clear() }
+            breakpoint.decoration = this.editor.createDecorationsCollection([ { range, options: { glyphMarginClassName: 'breakpoint' } } ])
         }
         for (const delLineNo of removedLines) {
             this.deleteBreakpoint(this.setBreakpoints[delLineNo])
@@ -541,7 +573,7 @@ class Debugger {
     }
 
     deleteBreakpoint(breakpoint) {
-        this.editor.deltaDecorations(breakpoint.decoration, [])
+        breakpoint.decoration?.clear()
         delete this.setBreakpoints[breakpoint.lineNumber]
     }
 

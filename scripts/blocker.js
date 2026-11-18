@@ -3,7 +3,8 @@ class Blocker {
         this.blockingElement = null
 
         this.blocker = document.getElementById('blocker')
-        this.blocker.addEventListener('click', (e) => { this.hide() })
+        this.blocker.addEventListener('click', (e) => { this.hide(e) })
+        this.blocker.addEventListener('contextmenu', (e) => { this.hide(e) })
         this.closeCallback = null
     }
 
@@ -14,9 +15,9 @@ class Blocker {
         this.closeCallback = closeCallback
     }
 
-    hide() {
+    hide(e) {
         if (this.closeCallback) {
-            const keepBlocking = this.closeCallback()
+            const keepBlocking = this.closeCallback(e)
             if (keepBlocking) { return }
             this.closeCallback = null
         }

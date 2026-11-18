@@ -21,4 +21,4 @@ function fromFp(v) {
 const v = [ 0xff, 0xff, 0xff, 0xff, 0xff ]
 
 const fp = fromFp(v)
-console.log(v, '=', fp)
+// console.log(v, '=', fp)

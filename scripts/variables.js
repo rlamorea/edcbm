@@ -168,7 +168,10 @@ class VariablePanel {
 
         this.valueDialog = new VariableValueDialog()
 
-        this.togglePanel(window.localStorage.getItem('variablePanel') === 'show')
+        const inDebugMode = window.localStorage.getItem('debugMode') === 'true'
+        this.panelShowing = window.localStorage.getItem('variablePanel') === 'show'
+        const panelShowing = inDebugMode ? this.panelShowing : 'keep'
+        this.togglePanel(panelShowing, inDebugMode)
         this.setSortMode(window.localStorage.getItem('variableSort') ?? 'by-recent')
         this.toggleShowMode(window.localStorage.getItem('variableShow') ?? 'all')
         this.sizePanel()
@@ -189,16 +192,22 @@ class VariablePanel {
         this.valueDialog.setMachine(machine)
     }
 
-    togglePanel(show = 'toggle') {
-        this.panelShowing = (show === 'toggle') ? !this.panelShowing : show
-        this.panel.style.display = this.panelShowing ? 'flex' : 'none'
-        this.sizer.style.display = this.panelShowing ? 'block' : 'none'
-        document.body.dataset.showVars = this.panelShowing
-        this.toggleButton.classList.toggle('enabled', this.panelShowing)
-        this.sortButton.style.display = this.panelShowing ? 'inline' : 'none'
-        this.showButton.style.display = this.panelShowing ? 'inline' : 'none'
-        window.localStorage.setItem('variablePanel', this.panelShowing ? 'show' : 'hide')
-        if (this.panelShowing && VariablePanel.MAX_PANEL_WIDTH == null) {
+    togglePanel(show = 'toggle', isDebugging) {
+        let panelShowing = this.panelShowing
+        if (show !== 'keep') {
+            this.panelShowing = (show === 'toggle') ? !this.panelShowing : show
+            panelShowing = this.panelShowing
+            window.localStorage.setItem('variablePanel', this.panelShowing ? 'show' : 'hide')
+        } else {
+            panelShowing = isDebugging ? panelShowing : false
+        }
+        this.panel.style.display = panelShowing ? 'flex' : 'none'
+        this.sizer.style.display = panelShowing ? 'block' : 'none'
+        document.body.dataset.showVars = panelShowing
+        this.toggleButton.classList.toggle('enabled', panelShowing)
+        this.sortButton.style.display = panelShowing ? 'inline' : 'none'
+        this.showButton.style.display = panelShowing ? 'inline' : 'none'
+        if (panelShowing && VariablePanel.MAX_PANEL_WIDTH == null) {
             setTimeout(() => { this.sizePanel() }, 50) // wait a bit to get panel size
         }
     }
@@ -367,6 +376,16 @@ class VariablePanel {
         }
         for (const el of allEls) { el.style.display = 'none' }
         for (const el of els) { el.style.display = 'inline-block' }
+    }
+
+    getVariableValue(variable, hardSpaces = false) {
+        const varEl = this.panel.querySelector(`.debug-var[data-var="${variable}"]`)
+        if (!varEl) { return { value: null, type: null } }
+        const valEl = varEl.querySelector('.val')
+        let value = valEl.innerText
+        const type = varEl.dataset.type
+        if (hardSpaces && type === 'str') { value = value.replaceAll(' ', '\xA0') }
+        return { value, type }
     }
 
     panelClicked(event) {

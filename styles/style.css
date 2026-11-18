@@ -200,35 +200,35 @@ dialog button:disabled, dialog button:disabled:hover,
     top: unset;
     bottom: 30px;
 }
-.menubar ul li {
+.menubar ul li, ul.menu li {
     list-style-type: none;
     cursor: pointer;
 }
-.menubar ul li svg {
+.menubar ul li svg, ul.menu li svg {
     width: 18px; 
     height: 18px;
     stroke: var(--menu-foreground);
     vertical-align: middle;
 }
-.menubar ul li:hover {
+.menubar ul li:hover, ul.menu li:hover {
     background: var(--menu-foreground);
     color: var(--menu-border);
 }
-.menubar ul li:hover svg { stroke: var(--menu-border); }
-.menubar ul li.keyfocus {
+.menubar ul li:hover svg, ul.menu li:hover svg { stroke: var(--menu-border); }
+.menubar ul li.keyfocus, ul.menu li.keyfocus {
     outline: var(--menu-foreground) auto 1px;
 }
 .menubar ul li input[type=file] { display: none; }
-.menubar ul li.disabled {
+.menubar ul li.disabled, ul.menu li.disabled {
     opacity: 0.5;
     cursor: default;
 }
-.menubar ul li.disabled:hover {
+.menubar ul li.disabled:hover, ul.menu li.disabled:hover {
     opacity: 0.5;
     background: inherit !important;
     color: inherit !important;
 }
-.menubar ul li.disabled:hover svg { stroke: var(--menu-foreground); }
+.menubar ul li.disabled:hover svg, ul.menu li.disabled:hover svg { stroke: var(--menu-foreground); }
 
 #menu #machine {
     display: inline-block;
@@ -262,6 +262,7 @@ dialog button:disabled, dialog button:disabled:hover,
 /* Editor Window(s) */
 #editor-pane { position: relative; }
 #container {
+    display: inline-block; /* done to handle show/hide of variable panel */
     width: 98vw;
     height: calc(99vh - var(--menu-height));
     margin-top: 25px;
@@ -281,6 +282,96 @@ dialog button:disabled, dialog button:disabled:hover,
 #container.read-only-mode .monaco-editor .cursors-layer .cursor {
     display: none !important;
 }
+
+/* context menu */
+#context-menu {
+    margin-left: -1px;
+    position: absolute;
+    border: solid 2px var(--dialog-border);
+    background: var(--dialog-background);
+    color: var(--dialog-foreground);
+    font-family: monospace;
+    font-size: 10pt;
+    z-index: 10;
+    min-width: 10em;
+}
+#context-menu:focus { outline: none; }
+#context-menu .cm-char {
+    background: var(--dialog-foreground);
+    color: var(--dialog-background);
+    vertical-align: top;
+}
+#context-menu .cm-char div:first-child {
+    display: inline-block;
+    text-align: center;
+    padding-top: 2px;
+}
+#context-menu .cm-charvis {
+    font-family: var(--editor-font);
+    font-size: 24px; 
+    width: 1em;
+    border: solid 1px var(--dialog-background);
+    padding: 1px;
+}
+#context-menu .cm-char div:nth-child(2) {
+    display: inline-block;
+    text-align: left;
+    vertical-align: top;
+}
+#context-menu .cm-cbmkey { margin-top: 4px; }
+#context-menu .cm-cbmkey, #context-menu .cm-localkey {
+    text-align: center;
+}
+#context-menu .cm-cbmkey span, #context-menu .cm-localkey span {
+    display: inline-block;
+    font-family: monospace;
+    font-size: 8pt;
+    width: 18px;
+    height: 18px;
+    align-content: center;
+    background: lightgray;
+    color: black;
+    text-align: center;
+    border: solid 1px gray;
+    border-radius: 4px;
+    vertical-align: top;
+    margin-bottom: 2px;
+}
+#context-menu .cm-cbmkey span.sml, #context-menu .cm-localkey span.sml { font-size: 6pt; }
+#context-menu .cm-cbmkey span.splt, #context-menu .cm-localkey span.splt { font-size: 6pt; line-height: 1em; }
+#context-menu .cm-cbmkey span svg {
+    width: 16px;
+    height: 16px;
+    stroke: #000;
+    fill: #000;
+}
+#context-menu .cm-cbmkey span[data-key=ctrl] { width: 3em; }
+#context-menu .cm-cbmkey span[data-key=shift] { width: 4em; }
+#context-menu .cm-localkey span {
+    background: black;
+    color: white;
+}
+#context-menu .cm-localkey span[data-key=fn] { font-size: 6pt; }
+#context-menu .cm-localkey span[data-key=control] { font-size: 6pt; width: 6em; }
+#context-menu .cm-localkey span[data-key=alt] { font-size: 6pt; width: 5em; }
+#context-menu .cm-localkey span[data-key=shift] { font-size: 6pt; width: 4em; }
+
+#context-menu ul {
+    margin: 0;
+    border-top: solid 1px var(--dialog-foreground);
+    padding: 2px 0;
+    list-style-type: none;
+}
+#context-menu ul li svg { 
+    width: 10pt; height: 10pt;
+    stroke: var(--dialog-foreground) 
+}
+#context-menu ul li:hover {
+    background: var(--dialog-foreground);
+    color: var(--dialog-background);
+}
+#context-menu ul li:hover svg { stroke: var(--dialog-background); }
+#context-menu ul li.disabled svg { stroke: var(--dialog-foreground); }
 
 /* dialogs */
 dialog, .dialog {
