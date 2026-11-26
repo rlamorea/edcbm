@@ -429,6 +429,7 @@ class Petscii {
         }
         // return a single value if given a char
         if (!alwaysArray && str.length === 1 && petscii.length === 1) { petscii = petscii[0] }
+        if (!alwaysArray && petscii.length === 0) { petscii = null }
         return petscii
     }
 

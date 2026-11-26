@@ -49,6 +49,22 @@ class ContextMenu {
         return code
     }
 
+    static prepTextFromEditorToClipboard(text) {
+        return window.petscii.stringToPetsciiString(text)
+    }
+
+    static prepTextFromClipboardToEditor(text, lowerToUpper = false) {
+        if (lowerToUpper) {
+            let cleanText = ''
+            for (const char of text) {
+                const code = char.charCodeAt(0)
+                cleanText += (code >= 0x60 && code <= 0x7f) ? String.fromCharCode(code - 32) : char
+            }
+            text = cleanText
+        }
+        return window.petscii.petsciiStringToString(text)
+    }
+
     constructor(editor) {
         this.editor = editor
         this.container = document.getElementById('container')
@@ -354,11 +370,13 @@ class ContextMenu {
     async itemSelected(li) {
         const itemName = li.dataset.name
         let handled = true
+        let lowerToUpper = false
         switch (itemName) {
             case 'cut':
             case 'copy':
                 if (this.currentSelection) {
-                    const selText = this.editor.editor.getModel()?.getValueInRange(this.currentSelection)
+                    let selText = this.editor.editor.getModel()?.getValueInRange(this.currentSelection)
+                    selText = ContextMenu.prepTextFromEditorToClipboard(selText)
                     await navigator.clipboard.writeText(selText)
                     if (itemName === 'cut') {
                         this.exitActions = [ { range: this.currentSelection, text: '', forceMoveMarkers: true } ]
@@ -367,10 +385,13 @@ class ContextMenu {
                     }
                 }
                 break
+            case 'paste-caps':
+                lowerToUpper = true
             case 'paste':
                 const replRange = this.currentSelection ?? { startLineNumber: this.charPos.lineNumber, endLineNumber: this.charPos.lineNumber, startColumn: this.charPos.column, endColumn: this.charPos.column }
                 if (this.singleCharSelection) { replRange.endColumn -= 1 }
-                const pasteText = await navigator.clipboard.readText()
+                let pasteText = await navigator.clipboard.readText()
+                pasteText = ContextMenu.prepTextFromClipboardToEditor(pasteText, lowerToUpper)
                 if (pasteText != null & pasteText.length > 0) {
                     this.exitActions = [ { range: replRange, text: pasteText, forceMoveMarkers: true } ]
                     this.charPos = { lineNumber: replRange.endLineNumber, column: replRange.endColumn }
