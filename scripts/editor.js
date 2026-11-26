@@ -201,7 +201,8 @@ class Editor {
             value: '',
             bracketPairColorization: { enabled: false },
             cursorStyle: 'block',
-            contextmenu: false
+            contextmenu: false,
+            guides: { indentation: false }
         })
         document.fonts.ready.then(() => {
             monaco.editor.remeasureFonts()
@@ -213,10 +214,15 @@ class Editor {
             monaco.editor.addKeybindingRule({ keybinding: kb, command: null })            
         }
 
+        const domNode = this.editor.getDomNode()
         this.maximumLineLength = 160
         this.editor.onKeyDown((key) => { this.keyDown(key) })
+        this.editor.onKeyUp((key) => { this.keyUp(key) })
         this.editor.onMouseDown((event) => { this.mouseDown(event) })
-        this.editor.onDidPaste((event) => { this.pasted(event) })
+        this.editor.onDidPaste((event) => { this.handlePaste(event) })
+        this.shiftedPaste = false
+        domNode.addEventListener('cut', (event) => { this.handleCutCopy(event) }, true)
+        domNode.addEventListener('copy', (event) => { this.handleCutCopy(event) }, true)
         document.addEventListener('contextmenu', (e) => { 
             if (e.target.closest('div').id === 'blocker') { e.preventDefault() }
             if (e.target.closest('#container')) { e.preventDefault() }
@@ -326,6 +332,59 @@ class Editor {
         if (handled) { return }
         if (this.debugger) {
             this.debugger.contentChanged(event)
+        }
+    }
+
+    handleCutCopy(event) {
+        const model = this.editor.getModel()
+        const selections = this.editor.getSelections()
+        const clipText = []
+        const edits = []
+
+        selections.forEach((selection) => {
+            let range = selection
+            // empty selection treated as cut line (this is VS behavior -- unclear if it is the right thing for EdCBM yet)
+            if (selection.isEmpty()) {
+                const lineNo = selection.startLineNumber
+                const totalLines = model.getLineCount()
+
+                if (lineNo < totalLines) {
+                    range = new monaco.Range(lineNo, 1, lineNo + 1, 1)
+                } else if (lineNo > 1) {
+                    range = new monaco.Range(lineNo - 1, model.getLineMaxColumn(lineNo - 1), lineNo, model.getLineMaxColumn(lineNo))
+                } else {
+                    range = new monaco.Range(1, 1, 1, model.getLineMaxColumn(1))
+                }
+            }
+
+            clipText.push(model.getValueInRange(range))
+            edits.push({ range, text: '', forceMoveMarkers: true })
+        })
+
+        const clipped = clipText.join('\n')
+
+        event.clipboardData.setData('text/plain', ContextMenu.prepTextFromEditorToClipboard(clipped))
+        event.preventDefault()
+        event.stopPropagation()
+
+        if (event.type === 'cut' && edits.length > 0) {
+            this.editor.pushUndoStop()
+            this.editor.executeEdits('cut', edits)
+            this.editor.pushUndoStop()
+        }
+    }
+
+    handlePaste(event) {
+        const model = this.editor.getModel()
+        const pasted = model.getValueInRange(event.range)
+        console.log('raw pasted')
+        for (const c of pasted) { console.log(c, '(', c.charCodeAt(0).toString(16), ')') }
+
+        let fixed = ContextMenu.prepTextFromClipboardToEditor(pasted, this.shiftedPaste)
+
+        if (fixed !== pasted) {
+            model.popStackElement() // remove last undo stop (?)
+            this.editor.executeEdits('paste-clean', [ { range: event.range, text: fixed, forceMoveMarkers: true } ])
         }
     }
 
@@ -463,6 +522,10 @@ class Editor {
             key.stopPropagation()
             return
         }
+        // deal with shift paste
+        if ((key.ctrlKey || key.metaKey) && key.shiftKey && key.code === 'KeyV') {
+            this.shiftedPaste = true
+        }
         const petscii = window.keymap.getPetsciiForKey(key)
         if (petscii === 0) {
             key.preventDefault()
@@ -503,6 +566,10 @@ class Editor {
             text: petsciiChar,
             forceMoveMarkers: true
         }]);
+    }
+
+    keyUp(key) {
+        if (key.code === 'ShiftLeft' || key.code === 'ShiftRight' || key.code === 'KeyV') { this.shiftedPaste = false }
     }
 
     parseSpecialComment(specialComment, lineNumber, lineContent) {
@@ -715,14 +782,6 @@ class Editor {
     hoveredOver(model, position) {
         if (this.debugger) { return this.debugger.hoveredOver(model, position) }
         return null
-    }
-
-    pasted(event) {
-        console.log('PASTED')
-        console.log(event.range)
-        const model = this.editor.getModel()
-        const text = model.getValueInRange(event.range)
-        console.log(`|${text}|`)
     }
 }
 
