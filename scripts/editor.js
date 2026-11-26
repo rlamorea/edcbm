@@ -456,6 +456,13 @@ class Editor {
             key.stopPropagation()
             return
         }
+        const position = this.editor.getPosition()
+        if (key.code === 'Backquote' && key.ctrlKey) {
+            this.contextMenu.showAtPosition(position)
+            key.preventDefault()
+            key.stopPropagation()
+            return
+        }
         const petscii = window.keymap.getPetsciiForKey(key)
         if (petscii === 0) {
             key.preventDefault()
@@ -463,7 +470,6 @@ class Editor {
             return
         }
         const model = this.editor.getModel()
-        const position = this.editor.getPosition()
         const lineValue = model.getLineContent(position.lineNumber)
         if (lineValue.length >= this.maximumLineLength) {
             key.preventDefault()

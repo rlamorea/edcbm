@@ -55,6 +55,7 @@ class ContextMenu {
         this.editorArea = this.container.querySelector('.editor-scrollable')
         this.editorBox = null
         this.charSize = null
+        this.exitActions = null
         
         this.menu = document.getElementById('context-menu')
         this.menu.style.display = 'none'
@@ -104,10 +105,7 @@ class ContextMenu {
         }
     }
 
-    show(event, chained) {
-        this.charPos = null
-        this.currentSelection = null
-
+    getEditorBox() {
         if (this.editorBox?.left !== this.editorArea.offsetLeft) {
             this.editorBox = {
                 left: this.editorArea.offsetLeft,
@@ -124,8 +122,24 @@ class ContextMenu {
                 height: c1.height
             }
         }
+    }
 
-        this.charPos = this.getCharPos({ x: event.event.relativePos.x, y: event.event.relativePos.y })
+    show(event, chained) {
+        this.charPos = null
+        this.currentSelection = null
+        this.singleCharSelection = false
+        this.exitActions = null
+
+        this.getEditorBox()
+        const charPos = this.getCharPos({ x: event.event.relativePos.x, y: event.event.relativePos.y })
+        this.showAtPosition(charPos, event, chained)
+    }
+
+    showAtPosition(charPos, event, chained) {
+        this.charPos = charPos
+        // dummy event for key-based calls
+        if (event == null) { event = { event: {}, target: { type: monaco.editor.MouseTargetType.CONTENT_TEXT, detail: {} } } }
+        this.getEditorBox()
         const menuPos = {
             left: this.editorBox.left + this.charPos.column * this.charSize.width,
             top: this.editorBox.top + this.charPos.lineNumber * this.charSize.height
@@ -133,21 +147,37 @@ class ContextMenu {
 
         const currentSelections = this.editor.editor.getSelections()
         let inSelection = false
-        let singleCharSelection = false
+        this.singleCharSelection = false
         for (const selection of currentSelections) {
             if (selection.containsPosition(this.charPos)) {
                 inSelection = true
-                singleCharSelection = (selection.startLineNumber === selection.endLineNumber) && (selection.endColumn === selection.startColumn)
+                this.singleCharSelection = (selection.startLineNumber === selection.endLineNumber) && (selection.endColumn === selection.startColumn)
                 this.currentSelection = selection
+                if (this.singleCharSelection) { selection.endColumn += 1 }
                 break
             }
         }
-        if (currentSelections.length > 1 && singleCharSelection) { singleCharSelection = false }
+        if (!inSelection) {
+            this.singleCharSelection = true
+            this.currentSelection = new monaco.Range(this.charPos.lineNumber, this.charPos.column, this.charPos.lineNumber, this.charPos.column + 1)
+            this.editor.editor.setPosition(this.charPos) // clear current selection in editor
+        }
 
         this.charDisplay.style.display = 'none'
 
-        if (event.target.type === monaco.editor.MouseTargetType.CONTENT_TEXT) {
-            this.textContext(event, this.charPos, inSelection, singleCharSelection)
+        let isText = false
+        if (event.target && event.target.type === monaco.editor.MouseTargetType.CONTENT_TEXT) {
+            isText = true
+        } else if (event.target == null) { // coming from a reposition
+            const model = this.editor.editor.getModel()
+            try {
+                const line = model.getLineContent(this.charPos.lineNumber)
+                if (line[this.charPos.column-1] != null) { isText = true }
+            } catch (TypeError) { /* out of bounds, so eat it */  }
+        }
+
+        if (isText) {
+            this.textContext(event, this.charPos, inSelection)
         }
         this.clipboardContext(event, inSelection)
 
@@ -175,8 +205,8 @@ class ContextMenu {
         this.menu.focus()
     }
 
-    textContext(event, charPos, inSelection, singleCharSelection) {
-        if (event.target.detail.mightBeForeignElement) {
+    textContext(event, charPos, inSelection) {
+        if (event.target?.detail?.mightBeForeignElement) {
             // TODO: handle click on inline annotation -- this is a variable thing
             return
         }
@@ -187,7 +217,7 @@ class ContextMenu {
         const char = model.getValueInRange(new monaco.Range(charPos.lineNumber, charPos.column, charPos.lineNumber, charPos.column + 1))
         const petscii = window.petscii.stringToPetscii(char)
 
-        if (!inSelection || singleCharSelection) {
+        if (!inSelection || this.singleCharSelection) {
             this.debugChar(model, charPos, petscii)
         }
 
@@ -197,10 +227,10 @@ class ContextMenu {
         }
     }
 
-    clipboardContext(event, inSelection) {
+    clipboardContext(event) {
         this.cliboardMenu.querySelectorAll('li').forEach((e) => {
             if (e.dataset.name === 'paste') { return }
-            e.classList.toggle('disabled', !inSelection)
+            e.classList.toggle('disabled', (this.currentSelection == null))
         })
     }
 
@@ -296,6 +326,10 @@ class ContextMenu {
         }
         window.menu.setKeyHandler()
         this.editor.enableEditor()
+        if (this.exitActions) {
+            this.editor.editor.executeEdits("", this.exitActions)
+            this.exitActions = null
+        }
         if (event && event.pageX) {
             event.preventDefault()
             event.stopPropagation()
@@ -317,16 +351,30 @@ class ContextMenu {
         return false
     }
 
-    itemSelected(li) {
+    async itemSelected(li) {
         const itemName = li.dataset.name
         let handled = true
         switch (itemName) {
             case 'cut':
             case 'copy':
+                if (this.currentSelection) {
+                    const selText = this.editor.editor.getModel()?.getValueInRange(this.currentSelection)
+                    await navigator.clipboard.writeText(selText)
+                    if (itemName === 'cut') {
+                        this.exitActions = [ { range: this.currentSelection, text: '', forceMoveMarkers: true } ]
+                        this.charPos = this.currentSelection.getStartPosition()
+                        this.currentSelection = null
+                    }
+                }
+                break
             case 'paste':
-                const action = `editor.action.clipboard${li.innerText}Action`
-                this.editor.editor.focus()
-                this.editor.editor.trigger('keyboard', action)
+                const replRange = this.currentSelection ?? { startLineNumber: this.charPos.lineNumber, endLineNumber: this.charPos.lineNumber, startColumn: this.charPos.column, endColumn: this.charPos.column }
+                if (this.singleCharSelection) { replRange.endColumn -= 1 }
+                const pasteText = await navigator.clipboard.readText()
+                if (pasteText != null & pasteText.length > 0) {
+                    this.exitActions = [ { range: replRange, text: pasteText, forceMoveMarkers: true } ]
+                    this.charPos = { lineNumber: replRange.endLineNumber, column: replRange.endColumn }
+                }
                 break
             default:
                 handled = false
